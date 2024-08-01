@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Schema;
 
+use App\Entity\Account\AccountDefinition;
 use DateTimeImmutable;
 use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
@@ -211,41 +212,53 @@ class EntitySchemaBuilder extends SchemaBuilder
         $queries['query'] = rtrim($queries['query'], ', ');
         $queries['query'] .= ' FROM ' . $this->getTableName();
 
-        $where = ' WHERE';
         $limit = '';
 
         if($criteria->getLimit() > 0) {
             $limit = ' LIMIT ' . $criteria->getLimit();
         }
 
+        $equalsFilter = '';
+        $equalsAnyFilter = '';
+
         $index = 0;
         foreach ($criteria->getFilters() as $filter) {
             switch (get_class($filter)) {
                 case EqualsFilter::class:
-                    if($where != ' WHERE') {
-                        $where .= ' AND ';
+                    if($equalsFilter != '') {
+                        $equalsFilter .= ' AND ';
                     }else{
-                        $where .= ' ';
+                        $equalsFilter .= ' ';
                     }
 
-                    $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
+                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
                     $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
                     $index++;
                     break;
                 case EqualsAnyFilter::class:
                     foreach ($filter->getValues() as $value) {
-                        if($where != ' WHERE') {
-                            $where .= ' OR ';
+                        if($equalsAnyFilter != '') {
+                            $equalsAnyFilter .= ' OR ';
                         }else{
-                            $where .= ' ';
+                            $equalsAnyFilter .= ' ';
                         }
 
-                        $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
+                        $equalsAnyFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
                         $queries['parameters'][':' . $filter->getProperty() . $index] = $value;
                         $index++;
                     }
                     break;
             }
+        }
+
+        $where = ' WHERE';
+
+        if($equalsFilter !== '') {
+            $where .= $equalsFilter;
+        }
+
+        if($equalsAnyFilter !== '') {
+            $where .= $equalsAnyFilter;
         }
 
         if($where !== ' WHERE') {
