@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Trait;
+namespace NewDavis\DatabaseManagement\Core\Entity\Trait;
 
 trait UpdatedAtTrait
 {

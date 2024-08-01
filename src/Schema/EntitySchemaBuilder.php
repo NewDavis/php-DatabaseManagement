@@ -1,18 +1,18 @@
 <?php
 
-namespace DatabaseManagement\Schema;
+namespace NewDavis\DatabaseManagement\Schema;
 
-use DatabaseManagement\Core\Criteria\Criteria;
-use DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
-use DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
-use DatabaseManagement\Core\Entity\Entity;
-use DatabaseManagement\Core\Entity\EntityRepository;
-use DatabaseManagement\Core\Entity\Property\Property;
-use DatabaseManagement\Core\Entity\Property\Relation\ManyToManyProperty;
-use DatabaseManagement\Core\Entity\Property\Relation\ManyToOneProperty;
-use DatabaseManagement\Core\Entity\Property\Relation\OneToManyProperty;
-use DatabaseManagement\Core\Entity\Property\Relation\OneToOneProperty;
-use DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
+use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
+use NewDavis\DatabaseManagement\Core\Entity\Entity;
+use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Property;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\ManyToManyProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\ManyToOneProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\OneToManyProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\OneToOneProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
 use Doctrine\ORM\Mapping\OneToMany;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\Container;

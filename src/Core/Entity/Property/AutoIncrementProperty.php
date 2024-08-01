@@ -1,9 +1,9 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Property;
+namespace NewDavis\DatabaseManagement\Core\Entity\Property;
 
-use DatabaseManagement\Core\Entity\Property\Flags\AutoIncrement;
-use DatabaseManagement\Core\Entity\Property\Flags\PrimaryKey;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\AutoIncrement;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\PrimaryKey;
 
 class AutoIncrementProperty extends Property
 {

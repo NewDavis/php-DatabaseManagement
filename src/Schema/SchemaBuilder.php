@@ -1,16 +1,16 @@
 <?php
 
-namespace DatabaseManagement\Schema;
+namespace NewDavis\DatabaseManagement\Schema;
 
-use DatabaseManagement\Core\Entity\Entity;
-use DatabaseManagement\Core\Entity\EntityDefinition;
-use DatabaseManagement\Core\Entity\Property\CreatedAtProperty;
-use DatabaseManagement\Core\Entity\Property\IdProperty;
-use DatabaseManagement\Core\Entity\Property\Property;
-use DatabaseManagement\Core\Entity\Property\Relation\ManyToManyProperty;
-use DatabaseManagement\Core\Entity\Property\Relation\OneToManyProperty;
-use DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
-use DatabaseManagement\Core\Entity\Property\UpdatedAtProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Entity;
+use NewDavis\DatabaseManagement\Core\Entity\EntityDefinition;
+use NewDavis\DatabaseManagement\Core\Entity\Property\CreatedAtProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\IdProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Property;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\ManyToManyProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\OneToManyProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\UpdatedAtProperty;
 use DateTime;
 use Doctrine\ORM\Mapping\OneToMany;
 use ReflectionClass;

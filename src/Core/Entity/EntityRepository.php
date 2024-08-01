@@ -1,12 +1,12 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity;
+namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use DatabaseManagement\Core\Criteria\Criteria;
-use DatabaseManagement\Core\Driver\Connection;
-use DatabaseManagement\Core\Entity\Property\Property;
-use DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
-use DatabaseManagement\Schema\EntitySchemaBuilder;
+use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Core\Driver\Connection;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Property;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
+use NewDavis\DatabaseManagement\Schema\EntitySchemaBuilder;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Property\Relation;
+namespace NewDavis\DatabaseManagement\Core\Entity\Property\Relation;
 
-use DatabaseManagement\Core\Entity\Property\Property;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Property;
 
 class RelationProperty extends Property
 {

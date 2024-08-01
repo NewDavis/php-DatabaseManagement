@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseManagement\Core\Criteria\Filter;
+namespace NewDavis\DatabaseManagement\Core\Criteria\Filter;
 
 interface Filter
 {

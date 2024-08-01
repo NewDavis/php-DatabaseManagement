@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseManagement\Core;
+namespace NewDavis\DatabaseManagement\Core;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

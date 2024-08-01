@@ -1,10 +1,10 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Property;
+namespace NewDavis\DatabaseManagement\Core\Entity\Property;
 
-use DatabaseManagement\Core\Entity\Property\Flags\PrimaryKey;
-use DatabaseManagement\Core\Entity\Property\Flags\Required;
-use DatabaseManagement\Core\Entity\Property\Flags\Unique;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\PrimaryKey;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\Required;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\Unique;
 
 class IdProperty extends Property
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Property\Flags;
+namespace NewDavis\DatabaseManagement\Core\Entity\Property\Flags;
 
 class AutoIncrement implements Flag
 {

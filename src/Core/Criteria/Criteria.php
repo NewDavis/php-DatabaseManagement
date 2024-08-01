@@ -1,8 +1,8 @@
 <?php
 
-namespace DatabaseManagement\Core\Criteria;
+namespace NewDavis\DatabaseManagement\Core\Criteria;
 
-use DatabaseManagement\Core\Criteria\Filter\Filter;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\Filter;
 
 class Criteria
 {

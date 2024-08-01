@@ -1,8 +1,8 @@
 <?php
 
-namespace DatabaseManagement\Core\Driver;
+namespace NewDavis\DatabaseManagement\Core\Driver;
 
-use DatabaseManagement\Core\Entity\EntityRepository;
+use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
 use Doctrine\DBAL\Driver\PDO\PDOException;
 use PDO;
 use Symfony\Component\DependencyInjection\Container;

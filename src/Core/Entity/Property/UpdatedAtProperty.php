@@ -1,8 +1,8 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Property;
+namespace NewDavis\DatabaseManagement\Core\Entity\Property;
 
-use DatabaseManagement\Core\Entity\Property\Flags\Nullable;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\Nullable;
 
 class UpdatedAtProperty extends Property
 {

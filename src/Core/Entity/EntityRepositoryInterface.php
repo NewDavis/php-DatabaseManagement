@@ -1,8 +1,8 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity;
+namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use DatabaseManagement\Core\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
 
 interface EntityRepositoryInterface
 {

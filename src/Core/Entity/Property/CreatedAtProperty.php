@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Property;
+namespace NewDavis\DatabaseManagement\Core\Entity\Property;
 
 class CreatedAtProperty extends Property
 {

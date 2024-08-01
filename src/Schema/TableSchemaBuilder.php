@@ -1,19 +1,19 @@
 <?php
 
-namespace DatabaseManagement\Schema;
+namespace NewDavis\DatabaseManagement\Schema;
 
-use DatabaseManagement\Core\Entity\Entity;
-use DatabaseManagement\Core\Entity\EntityDefinition;
-use DatabaseManagement\Core\Entity\EntityRepository;
-use DatabaseManagement\Core\Entity\Property\Flags\AutoIncrement;
-use DatabaseManagement\Core\Entity\Property\Flags\Nullable;
-use DatabaseManagement\Core\Entity\Property\Flags\PrimaryKey;
-use DatabaseManagement\Core\Entity\Property\Flags\Required;
-use DatabaseManagement\Core\Entity\Property\Flags\Unique;
-use DatabaseManagement\Core\Entity\Property\Property;
-use DatabaseManagement\Core\Entity\Property\Relation\ManyToManyProperty;
-use DatabaseManagement\Core\Entity\Property\Relation\OneToManyProperty;
-use DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Entity;
+use NewDavis\DatabaseManagement\Core\Entity\EntityDefinition;
+use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\AutoIncrement;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\Nullable;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\PrimaryKey;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\Required;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\Unique;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Property;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\ManyToManyProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\OneToManyProperty;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
 
 class TableSchemaBuilder extends SchemaBuilder
 {

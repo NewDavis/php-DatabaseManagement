@@ -2,7 +2,7 @@
 
 namespace DatabaseManagement\Core\Entity;
 
-use DatabaseManagement\Core\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
 
 interface EntityCollectionInterface
 {

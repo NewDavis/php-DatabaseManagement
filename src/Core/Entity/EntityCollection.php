@@ -1,10 +1,10 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity;
+namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use DatabaseManagement\Core\Criteria\Criteria;
-use DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
-use DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
+use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
 use Generator;
 use IteratorAggregate;
 use ReflectionClass;

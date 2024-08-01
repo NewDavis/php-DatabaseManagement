@@ -1,0 +1,16 @@
+{
+  "name": "newdavis/database-management",
+  "description": "Custom ORM Bundle made for Symfony. Easily create your database entities and use them object oriented in your code.",
+  "type": "symfony-bundle",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "NewDavis\\DatabaseManagement\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "NewDavis\\DatabaseManagement\\Tests\\": "tests/"
+    }
+  }
+}

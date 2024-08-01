@@ -1,9 +1,9 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Property\Relation;
+namespace NewDavis\DatabaseManagement\Core\Entity\Property\Relation;
 
-use DatabaseManagement\Core\Entity\Property\Flags\Required;
-use DatabaseManagement\Core\Entity\Property\Flags\Unique;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\Required;
+use NewDavis\DatabaseManagement\Core\Entity\Property\Flags\Unique;
 
 class OneToOneProperty extends RelationProperty
 {

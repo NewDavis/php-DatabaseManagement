@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity\Property\Relation;
+namespace NewDavis\DatabaseManagement\Core\Entity\Property\Relation;
 
 class OneToManyProperty extends RelationProperty
 {

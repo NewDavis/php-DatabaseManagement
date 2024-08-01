@@ -1,8 +1,8 @@
 <?php
 
-namespace DatabaseManagement;
+namespace NewDavis\DatabaseManagement;
 
-use DatabaseManagement\Core\DatabaseManagementExtension;
+use NewDavis\DatabaseManagement\Core\DatabaseManagementExtension;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 

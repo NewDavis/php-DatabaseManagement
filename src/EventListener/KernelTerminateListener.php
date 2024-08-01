@@ -1,8 +1,8 @@
 <?php
 
-namespace DatabaseManagement\EventListener;
+namespace NewDavis\DatabaseManagement\EventListener;
 
-use DatabaseManagement\Core\Driver\Connection;
+use NewDavis\DatabaseManagement\Core\Driver\Connection;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;

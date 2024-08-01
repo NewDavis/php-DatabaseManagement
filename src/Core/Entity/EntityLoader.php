@@ -1,8 +1,8 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity;
+namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use DatabaseManagement\Core\Driver\Connection;
+use NewDavis\DatabaseManagement\Core\Driver\Connection;
 use DirectoryIterator;
 use SplFileInfo;
 use Symfony\Component\DependencyInjection\Container;

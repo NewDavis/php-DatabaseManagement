@@ -1,10 +1,10 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity;
+namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use DatabaseManagement\Core\Entity\Trait\CreatedAtTrait;
-use DatabaseManagement\Core\Entity\Trait\IdTrait;
-use DatabaseManagement\Core\Entity\Trait\UpdatedAtTrait;
+use NewDavis\DatabaseManagement\Core\Entity\Trait\CreatedAtTrait;
+use NewDavis\DatabaseManagement\Core\Entity\Trait\IdTrait;
+use NewDavis\DatabaseManagement\Core\Entity\Trait\UpdatedAtTrait;
 use Ramsey\Uuid\Uuid;
 
 class Entity implements EntityInterface
