@@ -11,6 +11,11 @@ class Criteria
     private array $filters = [];
     private array $relations = [];
 
+    public function __construct(int $limit = -1, array $filters = [])
+    {
+        $this->limit = $limit;
+    }
+
     public function addFilter(Filter $filter) : static
     {
         $this->filters[] = $filter;

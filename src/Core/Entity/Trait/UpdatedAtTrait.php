@@ -2,18 +2,21 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity\Trait;
 
+use DateTimeImmutable;
+
 trait UpdatedAtTrait
 {
 
-    protected ?float $updated_at = null;
+    protected ?DateTimeImmutable $updated_at = null;
 
-    public function setUpdatedAt(float $updatedAt): static
+    public function setUpdatedAt(DateTimeImmutable $updatedAt): static
     {
         $this->updated_at = $updatedAt;
+
         return $this;
     }
 
-    public function getUpdatedAt(): float
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updated_at;
     }

@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Schema;
 
+use DateTimeImmutable;
 use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
 use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
@@ -13,13 +14,14 @@ use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\ManyToOneProperty;
 use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\OneToManyProperty;
 use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\OneToOneProperty;
 use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
-use Doctrine\ORM\Mapping\OneToMany;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class EntitySchemaBuilder extends SchemaBuilder
 {
+
+    public const DATE_TIME_FORMAT = 'Y-m-d H:i:s.u';
 
     private static int $maximumNestingDepth = 10;
 
@@ -64,13 +66,17 @@ class EntitySchemaBuilder extends SchemaBuilder
         foreach ($properties as $property) {
             if(!(array_key_exists($property->getProperty(), $propertyValues))) continue;
 
+            $value = $propertyValues[$property->getProperty()];
+
+            if(!isset($value)) continue;
+
             $databaseProperties .= $this->convertToDatabaseProperty($property) . ', ';
             $databaseParameters .= ':' . $this->convertToDatabaseProperty($property) . ', ';
 
-            $value = $propertyValues[$property->getProperty()];
-
             if($value instanceof Entity) {
                 $value = $value->getId();
+            }else if($value instanceof DateTimeImmutable) {
+                $value = $value->format(self::DATE_TIME_FORMAT);
             }
 
             $queries[$table]['parameters'][':' . $this->convertToDatabaseProperty($property)] = $value;
@@ -110,8 +116,12 @@ class EntitySchemaBuilder extends SchemaBuilder
 
             $value = $propertyValues[$property->getProperty()];
 
+            if(!isset($value)) continue;
+
             if($value instanceof Entity) {
                 $value = $value->getId();
+            }else if($value instanceof DateTimeImmutable) {
+                $value = $value->format(self::DATE_TIME_FORMAT);
             }
 
             $queries[$table]['query'] .= $this->convertToDatabaseProperty($property) . ' = :' . $this->convertToDatabaseProperty($property) . ', ';
@@ -213,7 +223,7 @@ class EntitySchemaBuilder extends SchemaBuilder
             switch (get_class($filter)) {
                 case EqualsFilter::class:
                     if($where != ' WHERE') {
-                        $where .= ' OR ';
+                        $where .= ' AND ';
                     }else{
                         $where .= ' ';
                     }
@@ -327,7 +337,7 @@ class EntitySchemaBuilder extends SchemaBuilder
             switch (get_class($filter)) {
                 case EqualsFilter::class:
                     if($where != ' WHERE') {
-                        $where .= ' OR ';
+                        $where .= ' AND ';
                     }else{
                         $where .= ' ';
                     }

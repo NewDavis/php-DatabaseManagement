@@ -2,18 +2,21 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity\Trait;
 
+use DateTimeImmutable;
+
 trait CreatedAtTrait
 {
 
-    protected ?float $created_at;
+    protected ?DateTimeImmutable $created_at;
 
-    public function setCreatedAt(float $createdAt): static
+    public function setCreatedAt(DateTimeImmutable $createdAt): static
     {
         $this->created_at = $createdAt;
+
         return $this;
     }
 
-    public function getCreatedAt(): float
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->created_at;
     }

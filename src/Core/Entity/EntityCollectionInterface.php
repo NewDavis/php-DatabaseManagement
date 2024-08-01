@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseManagement\Core\Entity;
+namespace NewDavis\DatabaseManagement\Core\Entity;
 
 use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
 

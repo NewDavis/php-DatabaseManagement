@@ -5,8 +5,6 @@ namespace NewDavis\DatabaseManagement\Core\Entity;
 interface EntityInterface
 {
 
-    public function getDefinitionClass(): string|null;
-
-    public function jsonSerialize(): array;
+    public static function getDefinitionClass(): string|null;
 
 }

@@ -2,7 +2,10 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
+use DateTimeImmutable;
 use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
 use NewDavis\DatabaseManagement\Core\Driver\Connection;
 use NewDavis\DatabaseManagement\Core\Entity\Property\Property;
 use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
@@ -170,6 +173,9 @@ class EntityRepository implements EntityRepositoryInterface
                         $reflectionProperty->setValue($entity, $result[0]);
                         break;
                 }
+            }else if($reflectionProperty->getType()->getName() === DateTimeImmutable::class) {
+                $dateTime = DateTimeImmutable::createFromFormat(EntitySchemaBuilder::DATE_TIME_FORMAT, $value);
+                $reflectionProperty->setValue($entity, $dateTime);
             }else{
                 $reflectionProperty->setValue($entity, $value);
             }
@@ -199,6 +205,19 @@ class EntityRepository implements EntityRepositoryInterface
     private function getEntityRepositoryByProperty(RelationProperty $relationProperty) : EntityRepository
     {
         return $this->container->get($relationProperty->getReferencedEntity() . '.repository');
+    }
+
+    public function searchBy(string $property, mixed $value): EntityCollection
+    {
+        $criteria = new Criteria();
+
+        if(is_array($value)) {
+            $criteria->addFilter(new EqualsAnyFilter($property, $value));
+        }else{
+            $criteria->addFilter(new EqualsFilter($property, $value));
+        }
+
+        return $this->search($criteria);
     }
 
     public function searchAll(): EntityCollection
@@ -247,4 +266,5 @@ class EntityRepository implements EntityRepositoryInterface
 
         return $count;
     }
+
 }

@@ -2,12 +2,13 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
+use DateTimeImmutable;
 use NewDavis\DatabaseManagement\Core\Entity\Trait\CreatedAtTrait;
 use NewDavis\DatabaseManagement\Core\Entity\Trait\IdTrait;
 use NewDavis\DatabaseManagement\Core\Entity\Trait\UpdatedAtTrait;
 use Ramsey\Uuid\Uuid;
 
-class Entity implements EntityInterface
+class Entity
 {
 
     private bool $persisted;
@@ -17,8 +18,8 @@ class Entity implements EntityInterface
     {
         $this->persisted = $persisted;
         $this->id = Uuid::uuid4()->toString();
-        $this->created_at = round(1000 * microtime(true));
-        $this->updated_at = round(1000 * microtime(true));
+        $this->created_at = new DateTimeImmutable();
+        $this->updated_at = new DateTimeImmutable();
     }
 
     use IdTrait;
@@ -40,12 +41,7 @@ class Entity implements EntityInterface
         return $this->delete;
     }
 
-    public function getDefinitionClass(): string|null
-    {
-        return null;
-    }
-
-    public function jsonSerialize(): array
+    public function jsonSerialize(bool $subSerialize = true, int $nestingDepth = 0, int $maxNestingDepth = 10): array
     {
         $properties = [];
 

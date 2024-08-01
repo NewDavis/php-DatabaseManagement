@@ -7,8 +7,7 @@ class CreatedAtProperty extends Property
 
     public function __construct()
     {
-        //parent::__construct('created_at', 'DATETIME', 3);
-        parent::__construct('created_at', 'VARCHAR', 25);
+        parent::__construct('created_at', 'DATETIME', 3);
     }
 
 }

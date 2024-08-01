@@ -12,7 +12,6 @@ use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\OneToManyProperty;
 use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
 use NewDavis\DatabaseManagement\Core\Entity\Property\UpdatedAtProperty;
 use DateTime;
-use Doctrine\ORM\Mapping\OneToMany;
 use ReflectionClass;
 
 class SchemaBuilder

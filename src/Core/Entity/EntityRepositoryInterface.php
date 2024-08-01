@@ -15,6 +15,8 @@ interface EntityRepositoryInterface
 
     public function search(Criteria $criteria) : EntityCollection;
 
+    public function searchBy(string $property, mixed $value) : EntityCollection;
+
     public function searchAll() : EntityCollection;
 
     public function searchIds(Criteria $criteria) : array;
