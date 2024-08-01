@@ -2,69 +2,29 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use NewDavis\DatabaseManagement\Core\Driver\Connection;
-use DirectoryIterator;
-use SplFileInfo;
 use Symfony\Component\DependencyInjection\Container;
 
 class EntityLoader
 {
 
-    private const ENTITY_PATH = 'DatabaseManagement' . DIRECTORY_SEPARATOR . 'Entity';
-    private string $entityPath = 'DatabaseManagement/src/Entity';
+    public const REPOSITORY_EXTENSION = '.repository';
+    public const SCHEMA_EXTENSION = '.schema';
 
-    public function __construct(private readonly Container $container,
-                                private readonly string $projectRoot)
+    private static ?EntityLoader $instance = null;
+
+    public function __construct(private readonly Container $container)
     {
-        $this->entityPath = $this->projectRoot . '/' . $this->entityPath;
+        self::$instance = $this;
     }
 
-    public function registerEntityRepositories()
+    public function getEntityRepositoryByEntityName(string $entityName) : EntityRepository|null
     {
-        foreach ($this->getEntityDefinitionClassesInDirectory($this->entityPath) as $entityDefinitionClass) {
-            $entityDefinition = new $entityDefinitionClass();
-            if(!($entityDefinition instanceof EntityDefinition)) continue;
-
-            $this->container->register($entityDefinition->getEntityName() . '.definition', $entityDefinitionClass);
-
-            $entityRepository = new EntityRepository(
-                $this->container->get($entityDefinition->getEntityName() . '.definition'),
-                $this->container->get(Connection::class)
-            );
-
-            $this->container->set($entityDefinition->getEntityName() . '.repository', $entityRepository);
-        }
+        return $this->container->get($entityName . self::REPOSITORY_EXTENSION);
     }
 
-    private function getEntityDefinitionClassesInDirectory($directory)
+    public static function getEntityLoader() : EntityLoader
     {
-        $classes = [];
-
-        // Iterate through the directory
-        $iterator = new DirectoryIterator($directory);
-        foreach ($iterator as $path) {
-            if(!($path instanceof SplFileInfo)) continue;
-            if($path->getFilename() === '.' || $path->getFilename() === '..') continue;
-            $directoryIterator = new DirectoryIterator($path->getRealPath());
-
-            $entityFolderName = $path->getFilename();
-
-            foreach ($directoryIterator as $file) {
-                if(!($file instanceof SplFileInfo)) continue;
-                if($file->isFile() && $file->getExtension() === 'php') {
-                    $classPath = self::ENTITY_PATH . DIRECTORY_SEPARATOR . $entityFolderName . DIRECTORY_SEPARATOR . $file->getFileInfo()->getFilename();
-                    $classPath = str_replace('.php', '', $classPath);
-
-                    if(!str_ends_with($classPath, 'Definition')) continue;
-
-                    if(!class_exists($classPath)) continue;
-
-                    $classes[] = $classPath;
-                }
-            }
-        }
-
-        return $classes;
+        return self::$instance;
     }
 
 }
