@@ -2,7 +2,6 @@
 
 namespace DatabaseManagement\Core\Driver;
 
-use DatabaseManagement\Core\Entity\EntityCollection;
 use DatabaseManagement\Core\Entity\EntityRepository;
 use Doctrine\DBAL\Driver\PDO\PDOException;
 use PDO;
@@ -15,7 +14,7 @@ class Connection
 
     public function __construct(private Container $container)
     {
-        $databaseUrl = $_ENV['TEST_DATABASE_URL'];
+        $databaseUrl = $_ENV['DATABASE_URL'];
 
         $parsedUrl = parse_url($databaseUrl);
 

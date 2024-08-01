@@ -125,6 +125,18 @@ class EntityCollection implements \Countable, IteratorAggregate, EntityCollectio
         return $collection;
     }
 
+    public function searchBy(string $property, mixed $value) : EntityCollection
+    {
+        $criteria = new Criteria();
+        if(is_array($value)) {
+            $criteria->addFilter(new EqualsAnyFilter($property, $value));
+        }else{
+            $criteria->addFilter(new EqualsFilter($property, $value));
+        }
+
+        return $this->search($criteria);
+    }
+
     public function searchId($id) : string|null
     {
         if(!array_key_exists($id, $this->entities)) return null;
