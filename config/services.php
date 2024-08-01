@@ -14,9 +14,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(Connection::class, Connection::class)
         ->arg('$container', service('service_container'));
 
-    $services->set(EntityLoader::class, EntityLoader::class)
-        ->arg('$container', service('service_container'));
-
     $services->set(KernelTerminateListener::class, KernelTerminateListener::class)
         ->arg('$connection', service(Connection::class))
         ->tag('kernel.event_subscriber');

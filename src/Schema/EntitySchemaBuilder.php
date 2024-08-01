@@ -225,6 +225,8 @@ class EntitySchemaBuilder extends SchemaBuilder
         foreach ($criteria->getFilters() as $filter) {
             switch (get_class($filter)) {
                 case EqualsFilter::class:
+                    if(isset($filter->getValue())) break;
+
                     if($equalsFilter != '') {
                         $equalsFilter .= ' AND ';
                     }else{
@@ -236,6 +238,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                     $index++;
                     break;
                 case EqualsAnyFilter::class:
+                    if(count($filter->getValues()) == 0) break;
+
                     foreach ($filter->getValues() as $value) {
                         if($equalsAnyFilter != '') {
                             $equalsAnyFilter .= ' OR ';
@@ -292,6 +296,8 @@ class EntitySchemaBuilder extends SchemaBuilder
         foreach ($criteria->getFilters() as $filter) {
             switch (get_class($filter)) {
                 case EqualsFilter::class:
+                    if(is_string($filter->getValue()) && $filter->getValue() === '') break;
+
                     if($where != ' WHERE') {
                         $where .= ' OR ';
                     }else{
@@ -303,6 +309,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                     $index++;
                     break;
                 case EqualsAnyFilter::class:
+                    if(count($filter->getValues()) == 0) break;
+
                     foreach ($filter->getValues() as $value) {
                         if($where != ' WHERE') {
                             $where .= ' OR ';
