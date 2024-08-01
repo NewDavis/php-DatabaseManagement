@@ -1,0 +1,28 @@
+<?php
+
+namespace DatabaseManagement\Core\Entity\Property\Relation;
+
+use DatabaseManagement\Core\Entity\Property\Flags\Required;
+use DatabaseManagement\Core\Entity\Property\Flags\Unique;
+
+class OneToOneProperty extends RelationProperty
+{
+
+    private string $referencedProperty;
+
+    public function __construct(string $property, string $referencedProperty, string $referencedEntity, bool $autoLoad = true, array $flags = [new Required(), new Unique()])
+    {
+        parent::__construct($property, $referencedEntity, 36, $autoLoad, $flags);
+
+        $this->referencedProperty = $referencedProperty;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReferencedProperty(): string
+    {
+        return $this->referencedProperty;
+    }
+
+}
