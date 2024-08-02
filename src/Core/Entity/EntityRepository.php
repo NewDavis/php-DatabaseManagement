@@ -79,11 +79,11 @@ class EntityRepository implements EntityRepositoryInterface
         $this->persistMemory = [];
     }
 
-    public function search(Criteria $criteria): EntityCollection
+    public function search(Criteria $criteria, bool $debug = false): EntityCollection
     {
         $entitySchemaBuilder = EntitySchemaBuilder::getEntitySchemaBuilder($this, null, $this->container);
 
-        $queryData = $entitySchemaBuilder->search($criteria);
+        $queryData = $entitySchemaBuilder->search($criteria, $debug);
 
         $result = $this->connection->prepare($queryData['query'], $queryData['parameters']);
 
@@ -114,10 +114,11 @@ class EntityRepository implements EntityRepositoryInterface
         $reflectionEntity = new ReflectionClass($entity);
 
         foreach ($entityData as $property => $value) {
-            if(str_ends_with($property, '_id')) continue;
             if(!isset($value)) continue;
 
             if(!$reflectionEntity->hasProperty($property)) {
+                if(str_ends_with($property, '_id')) continue;
+
                 throw new \InvalidArgumentException("Property '$property' does not exist in class '". get_class($entity) . "'");
             }
 
@@ -207,17 +208,17 @@ class EntityRepository implements EntityRepositoryInterface
         return $this->container->get($relationProperty->getReferencedEntity() . '.repository');
     }
 
-    public function searchBy(string $property, mixed $value): EntityCollection
+    public function searchBy(string $property, mixed $value, bool $debug = false): EntityCollection
     {
         $criteria = new Criteria();
 
         if(is_array($value)) {
             $criteria->addFilter(new EqualsAnyFilter($property, $value));
-        }else{
+        } else {
             $criteria->addFilter(new EqualsFilter($property, $value));
         }
 
-        return $this->search($criteria);
+        return $this->search($criteria, $debug);
     }
 
     public function searchAll(): EntityCollection

@@ -53,8 +53,7 @@ class Entity
             $nesting = !$nesting;
         }
 
-        $json['entity'] = $this->convertEntityClassName($this);
-        $json['entity_name'] = $this->getDefinitionClass()::ENTITY_NAME;
+        $json['entity'] = $this->getDefinitionClass()::ENTITY_NAME;
 
         foreach ($reflectionClass->getProperties() as $property) {
             $value = null;

@@ -7,6 +7,7 @@ use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
 use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
 use Generator;
 use IteratorAggregate;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\NotEqualsFilter;
 use ReflectionClass;
 use ReturnTypeWillChange;
 
@@ -108,6 +109,21 @@ class EntityCollection implements \Countable, IteratorAggregate, EntityCollectio
                                 $success = false;
                                 break;
                             }
+                        }
+                        break;
+                    case NotEqualsFilter::class:
+                        $reflectionProperty = $reflectionEntity->getProperty($filter->getProperty());
+
+                        if (!$reflectionProperty->isInitialized($entity)) {
+                            $success = false;
+                            break;
+                        }
+
+                        $reflectionPropertyValue = $reflectionProperty->getValue($entity);
+
+                        if ($filter->getValue() === $reflectionPropertyValue) {
+                            $success = false;
+                            break;
                         }
                         break;
                 }

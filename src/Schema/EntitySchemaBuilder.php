@@ -7,6 +7,7 @@ use DateTimeImmutable;
 use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
 use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
+use NewDavis\DatabaseManagement\Core\Criteria\Filter\NotEqualsFilter;
 use NewDavis\DatabaseManagement\Core\Entity\Entity;
 use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
 use NewDavis\DatabaseManagement\Core\Entity\Property\Property;
@@ -188,7 +189,7 @@ class EntitySchemaBuilder extends SchemaBuilder
         return $queries;
     }
 
-    public function search(Criteria $criteria) : array
+    public function search(Criteria $criteria, bool $debug = false) : array
     {
         $queries = [];
 
@@ -225,7 +226,9 @@ class EntitySchemaBuilder extends SchemaBuilder
         foreach ($criteria->getFilters() as $filter) {
             switch (get_class($filter)) {
                 case EqualsFilter::class:
-                    if(isset($filter->getValue())) break;
+                    $value = $filter->getValue();
+                    if($value == null ||
+                        (is_string($value) && $value == '')) break;
 
                     if($equalsFilter != '') {
                         $equalsFilter .= ' AND ';
@@ -241,6 +244,9 @@ class EntitySchemaBuilder extends SchemaBuilder
                     if(count($filter->getValues()) == 0) break;
 
                     foreach ($filter->getValues() as $value) {
+                        if($value == null ||
+                            (is_string($value) && $value == '')) continue;
+
                         if($equalsAnyFilter != '') {
                             $equalsAnyFilter .= ' OR ';
                         }else{
@@ -251,6 +257,21 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $queries['parameters'][':' . $filter->getProperty() . $index] = $value;
                         $index++;
                     }
+                    break;
+                case NotEqualsFilter::class:
+                    $value = $filter->getValue();
+                    if($value == null ||
+                        (is_string($value) && $value == '')) break;
+
+                    if($equalsFilter != '') {
+                        $equalsFilter .= ' AND ';
+                    }else{
+                        $equalsFilter .= ' ';
+                    }
+
+                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . $filter->getProperty() . $index;
+                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $index++;
                     break;
             }
         }
@@ -296,7 +317,9 @@ class EntitySchemaBuilder extends SchemaBuilder
         foreach ($criteria->getFilters() as $filter) {
             switch (get_class($filter)) {
                 case EqualsFilter::class:
-                    if(is_string($filter->getValue()) && $filter->getValue() === '') break;
+                    $value = $filter->getValue();
+                    if($value == null ||
+                        (is_string($value) && $value == '')) break;
 
                     if($where != ' WHERE') {
                         $where .= ' OR ';
@@ -312,6 +335,9 @@ class EntitySchemaBuilder extends SchemaBuilder
                     if(count($filter->getValues()) == 0) break;
 
                     foreach ($filter->getValues() as $value) {
+                        if($value == null ||
+                            (is_string($value) && $value == '')) continue;
+
                         if($where != ' WHERE') {
                             $where .= ' OR ';
                         }else{
@@ -322,6 +348,21 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $queries['parameters'][':' . $filter->getProperty() . $index] = $value;
                         $index++;
                     }
+                    break;
+                case NotEqualsFilter::class:
+                    $value = $filter->getValue();
+                    if($value == null ||
+                        (is_string($value) && $value == '')) break;
+
+                    if($equalsFilter != '') {
+                        $equalsFilter .= ' AND ';
+                    }else{
+                        $equalsFilter .= ' ';
+                    }
+
+                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . $filter->getProperty() . $index;
+                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $index++;
                     break;
             }
         }
@@ -357,6 +398,10 @@ class EntitySchemaBuilder extends SchemaBuilder
         foreach ($criteria->getFilters() as $filter) {
             switch (get_class($filter)) {
                 case EqualsFilter::class:
+                    $value = $filter->getValue();
+                    if($value == null ||
+                        (is_string($value) && $value == '')) break;
+
                     if($where != ' WHERE') {
                         $where .= ' AND ';
                     }else{
@@ -368,7 +413,12 @@ class EntitySchemaBuilder extends SchemaBuilder
                     $index++;
                     break;
                 case EqualsAnyFilter::class:
+                    if(count($filter->getValues()) == 0) break;
+
                     foreach ($filter->getValues() as $value) {
+                        if($value == null ||
+                            (is_string($value) && $value == '')) continue;
+
                         if($where != ' WHERE') {
                             $where .= ' OR ';
                         }else{
@@ -379,6 +429,21 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $queries['parameters'][':' . $filter->getProperty() . $index] = $value;
                         $index++;
                     }
+                    break;
+                case NotEqualsFilter::class:
+                    $value = $filter->getValue();
+                    if($value == null ||
+                        (is_string($value) && $value == '')) break;
+
+                    if($equalsFilter != '') {
+                        $equalsFilter .= ' AND ';
+                    }else{
+                        $equalsFilter .= ' ';
+                    }
+
+                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . $filter->getProperty() . $index;
+                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $index++;
                     break;
             }
         }
@@ -400,8 +465,6 @@ class EntitySchemaBuilder extends SchemaBuilder
 
         $query = "(SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(";
 
-        //dump('$referencedByProperty', $referencedByProperty, '$parentSchemaBuilder', $parentSchemaBuilder, '$schema', $this, '$repository', $this->repository);
-
         foreach ($this->getAllProperties() as $property) {
             if(!($property instanceof RelationProperty)) {
                 $query .= "'" . $property->getProperty() . "', " . $referencedByProperty->getProperty() . "." . $property->getProperty() . ", ";
@@ -410,7 +473,7 @@ class EntitySchemaBuilder extends SchemaBuilder
             }
 
             if($property instanceof ManyToOneProperty ||
-            $property instanceof OneToOneProperty) {
+                $property instanceof OneToOneProperty) {
                 $query .= "'" . $property->getProperty() . "_id', " . $referencedByProperty->getProperty() . "." . $property->getProperty() . "_id, ";
             }
 
