@@ -52,7 +52,10 @@ class Connection
         $results = [];
 
         if($this->pdo->beginTransaction()) {
-            //print_r('<br>' . $query);
+            /*print_r("\n");
+            print_r("\n" . $query);
+            print_r("\n" . implode(', ', $params));
+            print_r("\n");*/
             $statement = $this->pdo->prepare($query);
 
             foreach ($params as $key => $value) {
@@ -82,7 +85,10 @@ class Connection
             foreach ($timestamps as $tables) {
                 foreach ($tables as $table) {
                     if ($this->pdo->beginTransaction()) {
-                        //print_r('<br>' . $table['query']);
+                        /*print_r("\n");
+                        print_r("\n" . $table['query']);
+                        print_r("\n" . implode(', ', $table['parameters']));
+                        print_r("\n");*/
                         $statement = $this->pdo->prepare($table['query']);
 
                         foreach ($table['parameters'] as $key => $value) {
@@ -107,14 +113,18 @@ class Connection
 
     public function query(string $query): void
     {
-        //print_r('<br>' . $query);
+        /*print_r("\n");
+        print_r("\n" . $query);
+        print_r("\n");*/
         $this->pdo->query($query);
     }
 
 
     public function exec(string $query): void
     {
-        //print_r('<br>' . $query);
+        /*print_r("\n");
+        print_r("\n" . $query);
+        print_r("\n");*/
         $this->pdo->exec($query);
     }
 

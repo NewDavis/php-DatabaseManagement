@@ -66,6 +66,7 @@ class EntitySchemaBuilder extends SchemaBuilder
         $databaseParameters = '';
 
         foreach ($properties as $property) {
+            if(!($property instanceof Property)) continue;
             if(!(array_key_exists($property->getProperty(), $propertyValues))) continue;
 
             $value = $propertyValues[$property->getProperty()];
@@ -79,6 +80,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                 $value = $value->getId();
             }else if($value instanceof DateTimeImmutable) {
                 $value = $value->format(self::DATE_TIME_FORMAT);
+            }else if(is_bool($value) && !$value) {
+                $value = 0;
             }
 
             $queries[$table]['parameters'][':' . $this->convertToDatabaseProperty($property)] = $value;
@@ -124,6 +127,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                 $value = $value->getId();
             }else if($value instanceof DateTimeImmutable) {
                 $value = $value->format(self::DATE_TIME_FORMAT);
+            }else if(is_bool($value) && !$value) {
+                $value = 0;
             }
 
             $queries[$table]['query'] .= $this->convertToDatabaseProperty($property) . ' = :' . $this->convertToDatabaseProperty($property) . ', ';
@@ -236,8 +241,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $equalsFilter .= ' ';
                     }
 
-                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
-                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                    $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $filter->getValue();
                     $index++;
                     break;
                 case EqualsAnyFilter::class:
@@ -253,8 +258,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                             $equalsAnyFilter .= ' ';
                         }
 
-                        $equalsAnyFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
-                        $queries['parameters'][':' . $filter->getProperty() . $index] = $value;
+                        $equalsAnyFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                        $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $value;
                         $index++;
                     }
                     break;
@@ -269,8 +274,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $equalsFilter .= ' ';
                     }
 
-                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . $filter->getProperty() . $index;
-                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                    $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $filter->getValue();
                     $index++;
                     break;
             }
@@ -327,8 +332,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $where .= ' ';
                     }
 
-                    $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
-                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                    $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $filter->getValue();
                     $index++;
                     break;
                 case EqualsAnyFilter::class:
@@ -344,8 +349,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                             $where .= ' ';
                         }
 
-                        $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
-                        $queries['parameters'][':' . $filter->getProperty() . $index] = $value;
+                        $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                        $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $value;
                         $index++;
                     }
                     break;
@@ -360,8 +365,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $equalsFilter .= ' ';
                     }
 
-                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . $filter->getProperty() . $index;
-                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                    $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $filter->getValue();
                     $index++;
                     break;
             }
@@ -408,8 +413,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $where .= ' ';
                     }
 
-                    $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
-                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                    $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $filter->getValue();
                     $index++;
                     break;
                 case EqualsAnyFilter::class:
@@ -425,8 +430,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                             $where .= ' ';
                         }
 
-                        $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . $filter->getProperty() . $index;
-                        $queries['parameters'][':' . $filter->getProperty() . $index] = $value;
+                        $where .= $this->getTableName() . '.' . $filter->getProperty() . ' = :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                        $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $value;
                         $index++;
                     }
                     break;
@@ -441,8 +446,8 @@ class EntitySchemaBuilder extends SchemaBuilder
                         $equalsFilter .= ' ';
                     }
 
-                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . $filter->getProperty() . $index;
-                    $queries['parameters'][':' . $filter->getProperty() . $index] = $filter->getValue();
+                    $equalsFilter .= $this->getTableName() . '.' . $filter->getProperty() . ' != :' . str_replace('.' , '_', $filter->getProperty()) . $index;
+                    $queries['parameters'][':' . str_replace('.' , '_', $filter->getProperty()) . $index] = $filter->getValue();
                     $index++;
                     break;
             }
