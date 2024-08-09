@@ -1,0 +1,52 @@
+- Custom ORM (DatabaseManagement)
+  - General (✓)
+   - It needs a persistent space, to save the changed entities. (✓)
+   - A flush function to save the changed entities to the database. (✓)
+    - Kernel.terminate Subscriber to flush all changes. (✓)
+
+  - Database connection system. (✓)
+   - Create a Connection to the database. (PDO or look for the method used in shopware in their DAL) (✓)
+
+  - Possibility to create tables (entities).
+   - Entity
+    - A Entity needs a Entity class, that is to store the property data. (✓)
+     - Should have a function to return the EntityDefinition class. (✓)
+
+    - The EntityDefinition is to define the properties, to make the programming of the schema creation easier. (✓)
+
+    - The EntityCollection is a collection of the entity, that just contain already fetched Entities that will be the response of the EntityRepository search() function. (✓)
+     - search() function (✓)
+     - searchId() function (✓)
+
+    - Also there needs to be a EntityRepository, but that will be created automatically, that is just for the database connection. (✓)
+     - Entity-Registration (✓)
+     - query functionalities. (✓)
+      - load static values (✓)
+      - load relation values (✓)
+       - create an entity instance and check if there is already an existing instance (✓)
+       - load one-to-one (✓)
+       - load many-to-one (✓)
+       - load many-to-many (✓)
+       - load one-to-many (✓)
+
+    - Create functionality (✓)
+     - Entity Table create (✓)
+     - Entity write (✓)
+    - Update functionality
+     - Entity Table update
+     - Entity update (✓)
+    - Delete functionality
+     - Entity Table delete
+     - Entity delete (✓)
+
+   - Create a command to generate the database schema.
+   - Create a command to import the database schema.
+
+  - Possibility to create properties in the tables (entities), for example a string property with the name "name". (✓)
+   - They can also have Flags, like Nullable, OnDelete, Length, ... (✓)
+
+  - Possibility to create relations between properties (✓)
+   - OneToOne relation (✓)
+   - ManyToOne relation (✓)
+   - OneToMany relation (✓)
+   - ManyToMany relation (✓)
