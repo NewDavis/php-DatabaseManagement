@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Core\Driver;
 
 use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
 use Doctrine\DBAL\Driver\PDO\PDOException;
+use NewDavis\DatabaseManagement\DatabaseManagementBundle;
 use PDO;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -13,49 +14,58 @@ class Connection
     private PDO|null $pdo = null;
 
     public function __construct(private Container $container)
+    {}
+    
+    private function connect()
     {
-        $databaseUrl = $_ENV['DATABASE_URL'];
+        if($this->pdo === null) {
+            $databaseUrl = $_ENV['DATABASE_URL'];
 
-        $parsedUrl = parse_url($databaseUrl);
+            $parsedUrl = parse_url($databaseUrl);
 
-        $scheme = $parsedUrl['scheme']; // e.g., "mysql"
-        $user = $parsedUrl['user']; // e.g., "username"
+            $scheme = $parsedUrl['scheme']; // e.g., "mysql"
+            $user = $parsedUrl['user']; // e.g., "username"
 
-        $pass = '';
-        if(isset($parsedUrl['pass'])) {
-            $pass = $parsedUrl['pass']; // e.g., "password"
+            $pass = '';
+            if(isset($parsedUrl['pass'])) {
+                $pass = $parsedUrl['pass']; // e.g., "password"
+            }
+
+            $host = $parsedUrl['host']; // e.g., "127.0.0.1"
+            $port = $parsedUrl['port']; // e.g., "3306"
+            $path = ltrim($parsedUrl['path'], '/'); // e.g., "database_name"
+
+            $dsn = sprintf('%s:host=%s;port=%d;dbname=%s', $scheme, $host, $port, $path);
+
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ];
+
+            try {
+                $this->pdo = new PDO($dsn, $user, $pass, $options);
+            } catch (PDOException $e) {
+                throw new PDOException($e->getMessage(), (int)$e->getCode());
+            }
         }
-
-        $host = $parsedUrl['host']; // e.g., "127.0.0.1"
-        $port = $parsedUrl['port']; // e.g., "3306"
-        $path = ltrim($parsedUrl['path'], '/'); // e.g., "database_name"
-
-        $dsn = sprintf('%s:host=%s;port=%d;dbname=%s', $scheme, $host, $port, $path);
-
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ];
-
-        try {
-            $this->pdo = new PDO($dsn, $user, $pass, $options);
-        } catch (PDOException $e) {
-            throw new PDOException($e->getMessage(), (int)$e->getCode());
-        }
+        
+        return $this->pdo;
     }
 
     public function prepare(string $query, array $params = []): array|null
     {
-        if($this->pdo == null) return null;
+        if($this->connect() == null) return null;
 
         $results = [];
 
         if($this->pdo->beginTransaction()) {
-            /*print_r("\n");
-            print_r("\n" . $query);
-            print_r("\n" . implode(', ', $params));
-            print_r("\n");*/
+            if(DatabaseManagementBundle::DEBUG) {
+                print_r("\n");
+                print_r("\n" . $query);
+                print_r("\n" . implode(', ', $params));
+                print_r("\n");
+            }
             $statement = $this->pdo->prepare($query);
 
             foreach ($params as $key => $value) {
@@ -77,7 +87,7 @@ class Connection
 
     public function prepareQueries(array $queries): array|null
     {
-        if($this->pdo == null) return null;
+        if($this->connect() == null) return null;
 
         $results = [];
 
@@ -85,10 +95,12 @@ class Connection
             foreach ($timestamps as $tables) {
                 foreach ($tables as $table) {
                     if ($this->pdo->beginTransaction()) {
-                        /*print_r("\n");
-                        print_r("\n" . $table['query']);
-                        print_r("\n" . implode(', ', $table['parameters']));
-                        print_r("\n");*/
+                        if(DatabaseManagementBundle::DEBUG) {
+                            print_r("\n");
+                            print_r("\n" . $table['query']);
+                            print_r("\n" . implode(', ', $table['parameters']));
+                            print_r("\n");
+                        }
                         $statement = $this->pdo->prepare($table['query']);
 
                         foreach ($table['parameters'] as $key => $value) {
@@ -113,23 +125,33 @@ class Connection
 
     public function query(string $query): void
     {
-        /*print_r("\n");
-        print_r("\n" . $query);
-        print_r("\n");*/
+        if($this->connect() == null) return;
+
+        if(DatabaseManagementBundle::DEBUG) {
+            print_r("\n");
+            print_r("\n" . $query);
+            print_r("\n");
+        }
         $this->pdo->query($query);
     }
 
 
     public function exec(string $query): void
     {
-        /*print_r("\n");
-        print_r("\n" . $query);
-        print_r("\n");*/
+        if($this->connect() == null) return;
+
+        if(DatabaseManagementBundle::DEBUG) {
+            print_r("\n");
+            print_r("\n" . $query);
+            print_r("\n");
+        }
         $this->pdo->exec($query);
     }
 
     public function disconnect()
     {
+        if($this->connect() == null) return null;
+
         // flush all changes.
         $repositories = [];
 

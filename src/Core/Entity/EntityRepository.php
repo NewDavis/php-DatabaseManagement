@@ -89,6 +89,8 @@ class EntityRepository implements EntityRepositoryInterface
 
         $collection = new EntityCollection();
 
+        if(!isset($result)) return $collection;
+
         foreach ($result as $entities) {
             foreach ($entities as $entityData) {
                 $entity = $this->loadEntity($entityData);
@@ -256,6 +258,8 @@ class EntityRepository implements EntityRepositoryInterface
         $result = $this->connection->prepare($queryData['query'], $queryData['parameters']);
 
         $count = 0;
+
+        if(!isset($result)) return $count;
 
         foreach ($result as $queryResult) {
             foreach ($queryResult as $rows) {

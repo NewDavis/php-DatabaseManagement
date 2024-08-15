@@ -9,6 +9,8 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 class DatabaseManagementBundle extends AbstractBundle
 {
 
+    public const DEBUG = false;
+
     public function getContainerExtension(): ?ExtensionInterface
     {
         return new DatabaseManagementExtension();
