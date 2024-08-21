@@ -150,7 +150,7 @@ class Connection
 
     public function disconnect()
     {
-        if($this->connect() == null) return null;
+        if($this->pdo == null) return null;
 
         // flush all changes.
         $repositories = [];
