@@ -144,9 +144,18 @@ class EntitySchemaBuilder extends SchemaBuilder
         return $queries;
     }
 
-    public function delete() : string
+    public function delete() : array
     {
-        return 'DELETE FROM `' . $this->repository->getEntityDefinition()->getEntityName() . '` WHERE id=' . $this->entity->getId() . ';';
+        $table = $this->getTable();
+
+        $queries[$table] = [
+            'query' => 'DELETE FROM `' . $table . '` WHERE id = :id;',
+            'parameters' => [
+                ':id' => $this->entity->getId()
+            ]
+        ];
+
+        return $queries;
     }
 
     public function setManyToManyProperties(array $propertyValues, bool $reset = false)
