@@ -4,7 +4,6 @@ namespace NewDavis\DatabaseManagement\Core\Entity\Trait;
 
 trait IdTrait
 {
-
     protected ?string $id;
 
     public function setId(string $id): static
@@ -17,5 +16,4 @@ trait IdTrait
     {
         return $this->id;
     }
-
 }

@@ -8,9 +8,8 @@ use NewDavis\DatabaseManagement\Core\Entity\Trait\IdTrait;
 use NewDavis\DatabaseManagement\Core\Entity\Trait\UpdatedAtTrait;
 use Ramsey\Uuid\Uuid;
 
-class Entity
+abstract class Entity implements EntityInterface
 {
-
     private bool $persisted;
     private bool $delete = false;
 
@@ -18,8 +17,8 @@ class Entity
     {
         $this->persisted = $persisted;
         $this->id = Uuid::uuid4()->toString();
-        $this->created_at = new DateTimeImmutable();
-        $this->updated_at = new DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     use IdTrait;
@@ -31,83 +30,18 @@ class Entity
         return $this->persisted;
     }
 
-    public function setShouldDelete(bool $shouldDelete): bool
+    public function setDelete(bool $delete): bool
     {
-        return $this->delete = $shouldDelete;
+        return $this->delete = $delete;
     }
 
-    public function shouldDelete(): bool
+    public function getDelete(): bool
     {
         return $this->delete;
     }
 
-    public function jsonSerialize(bool $nesting = true, int $nestingDepth = 0, int $maxNestingDepth = 10): array
+    public function jsonSerialize(): array
     {
-        $json = [];
-
-        $reflectionClass = new \ReflectionClass($this);
-
-        if($nesting && $nestingDepth < $maxNestingDepth) {
-            $nestingDepth++;
-        }else{
-            $nesting = !$nesting;
-        }
-
-        $json['entity'] = $this->getDefinitionClass()::ENTITY_NAME;
-
-        foreach ($reflectionClass->getProperties() as $property) {
-            $value = null;
-
-            if($property->isInitialized($this)) {
-                $value = $property->getValue($this);
-            }
-
-            if($value instanceof Entity) {
-                if($nesting) {
-                    if($value != null) {
-                        //relation
-                        $value = $value->jsonSerialize($nesting, $nestingDepth, $maxNestingDepth);
-                    }
-
-                    $json[$property->getName()] = $value;
-                }
-
-                continue;
-            } else if($value instanceof EntityCollection) {
-                if($nesting) {
-                    //relation (collection)
-                    $json[$property->getName()] = [];
-                    foreach ($value as $entity) {
-                        $serialized = $entity->jsonSerialize($nesting, $nestingDepth, $maxNestingDepth);
-
-                        $json[$property->getName()][] = $serialized;
-                    }
-                }
-
-                continue;
-            }
-
-            $json[$property->getName()] = $value;
-        }
-
-        unset($json['persisted']);
-        unset($json['delete']);
-
-        return $json;
+        return [];
     }
-
-    public static function convertEntityClassName(string|object $class, bool $replaceWithDashes = true) : string
-    {
-        if($replaceWithDashes) {
-            if (is_object($class)) {
-                $entityClass = get_class($class);
-            } else {
-                $entityClass = $class;
-            }
-            $entityClass = str_replace("\\", '-', $entityClass);
-        }
-
-        return $entityClass;
-    }
-
 }

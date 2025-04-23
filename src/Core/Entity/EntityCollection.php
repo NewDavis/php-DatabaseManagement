@@ -2,181 +2,118 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
-use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
-use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
-use Generator;
-use IteratorAggregate;
-use NewDavis\DatabaseManagement\Core\Criteria\Filter\NotEqualsFilter;
-use ReflectionClass;
-use ReturnTypeWillChange;
+use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
 
-class EntityCollection implements \Countable, IteratorAggregate, EntityCollectionInterface
+/**
+ * @template TElement
+ */
+class EntityCollection
 {
 
-    private array $entities;
+    /** @var TElement[] */
+    private $entities;
 
-    public function __construct(Entity... $entities)
+    /**
+     * @param TElement[] $entities
+     * @return void
+     */
+    public function set(array $entities)
     {
-        $this->entities = $entities;
+
     }
 
-    public function set(array $entities) : void
+    /**
+     * @return void
+     */
+    public function clear()
     {
-        $this->clear();
 
-        foreach ($entities as $entity) {
-            $this->entities[$entity->getId()] = $entity;
-        }
     }
 
-    public function clear() : void
+    /**
+     * @param TElement $entity
+     * @return void
+     */
+    public function add($entity)
     {
-        $this->entities = [];
+
     }
 
-    public function add(Entity $entity) : void
+    /**
+     * @param TElement $entity
+     * @return void
+     */
+    public function remove($entity)
     {
-        $this->entities[$entity->getId()] = $entity;
+
     }
 
-    public function remove(Entity $entity) : void
+    /**
+     * @param TElement $entity
+     * @return bool
+     */
+    public function contains($entity)
     {
-        unset($this->entities[$entity->getId()]);
+        return false;
     }
 
-    public function contains(Entity $entity) : bool
+    /**
+     * @return TElement|null
+     */
+    public function first()
     {
-        return array_key_exists($entity->getId(), $this->entities);
+        return null;
     }
 
-    public function first() : Entity|null
+    /**
+     * @return string|null
+     */
+    public function firstId()
     {
-        if(count($this->entities) == 0) return null;
-
-        $firstKey = array_keys($this->entities)[0];
-
-        return $this->entities[$firstKey];
+        return null;
     }
 
-    public function firstId() : string|null
+    /**
+     * @param Criteria $criteria
+     * @return EntityCollection<TElement>
+     */
+    public function search(Criteria $criteria)
     {
-        if (count($this->entities) == 0) return null;
-
-        $firstKey = array_keys($this->entities)[0];
-
-        return $this->entities[$firstKey]->getId();
+        return new EntityCollection([]);
     }
 
-    public function search(Criteria $criteria) : EntityCollection
+    /**
+     * @param string $property
+     * @param mixed $value
+     * @return EntityCollection<TElement>
+     */
+    public function searchBy(string $property, mixed $value)
     {
-        $collection = new EntityCollection();
-
-        foreach ($this->getEntities() as $entity) {
-            foreach ($criteria->getFilters() as $filter) {
-                $success = true;
-
-                $reflectionEntity = new ReflectionClass($entity);
-
-                switch (get_class($filter)) {
-                    case EqualsFilter::class:
-                        $reflectionProperty = $reflectionEntity->getProperty($filter->getProperty());
-
-                        if (!$reflectionProperty->isInitialized($entity)) {
-                            $success = false;
-                            break;
-                        }
-
-                        $reflectionPropertyValue = $reflectionProperty->getValue($entity);
-
-                        if ($filter->getValue() !== $reflectionPropertyValue) {
-                            $success = false;
-                            break;
-                        }
-                        break;
-                    case EqualsAnyFilter::class:
-                        $reflectionProperty = $reflectionEntity->getProperty($filter->getProperty());
-
-                        if (!$reflectionProperty->isInitialized($entity)) {
-                            $success = false;
-                            break;
-                        }
-
-                        $reflectionPropertyValue = $reflectionProperty->getValue($entity);
-
-                        foreach ($filter->getValues() as $value) {
-                            if ($value !== $reflectionPropertyValue) {
-                                $success = false;
-                                break;
-                            }
-                        }
-                        break;
-                    case NotEqualsFilter::class:
-                        $reflectionProperty = $reflectionEntity->getProperty($filter->getProperty());
-
-                        if (!$reflectionProperty->isInitialized($entity)) {
-                            $success = false;
-                            break;
-                        }
-
-                        $reflectionPropertyValue = $reflectionProperty->getValue($entity);
-
-                        if ($filter->getValue() === $reflectionPropertyValue) {
-                            $success = false;
-                            break;
-                        }
-                        break;
-                }
-
-                if($criteria->getLimit() > 0 && $collection->count() >= $criteria->getLimit()) {
-                    return $collection;
-                }
-
-                if($success) {
-                    $collection->add($entity);
-                }
-            }
-        }
-
-        return $collection;
+        return new EntityCollection([]);
     }
 
-    public function searchBy(string $property, mixed $value) : EntityCollection
+    /**
+     * @param $id
+     * @return string|null
+     */
+    public function searchId($id)
     {
-        $criteria = new Criteria();
-        if(is_array($value)) {
-            $criteria->addFilter(new EqualsAnyFilter($property, $value));
-        }else{
-            $criteria->addFilter(new EqualsFilter($property, $value));
-        }
-
-        return $this->search($criteria);
+        return null;
     }
 
-    public function searchId($id) : string|null
-    {
-        if(!array_key_exists($id, $this->entities)) return null;
-
-        return $this->entities[$id]->getId();
-    }
-
-    public function count(): int
+    /**
+     * @return int
+     */
+    public function count()
     {
         return count($this->entities);
     }
 
     /**
-     * @return array
+     * @return TElement[]
      */
-    public function getEntities(): array
+    public function getEntities()
     {
         return $this->entities;
     }
-
-    #[ReturnTypeWillChange]
-    public function getIterator(): Generator
-    {
-        yield from $this->entities;
-    }
-
 }

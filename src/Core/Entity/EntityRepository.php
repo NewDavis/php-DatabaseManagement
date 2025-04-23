@@ -2,274 +2,50 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use DateTimeImmutable;
-use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
-use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsAnyFilter;
-use NewDavis\DatabaseManagement\Core\Criteria\Filter\EqualsFilter;
 use NewDavis\DatabaseManagement\Core\Driver\Connection;
-use NewDavis\DatabaseManagement\Core\Entity\Property\Property;
-use NewDavis\DatabaseManagement\Core\Entity\Property\Relation\RelationProperty;
-use NewDavis\DatabaseManagement\Schema\EntitySchemaBuilder;
-use ReflectionClass;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use NewDavis\DatabaseManagement\Core\Schema\SchemaBuilder;
+use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-class EntityRepository implements EntityRepositoryInterface
+class EntityRepository
 {
 
-    private array $entities = [];
-    private array $persistMemory = [];
-
-    public function __construct(private readonly EntityDefinition   $entityDefinition,
-                                private readonly Connection         $connection,
-                                private readonly ContainerInterface $container)
-    {}
-
-    public function getEntityDefinition(): EntityDefinition|null
-    {
-        return $this->entityDefinition;
+    public function __construct(
+        private readonly string $definition,
+        #[Autowire(service: Connection::class)] private readonly Connection $connection
+    ) {
     }
 
-    public function create(Entity $entity)
+    public function upsert()
     {
-        $entitySchemaBuilder = EntitySchemaBuilder::getEntitySchemaBuilder($this, $entity, $this->container);
 
-        $timestamp = round(microtime(true) * 1000);
-
-        $this->persistMemory[$timestamp][] = $entitySchemaBuilder->create();
     }
 
-    public function update(Entity $entity)
+    public function create()
     {
-        $entitySchemaBuilder = EntitySchemaBuilder::getEntitySchemaBuilder($this, $entity, $this->container);
 
-        $timestamp = round(microtime(true) * 1000);
-
-        $this->persistMemory[$timestamp][] = $entitySchemaBuilder->update();
     }
 
-    public function delete(Entity $entity)
+    public function update()
     {
-        $entitySchemaBuilder = EntitySchemaBuilder::getEntitySchemaBuilder($this, $entity, $this->container);
 
-        $timestamp = round(microtime(true) * 1000);
-
-        $this->persistMemory[$timestamp][] = $entitySchemaBuilder->delete();
     }
 
-    public function persist(Entity $entity)
+    public function delete()
     {
-        $entitySchemaBuilder = EntitySchemaBuilder::getEntitySchemaBuilder($this, $entity, $this->container);
 
-        if($entity->shouldDelete()) {
-            $query = $entitySchemaBuilder->delete();
-        }else if($entity->isPersisted()) {
-            $query = $entitySchemaBuilder->update();
-        }else{
-            $query = $entitySchemaBuilder->create();
-        }
-
-        $timestamp = round(microtime(true) * 1000);
-
-        $this->persistMemory[$timestamp][] = $query;
     }
 
-    public function flush()
+    public function search(Criteria $criteria): EntityCollection
     {
-        $this->connection->prepareQueries($this->persistMemory);
-        $this->persistMemory = [];
+        $searchQuery = SchemaBuilder::search($this->definition, $criteria);
+        dd($searchQuery);
+        return new EntityCollection();
     }
 
-    public function search(Criteria $criteria, bool $debug = false): EntityCollection
+    public function searchIds(Criteria $criteria): EntityCollection
     {
-        $entitySchemaBuilder = EntitySchemaBuilder::getEntitySchemaBuilder($this, null, $this->container);
-
-        $queryData = $entitySchemaBuilder->search($criteria, $debug);
-
-        $result = $this->connection->prepare($queryData['query'], $queryData['parameters']);
-
-        $collection = new EntityCollection();
-
-        if(!isset($result)) return $collection;
-
-        foreach ($result as $entities) {
-            foreach ($entities as $entityData) {
-                $entity = $this->loadEntity($entityData);
-
-                if ($entity) {
-                    $collection->add($entity);
-                }
-            }
-        }
-
-        return $collection;
-    }
-
-    public function loadEntity(array $entityData) : Entity|null
-    {
-        $key = $this->getEntityDefinition()->getEntityName() . '.' . $entityData['id'];
-
-        /*if(array_key_exists($key, $this->entities)) {
-            return $this->entities[$key];
-        }*/
-
-        $entity = $this->createEntityInstance();
-        $reflectionEntity = new ReflectionClass($entity);
-
-        foreach ($entityData as $property => $value) {
-            if(!isset($value)) continue;
-
-            if(!$reflectionEntity->hasProperty($property)) {
-                if(str_ends_with($property, '_id')) continue;
-
-                throw new \InvalidArgumentException("Property '$property' does not exist in class '". get_class($entity) . "'");
-            }
-
-            $reflectionProperty = $reflectionEntity->getProperty($property);
-
-            $entityProperty = $this->getPropertyByName($property);
-
-            if($entityProperty instanceof RelationProperty) {
-                $result = [];
-
-                $entityRepository = $this->getEntityRepositoryByProperty($entityProperty);
-
-                if(json_validate($value)) {
-                    $nestedEntities = json_decode($value, true);
-
-                    foreach ($nestedEntities as $nestedEntityData) {
-                        $nestedKey = $entityRepository->getEntityDefinition()->getEntityName() . '.' . $nestedEntityData['id'];
-                        /*if(array_key_exists($nestedKey, $this->entities)) {
-                            $result[] = $this->entities[$nestedKey];
-                            continue;
-                        }*/
-
-                        $loadedEntity = $entityRepository->loadEntity($nestedEntityData);
-
-                        $this->entities[$nestedKey] = $loadedEntity;
-
-                        $result[] = $loadedEntity;
-                    }
-                }else{
-                    $nestedKey = $entityRepository->getEntityDefinition()->getEntityName() . '.' . $nestedEntityData['id'];
-                    /*if(array_key_exists($nestedKey, $this->entities)) {
-                        $result[] = $this->entities[$nestedKey];
-                    }else {*/
-                        $loadedEntity = $entityRepository->loadEntity($value);
-
-                        $this->entities[$nestedKey] = $loadedEntity;
-
-                        $result[] = $loadedEntity;
-                    /*}*/
-                }
-
-                // check if it's either a collection or entity.
-                switch($reflectionProperty->getType()->getName()) {
-                    case $entityRepository->getEntityDefinition()->getCollectionClass():
-                        // is collection
-                        $collection = $reflectionProperty->getValue($entity);
-
-                        $collection->set($result);
-                        $reflectionProperty->setValue($entity, $collection);
-                        break;
-                    case $entityRepository->getEntityDefinition()->getEntityClass():
-                        // is entity
-                        $reflectionProperty->setValue($entity, $result[0]);
-                        break;
-                }
-            }else if($reflectionProperty->getType()->getName() === DateTimeImmutable::class) {
-                $dateTime = DateTimeImmutable::createFromFormat(EntitySchemaBuilder::DATE_TIME_FORMAT, $value);
-                $reflectionProperty->setValue($entity, $dateTime);
-            }else{
-                $reflectionProperty->setValue($entity, $value);
-            }
-        }
-
-        $this->entities[$key] = $entity;
-
-        return $entity;
-    }
-
-    private function createEntityInstance() : Entity
-    {
-        $entityClass = $this->entityDefinition->getEntityClass();
-
-        return new $entityClass(true);
-    }
-
-    private function getPropertyByName($propertyName) : Property|null
-    {
-        foreach ($this->entityDefinition->getPropertyDefinition() as $property) {
-            if($property->getProperty() === $propertyName) return $property;
-        }
-
-        return null;
-    }
-
-    private function getEntityRepositoryByProperty(RelationProperty $relationProperty) : EntityRepository
-    {
-        return $this->container->get($relationProperty->getReferencedEntity() . '.repository');
-    }
-
-    public function searchBy(string $property, mixed $value, bool $debug = false): EntityCollection
-    {
-        $criteria = new Criteria();
-
-        if(is_array($value)) {
-            $criteria->addFilter(new EqualsAnyFilter($property, $value));
-        } else {
-            $criteria->addFilter(new EqualsFilter($property, $value));
-        }
-
-        return $this->search($criteria, $debug);
-    }
-
-    public function searchAll(): EntityCollection
-    {
-        return $this->search(new Criteria());
-    }
-
-    public function searchIds(Criteria $criteria): array
-    {
-        $entitySchemaBuilder = EntitySchemaBuilder::getEntitySchemaBuilder($this, null, $this->container);
-
-        $queryData = $entitySchemaBuilder->searchIds($criteria);
-
-        $result = $this->connection->prepare($queryData['query'], $queryData['parameters']);
-
-        $ids = [];
-
-        foreach ($result as $queryResult) {
-            foreach ($queryResult as $rows) {
-                foreach ($rows as $id) {
-                    $ids[] = $id;
-                }
-            }
-        }
-
-        return $ids;
-    }
-
-    public function count(Criteria $criteria): int
-    {
-        $entitySchemaBuilder = EntitySchemaBuilder::getEntitySchemaBuilder($this, null, $this->container);
-
-        $queryData = $entitySchemaBuilder->searchCount($criteria);
-
-        $result = $this->connection->prepare($queryData['query'], $queryData['parameters']);
-
-        $count = 0;
-
-        if(!isset($result)) return $count;
-
-        foreach ($result as $queryResult) {
-            foreach ($queryResult as $rows) {
-                foreach ($rows as $rowCount) {
-                    $count += $rowCount;
-                }
-            }
-        }
-
-        return $count;
+        return new EntityCollection();
     }
 
 }

@@ -6,19 +6,17 @@ use DateTimeImmutable;
 
 trait CreatedAtTrait
 {
-
-    protected ?DateTimeImmutable $created_at;
+    protected ?DateTimeImmutable $createdAt;
 
     public function setCreatedAt(DateTimeImmutable $createdAt): static
     {
-        $this->created_at = $createdAt;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
 
     public function getCreatedAt(): DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
-
 }

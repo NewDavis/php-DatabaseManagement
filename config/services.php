@@ -2,19 +2,23 @@
 
 declare(strict_types=1);
 
+use NewDavis\DatabaseManagement\Controller\TestController;
 use NewDavis\DatabaseManagement\Core\Driver\Connection;
-use NewDavis\DatabaseManagement\Core\Entity\EntityLoader;
-use NewDavis\DatabaseManagement\EventListener\KernelTerminateListener;
+use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
+use NewDavis\DatabaseManagement\Test\Account\AccountDefinition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
 
+    $services->defaults()->public()->autowire()->autoconfigure();
+
+    $services->set(TestController::class, TestController::class);
+
+    $services->set(AccountDefinition::getEntityName() . '.repository', EntityRepository::class)
+        ->arg('$definition', AccountDefinition::class);
+
     $services->set(Connection::class, Connection::class)
         ->arg('$container', service('service_container'));
-
-    $services->set(KernelTerminateListener::class, KernelTerminateListener::class)
-        ->arg('$connection', service(Connection::class))
-        ->tag('kernel.event_subscriber');
 };

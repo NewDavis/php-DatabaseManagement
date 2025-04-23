@@ -2,27 +2,13 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
-class EntityDefinition
+use NewDavis\DatabaseManagement\Core\Entity\Field\Field;
+
+interface EntityDefinition
 {
-
-    public function getEntityName(): string|null
-    {
-        return null;
-    }
-
-    public function getEntityClass(): string|null
-    {
-        return null;
-    }
-
-    public function getCollectionClass(): string|null
-    {
-        return null;
-    }
-
-    public function getPropertyDefinition(): array
-    {
-        return [];
-    }
-
+    static function getEntityName(): string;
+    static function getEntityClass(): string;
+    static function getCollectionClass(): string;
+    /** @return Field[] */
+    static function getDefinitionFields(): array;
 }

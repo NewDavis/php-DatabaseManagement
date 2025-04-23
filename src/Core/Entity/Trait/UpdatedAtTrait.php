@@ -6,19 +6,17 @@ use DateTimeImmutable;
 
 trait UpdatedAtTrait
 {
+    protected ?DateTimeImmutable $updatedAt;
 
-    protected ?DateTimeImmutable $updated_at = null;
-
-    public function setUpdatedAt(DateTimeImmutable $updatedAt): static
+    public function setUpdatedAt(DateTimeImmutable $createdAt): static
     {
-        $this->updated_at = $updatedAt;
+        $this->updatedAt = $createdAt;
 
         return $this;
     }
 
     public function getUpdatedAt(): DateTimeImmutable
     {
-        return $this->updated_at;
+        return $this->createdAt;
     }
-
 }

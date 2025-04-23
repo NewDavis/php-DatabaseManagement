@@ -4,7 +4,6 @@ namespace NewDavis\DatabaseManagement\Core\Entity\Trait;
 
 trait AutoIncrementTrait
 {
-
     protected ?int $auto_increment;
 
     /**
@@ -14,5 +13,4 @@ trait AutoIncrementTrait
     {
         return $this->auto_increment;
     }
-
 }

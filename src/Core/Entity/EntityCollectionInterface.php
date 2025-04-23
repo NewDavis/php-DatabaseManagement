@@ -2,11 +2,10 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use NewDavis\DatabaseManagement\Core\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
 
 interface EntityCollectionInterface
 {
-
     public function set(array $entities) : void;
     public function clear() : void;
     public function add(Entity $entity) : void;
@@ -19,5 +18,4 @@ interface EntityCollectionInterface
     public function searchId($id) : string|null;
     public function count() : int;
     public function getEntities() : array;
-
 }

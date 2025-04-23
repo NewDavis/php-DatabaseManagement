@@ -1,0 +1,40 @@
+<?php
+
+namespace NewDavis\DatabaseManagement\Test\Account;
+
+use NewDavis\DatabaseManagement\Core\Entity\EntityDefinition;
+use NewDavis\DatabaseManagement\Core\Entity\Field\AutoIncrementField;
+use NewDavis\DatabaseManagement\Core\Entity\Field\DateTimeField;
+use NewDavis\DatabaseManagement\Core\Entity\Field\IdField;
+use NewDavis\DatabaseManagement\Core\Entity\Field\TextField;
+use NewDavis\DatabaseManagement\Core\Entity\Flag\Required;
+
+class AccountDefinition implements EntityDefinition
+{
+
+    static function getEntityName(): string
+    {
+        return "account";
+    }
+
+    static function getEntityClass(): string
+    {
+        return AccountEntity::class;
+    }
+
+    static function getCollectionClass(): string
+    {
+        return AccountCollection::class;
+    }
+
+    static function getDefinitionFields(): array
+    {
+        return [
+            new IdField('id', 'id'),
+            new AutoIncrementField(),
+            new TextField('username', 255, 'username', new Required()),
+            new DateTimeField('createdAt', 'created_at', new Required()),
+            new DateTimeField('updatedAt', 'updated_at'),
+        ];
+    }
+}
