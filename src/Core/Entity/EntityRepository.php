@@ -36,10 +36,19 @@ class EntityRepository
 
     }
 
+    public function count(Criteria $criteria): int
+    {
+        $searchQuery = SchemaBuilder::search($this->definition, $criteria);
+
+        return 0;
+    }
+
     public function search(Criteria $criteria): EntityCollection
     {
         $searchQuery = SchemaBuilder::search($this->definition, $criteria);
-        dd($searchQuery);
+
+
+
         return new EntityCollection();
     }
 

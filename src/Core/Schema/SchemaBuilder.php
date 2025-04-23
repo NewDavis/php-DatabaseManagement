@@ -25,7 +25,12 @@ class SchemaBuilder
         $orderSQL = 'ORDER BY %s';
         $orderBys = '';
         foreach ($criteria->getSorting() as $sorting) {
-            $orderBys .= $sorting->getBy($definition) . '` ' . $sorting->getDirection() . ', ';
+            $orderBys .= sprintf(
+                "`%s`.`%s` %s, ",
+                $definition::getEntityName(),
+                $sorting->getBy($definition),
+                $sorting->getDirection()
+            );
         }
         $orderSQL = sprintf(
             $orderSQL,
