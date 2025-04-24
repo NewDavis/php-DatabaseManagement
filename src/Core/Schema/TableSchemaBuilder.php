@@ -11,9 +11,9 @@ class TableSchemaBuilder
 {
 
     public static function build($definitionClass) : string {
-        $tableSQL = self::buildTableSQL($definitionClass);
-        $flagSQL = self::buildFlagSQL($definitionClass);
-        $relationSQL = self::buildRelationSQL($definitionClass);
+        $tableSQL = self::createTable($definitionClass);
+        $flagSQL = self::setFlags($definitionClass);
+        $relationSQL = self::addRelations($definitionClass);
 
         return "
             ${tableSQL}
@@ -22,7 +22,7 @@ class TableSchemaBuilder
         ";
     }
 
-    public static function buildTableSQL($definitionClass) : string
+    public static function createTable($definitionClass) : string
     {
         $fields = '';
         foreach ($definitionClass::getDefinitionFields() as $field) {
@@ -60,7 +60,7 @@ class TableSchemaBuilder
         );
     }
 
-    public static function buildFlagSQL($definitionClass) : string
+    public static function setFlags($definitionClass) : string
     {
         // search for MODIFY COLUMN Flags.
         $modifyColumns = '';
@@ -131,7 +131,7 @@ class TableSchemaBuilder
         return $filtered;
     }
 
-    public static function buildRelationSQL($definitionClass) : string
+    public static function addRelations($definitionClass) : string
     {
         // TODO add relation build
         return '';

@@ -2,7 +2,6 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use DateTimeImmutable;
 use NewDavis\DatabaseManagement\Core\Entity\Trait\CreatedAtTrait;
 use NewDavis\DatabaseManagement\Core\Entity\Trait\IdTrait;
 use NewDavis\DatabaseManagement\Core\Entity\Trait\UpdatedAtTrait;
@@ -17,8 +16,7 @@ abstract class Entity implements EntityInterface
     {
         $this->persisted = $persisted;
         $this->id = Uuid::uuid4()->toString();
-        $this->createdAt = new DateTimeImmutable();
-        $this->updatedAt = new DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     use IdTrait;

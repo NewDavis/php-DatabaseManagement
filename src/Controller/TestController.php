@@ -5,11 +5,10 @@ namespace NewDavis\DatabaseManagement\Controller;
 use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
 use NewDavis\DatabaseManagement\Core\Schema\TableSchemaBuilder;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
-use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\EqualsAnyFilter;
-use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\MultiNotFilter;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Sorting\FieldSorting;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Sorting\Sorting;
 use NewDavis\DatabaseManagement\Test\Account\AccountDefinition;
+use NewDavis\DatabaseManagement\Test\Account\AccountEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +17,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class TestController extends AbstractController
 {
 
+    /**
+     * @param EntityRepository<AccountEntity> $accountRepository
+     */
     public function __construct(
         #[Autowire(service: 'account.repository')] private readonly EntityRepository $accountRepository
     ) {
@@ -28,17 +30,18 @@ class TestController extends AbstractController
     {
         $criteria = new Criteria();
         $criteria->addSorting(new FieldSorting('autoIncrement', Sorting::SORT_ASCENDING));
-        $criteria->addFilter(new MultiNotFilter(MultiNotFilter::OPERATOR_AND, [
-            new EqualsAnyFilter('username', ['Admin', 'test'])
-        ]));
+
+        $accounts = $this->accountRepository->search($criteria);
+
+        dd($accounts->first());
 
         $response = [
             'queries' => [
-                'table' => TableSchemaBuilder::buildTableSQL(AccountDefinition::class),
-                'flag' => TableSchemaBuilder::buildFlagSQL(AccountDefinition::class),
-                'relation' => TableSchemaBuilder::buildRelationSQL(AccountDefinition::class),
+                'table' => TableSchemaBuilder::createTable(AccountDefinition::class),
+                'flag' => TableSchemaBuilder::setFlags(AccountDefinition::class),
+                'relation' => TableSchemaBuilder::addRelations(AccountDefinition::class),
                 'search' => [
-                    'basic' => $this->accountRepository->search($criteria)
+                    'basic' => $accounts
                 ]
             ]
         ];

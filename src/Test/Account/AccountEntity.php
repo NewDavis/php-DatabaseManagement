@@ -10,6 +10,8 @@ class AccountEntity extends Entity
     use AutoIncrementTrait;
 
     private ?string $username;
+    private ?bool $admin;
+    private ?array $customFields;
 
     /**
      * @return string|null

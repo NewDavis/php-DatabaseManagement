@@ -2,23 +2,29 @@
 
 namespace NewDavis\DatabaseManagement\Core\Schema;
 
+use NewDavis\DatabaseManagement\Core\Driver\Statement;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
 
 class SchemaBuilder
 {
 
-    public static function search($definition, Criteria $criteria)
+    public static function search($definition, Criteria $criteria) : Statement
     {
+        $statement = new Statement();
+
         $where = null;
         foreach ($criteria->getFilter() as $filter) {
             $converted = $filter->convert($definition);
 
-            if($where == null && $converted) {
+            if($where == null && $converted->getCondition()) {
                 $where = 'WHERE ';
             }
 
-            $where .= $converted . ' AND ';
+            $where .= $converted->getCondition() . ' AND ';
+            foreach ($converted->getParameters() as $key => $value) {
+                $statement->addParameter($key, $value);
+            }
         }
         $where = rtrim($where, ' AND ');
 
@@ -50,13 +56,15 @@ class SchemaBuilder
             );
         }
 
-        return rtrim(sprintf(
+        $statement->setStatement(rtrim(sprintf(
             "SELECT * FROM `%s` %s %s %s",
             $definition::getEntityName(),
             $where ?? '',
             $orderSQL ?? '',
             $limitSQL
-        ));
+        )));
+
+        return $statement;
     }
 
     /**

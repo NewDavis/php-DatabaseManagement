@@ -2,7 +2,9 @@
 
 namespace NewDavis\DatabaseManagement\Core\Driver;
 
+use NewDavis\DatabaseManagement\DatabaseManagementBundle;
 use PDO;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Container;
 
 class Connection
@@ -10,8 +12,10 @@ class Connection
 
     private PDO|null $pdo = null;
 
-    public function __construct(private Container $container)
-    {}
+    public function __construct(
+        #[Autowire(service: 'service_container')] private readonly Container $container
+    ) {
+    }
     
     private function connect()
     {
@@ -48,6 +52,130 @@ class Connection
         }
         
         return $this->pdo;
+    }
+
+    public function prepare(Statement $query): array|null
+    {
+        if($this->connect() == null) return null;
+
+        $result = null;
+
+        if($this->pdo->beginTransaction()) {
+            if(DatabaseManagementBundle::DEBUG) {
+                print_r("\n");
+                print_r("\n" . $query->getStatement());
+                print_r("\n" . implode(', ', array_values($query->getParameters())));
+                print_r("\n");
+            }
+            $statement = $this->pdo->prepare($query->getStatement());
+
+            $parameters = [];
+            foreach ($query->getParameters() as $key => $value) {
+                if(!is_numeric($key)) {
+                    $statement->bindValue($key, $value);
+                    continue;
+                }
+
+                $parameters[] = $value;
+            }
+
+            if ($statement->execute($parameters)) {
+                $this->pdo->commit();
+                $result = $statement->fetchAll();
+            } else {
+                $this->pdo->rollBack();
+            }
+        }
+
+        // TODO Events
+
+        return $result;
+    }
+
+    /*public function prepareQueries(array $queries): array|null
+    {
+        if($this->connect() == null) return null;
+
+        $results = [];
+
+        foreach ($queries as $timestamps) {
+            foreach ($timestamps as $tables) {
+                foreach ($tables as $table) {
+                    if ($this->pdo->beginTransaction()) {
+                        if(DatabaseManagementBundle::DEBUG) {
+                            print_r("\n");
+                            print_r("\n" . $table['query']);
+                            print_r("\n" . implode(', ', $table['parameters']));
+                            print_r("\n");
+                        }
+                        $statement = $this->pdo->prepare($table['query']);
+
+                        foreach ($table['parameters'] as $key => $value) {
+                            $statement->bindValue($key, $value);
+                        }
+
+                        if ($statement->execute()) {
+                            $this->pdo->commit();
+                            $results[$table['query']] = $statement->fetchAll();
+                        } else {
+                            $this->pdo->rollBack();
+                        }
+                    }
+                }
+            }
+        }
+
+        // TODO Events
+
+        return $results;
+    }*/
+
+    public function query(string $query): void
+    {
+        if($this->connect() == null) return;
+
+        if(DatabaseManagementBundle::DEBUG) {
+            print_r("\n");
+            print_r("\n" . $query);
+            print_r("\n");
+        }
+        $this->pdo->query($query);
+    }
+
+
+    public function exec(string $query): void
+    {
+        if($this->connect() == null) return;
+
+        if(DatabaseManagementBundle::DEBUG) {
+            print_r("\n");
+            print_r("\n" . $query);
+            print_r("\n");
+        }
+        $this->pdo->exec($query);
+    }
+
+    public function disconnect()
+    {
+        if($this->pdo == null) return null;
+
+        // flush all changes.
+        /*$repositories = [];
+
+        foreach ($this->container->getServiceIds() as $serviceId) {
+            if(!str_ends_with($serviceId, '.repository')) continue;
+
+            $repositories[] = $this->container->get($serviceId);
+        }
+
+        foreach ($repositories as $repository) {
+            if(!($repository instanceof EntityRepository)) continue;
+
+            $repository->flush();
+        }*/
+
+        // disconnect the database connection.
+        $this->pdo = null;
     }
 
 }

@@ -19,7 +19,7 @@ class EntityCollection
      */
     public function set(array $entities)
     {
-
+        $this->entities = $entities;
     }
 
     /**
@@ -27,7 +27,7 @@ class EntityCollection
      */
     public function clear()
     {
-
+        $this->entities = [];
     }
 
     /**
@@ -36,7 +36,7 @@ class EntityCollection
      */
     public function add($entity)
     {
-
+        $this->entities[] = $entity;
     }
 
     /**
@@ -45,7 +45,7 @@ class EntityCollection
      */
     public function remove($entity)
     {
-
+        $this->entities = array_filter($this->entities, fn($item) => $item !== $entity);
     }
 
     /**
@@ -62,7 +62,9 @@ class EntityCollection
      */
     public function first()
     {
-        return null;
+        if(count($this->entities) === 0) return null;
+
+        return $this->entities[0];
     }
 
     /**
@@ -70,7 +72,9 @@ class EntityCollection
      */
     public function firstId()
     {
-        return null;
+        if(count($this->entities) === 0) return null;
+
+        return $this->entities[0]->getId();
     }
 
     /**

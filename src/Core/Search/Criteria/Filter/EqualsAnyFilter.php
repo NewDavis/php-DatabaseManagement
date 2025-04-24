@@ -36,10 +36,10 @@ class EqualsAnyFilter implements Filter
 
     /**
      * @param string $definition
-     * @return string
-     * @throws UnknownInternalNameException
+     * @return FilterResult
+     * @throws UnknownInternalNameException|EmptySearchedValueException
      */
-    public function convert(string $definition): string
+    public function convert(string $definition): FilterResult
     {
         if(count($this->getSearchedValues()) == 0) {
             throw new EmptySearchedValueException($this->getInternalName());
@@ -54,11 +54,23 @@ class EqualsAnyFilter implements Filter
 
         $field = $fields[0];
 
-        return sprintf(
-            "`%s`.`%s` IN ('%s')",
+        $result = new FilterResult();
+        $searchedValuesPlaceholder = array_map(
+            function ($searchedValue) use ($result) {
+                $result->addParameter('?', $searchedValue);
+
+                return '?';
+            },
+            $this->getSearchedValues()
+        );
+
+        $result->setCondition(sprintf(
+            "`%s`.`%s` IN (%s)",
             $definition::getEntityName(),
             $field->getStorageName(),
-            rtrim(implode("', '", $this->getSearchedValues()), ", '")
-        );
+            rtrim(implode(', ', $searchedValuesPlaceholder), ', ')
+        ));
+
+        return $result;
     }
 }

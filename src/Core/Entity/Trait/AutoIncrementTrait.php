@@ -4,13 +4,13 @@ namespace NewDavis\DatabaseManagement\Core\Entity\Trait;
 
 trait AutoIncrementTrait
 {
-    protected ?int $auto_increment;
+    protected ?int $autoIncrement;
 
     /**
      * @return int|null
      */
     public function getAutoIncrement(): ?int
     {
-        return $this->auto_increment;
+        return $this->autoIncrement;
     }
 }

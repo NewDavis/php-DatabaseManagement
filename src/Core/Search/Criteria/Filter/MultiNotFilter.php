@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Core\Search\Criteria\Filter;
 
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\NoFilterPassedMultiFilterException;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\UnknownMultiFilterOperatorException;
 
@@ -37,9 +38,9 @@ class MultiNotFilter implements Filter
 
     /**
      * @param string $definition
-     * @return string
+     * @return FilterResult
      */
-    public function convert(string $definition): string
+    public function convert(string $definition): FilterResult
     {
         if(count($this->getFilter()) == 0) {
             throw new NoFilterPassedMultiFilterException();
@@ -50,23 +51,29 @@ class MultiNotFilter implements Filter
             throw new UnknownMultiFilterOperatorException($this->getOperator());
         }
 
+        $result = new FilterResult();
         $conditions = '';
 
         foreach ($this->getFilter() as $filter) {
             $converted = $filter->convert($definition);
 
-            $conditions .= $converted . ' ' . $this->getOperator();
+            $conditions .= $converted->getCondition() . ' ' . $this->getOperator();
+            foreach ($converted->getParameters() as $key => $value) {
+                $result->addParameter($key, $value);
+            }
         }
 
         $conditions = rtrim($conditions, ' ' . $this->getOperator());
 
         if($conditions === '') {
-            return '';
+            return new FilterResult();
         }
 
-        return sprintf(
+        $result->setCondition(sprintf(
             "NOT (%s)",
             $conditions
-        );
+        ));
+
+        return $result;
     }
 }

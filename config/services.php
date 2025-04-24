@@ -7,7 +7,6 @@ use NewDavis\DatabaseManagement\Core\Driver\Connection;
 use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
 use NewDavis\DatabaseManagement\Test\Account\AccountDefinition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
@@ -19,6 +18,5 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(AccountDefinition::getEntityName() . '.repository', EntityRepository::class)
         ->arg('$definition', AccountDefinition::class);
 
-    $services->set(Connection::class, Connection::class)
-        ->arg('$container', service('service_container'));
+    $services->set(Connection::class, Connection::class);
 };

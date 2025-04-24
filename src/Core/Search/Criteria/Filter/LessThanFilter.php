@@ -35,10 +35,10 @@ class LessThanFilter implements Filter
 
     /**
      * @param string $definition
-     * @return string
+     * @return FilterResult
      * @throws UnknownInternalNameException
      */
-    public function convert(string $definition): string
+    public function convert(string $definition): FilterResult
     {
         $fields = SchemaBuilder::filterFieldsByInternalName($definition, $this->getInternalName());
 
@@ -48,12 +48,16 @@ class LessThanFilter implements Filter
         }
 
         $field = $fields[0];
+        $result = new FilterResult();
 
-        return sprintf(
-            "`%s`.`%s` < '%s'",
+        $result->addParameter('?', '`' . $this->getSearchedValue() . '`');
+
+        $result->setCondition(sprintf(
+            "`%s`.`%s` < ?",
             $definition::getEntityName(),
-            $field->getStorageName(),
-            $this->getSearchedValue()
-        );
+            $field->getStorageName()
+        ));
+
+        return $result;
     }
 }
