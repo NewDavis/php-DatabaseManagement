@@ -9,6 +9,7 @@ use NewDavis\DatabaseManagement\Core\Search\Criteria\Sorting\FieldSorting;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Sorting\Sorting;
 use NewDavis\DatabaseManagement\Test\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Test\Account\AccountEntity;
+use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,6 +33,14 @@ class TestController extends AbstractController
         $criteria->addSorting(new FieldSorting('autoIncrement', Sorting::SORT_ASCENDING));
 
         $accounts = $this->accountRepository->search($criteria);
+        $this->accountRepository->upsert([
+            [
+                'id' => Uuid::uuid4()->toString(),
+                'username' => 'Davis',
+                'admin' => true,
+                'createdAt' => new \DateTimeImmutable(),
+            ]
+        ]);
 
         dd($accounts->first());
 

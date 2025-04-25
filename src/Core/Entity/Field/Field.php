@@ -87,6 +87,15 @@ class Field
         return $this->length;
     }
 
+    public function hasFlag(string $searchedFlag): bool
+    {
+        foreach ($this->flags as $flag) {
+            if ($searchedFlag === get_class($flag)) return true;
+        }
+
+        return false;
+    }
+
     /**
      * @param array<Flag> $flags
      */

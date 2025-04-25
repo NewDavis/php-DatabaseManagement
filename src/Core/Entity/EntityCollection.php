@@ -14,6 +14,15 @@ class EntityCollection
     private $entities;
 
     /**
+     * @param array<TElement> $entities
+     */
+    public function __construct(
+        array $entities = []
+    ) {
+        $this->entities = $entities;
+    }
+
+    /**
      * @param TElement[] $entities
      * @return void
      */
@@ -75,6 +84,17 @@ class EntityCollection
         if(count($this->entities) === 0) return null;
 
         return $this->entities[0]->getId();
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getIds()
+    {
+        return array_map(
+            fn($item) => $item->getId(),
+            $this->entities
+        );
     }
 
     /**

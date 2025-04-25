@@ -9,12 +9,9 @@ use Ramsey\Uuid\Uuid;
 
 abstract class Entity implements EntityInterface
 {
-    private bool $persisted;
-    private bool $delete = false;
 
-    public function __construct(bool $persisted = false)
+    public function __construct()
     {
-        $this->persisted = $persisted;
         $this->id = Uuid::uuid4()->toString();
         $this->createdAt = new \DateTimeImmutable();
     }
@@ -22,21 +19,6 @@ abstract class Entity implements EntityInterface
     use IdTrait;
     use CreatedAtTrait;
     use UpdatedAtTrait;
-
-    public function isPersisted(): bool
-    {
-        return $this->persisted;
-    }
-
-    public function setDelete(bool $delete): bool
-    {
-        return $this->delete = $delete;
-    }
-
-    public function getDelete(): bool
-    {
-        return $this->delete;
-    }
 
     public function jsonSerialize(): array
     {
