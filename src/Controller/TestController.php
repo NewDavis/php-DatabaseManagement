@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Controller;
 
+use NewDavis\DatabaseManagement\Core\Driver\Connection;
 use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
 use NewDavis\DatabaseManagement\Core\Schema\TableSchemaBuilder;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
@@ -22,23 +23,31 @@ class TestController extends AbstractController
      * @param EntityRepository<AccountEntity> $accountRepository
      */
     public function __construct(
-        #[Autowire(service: 'account.repository')] private readonly EntityRepository $accountRepository
+        #[Autowire(service: 'account.repository')] private readonly EntityRepository $accountRepository,
+        #[Autowire(service: Connection::class)] private readonly Connection $connection,
     ) {
     }
 
     #[Route(path: '/', name: 'database-management.home', methods: ['GET'])]
     public function test()
     {
+        /*$this->connection->exec(
+            TableSchemaBuilder::build(AccountDefinition::class)
+        );*/
+
         $criteria = new Criteria();
         $criteria->addSorting(new FieldSorting('autoIncrement', Sorting::SORT_ASCENDING));
 
         $accounts = $this->accountRepository->search($criteria);
         $this->accountRepository->upsert([
             [
+                'id' => '63a3bcb0-7626-4602-94ac-f79b20e932ee',
+                'admin' => false,
+            ],
+            [
                 'id' => Uuid::uuid4()->toString(),
-                'username' => 'Davis',
+                'username' => 'admini',
                 'admin' => true,
-                'createdAt' => new \DateTimeImmutable(),
             ]
         ]);
 

@@ -17,7 +17,7 @@ class TableSchemaBuilder
 
         return "
             ${tableSQL}
-            ${$flagSQL}
+            ${flagSQL}
             ${relationSQL}
         ";
     }

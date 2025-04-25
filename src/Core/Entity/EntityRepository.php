@@ -2,7 +2,9 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
+use Composer\Semver\Constraint\MultiConstraint;
 use NewDavis\DatabaseManagement\Core\Driver\Connection;
+use NewDavis\DatabaseManagement\Core\Driver\Statement;
 use NewDavis\DatabaseManagement\Core\Entity\Exception\PropertyNotFoundInEntityException;
 use NewDavis\DatabaseManagement\Core\Entity\Exception\RequiredPropertyNotFoundInEntityDataSetException;
 use NewDavis\DatabaseManagement\Core\Entity\Field\DateTimeField;
@@ -34,23 +36,32 @@ class EntityRepository
      */
     public function upsert(EntityCollection|Entity|array $entities)
     {
-        // convert $entities to EntityCollection
         if($entities instanceof Entity) {
-            $entities = new EntityCollection($entities);
-        }else if(is_array($entities)) {
-            $entities = $this->buildEntityCollection($entities);
+            $entities = new EntityCollection([$entities]);
         }
 
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsAnyFilter('id', $entities->getIds()));
+
+        if(is_array($entities)) {
+            $criteria->addFilter(new EqualsAnyFilter('id', array_map(
+                fn($dataSet) => $dataSet['id'],
+                $entities
+            )));
+        }else{
+            $criteria->addFilter(new EqualsAnyFilter('id', $entities->getIds()));
+        }
 
         $existingIds = $this->searchIds($criteria);
 
-        foreach ($entities->getEntities() as $entity) {
-            if(in_array($entity->getId(), $existingIds)) {
-                $this->update($entities);
-            }else{
-                $this->create($entities);
+        foreach (($entities instanceof EntityCollection ? $entities->getEntities() : $entities) as $entity)
+        {
+            if(in_array(
+                ($entity instanceof Entity ? $entity->getId() : $entity['id']),
+                $existingIds
+            )) {
+                $this->update($entity);
+            } else {
+                $this->create($entity);
             }
         }
     }
@@ -63,28 +74,54 @@ class EntityRepository
     {
         // convert $entities to EntityCollection
         if($entities instanceof Entity) {
-            $entities = new EntityCollection($entities);
+            $entities = new EntityCollection([$entities]);
         }else if(is_array($entities)) {
             $entities = $this->buildEntityCollection($entities);
         }
 
-        dd("create", $entities);
+        $createStatements = SchemaBuilder::create($this->definition, $entities);
+
+        /*$statement = new Statement();
+        $statement->setStatement(
+            implode(PHP_EOL, array_map(
+                fn($createStatement) => $createStatement->getStatement(),
+                $createStatements
+            ))
+        );
+
+        foreach ($createStatements as $createStatement) {
+            foreach ($createStatement->getParameters() as $parameter) {
+                $statement->addParameter('?', $parameter);
+            }
+        }*/
+
+        $results = [];
+        foreach ($createStatements as $createStatement) {
+            var_dump($createStatement);
+            $results[] = $this->connection->prepare($createStatement);
+        }
+        dd($results);
     }
 
     /**
-     * @param EntityCollection<TElement>|TElement|array $entities
+     * @param EntityCollection|Entity|array $entities
+     * @param array|null $entityDataSets
      * @return void
+     * @throws PropertyNotFoundInEntityException
+     * @throws RequiredPropertyNotFoundInEntityDataSetException
      */
     public function update(EntityCollection|Entity|array $entities)
     {
         // convert $entities to EntityCollection
         if($entities instanceof Entity) {
-            $entities = new EntityCollection($entities);
+            $entities = new EntityCollection([$entities]);
         }else if(is_array($entities)) {
-            $entities = $this->buildEntityCollection($entities);
+            $entities = $this->buildEntityCollection($entities, true);
         }
 
-        dd("update", $entities);
+        $updateStatements = SchemaBuilder::update($this->definition, $entities);
+
+        dd($updateStatements);
     }
 
     public function delete(Criteria $criteria)
@@ -133,7 +170,7 @@ class EntityRepository
     /**
      * @return TElement
      */
-    private function buildEntityCollection(array $entityDataSets) : EntityCollection
+    private function buildEntityCollection(array $entityDataSets, $ignoreErrors = false) : EntityCollection
     {
         $entityClass = $this->definition::getEntityClass();
         $fields = $this->definition::getDefinitionFields();
@@ -158,18 +195,21 @@ class EntityRepository
                         null
                     );
 
-                if(!$storageName) {
-                    if($required) {
-                        throw new RequiredPropertyNotFoundInEntityDataSetException($storageName);
+                if(!$storageName && !$reflectionEntity->hasProperty($field->getInternalName())) {
+                    if($required && !$ignoreErrors) {
+                        throw new RequiredPropertyNotFoundInEntityDataSetException($field->getInternalName());
+                    } else if(!$ignoreErrors) {
+                        throw new PropertyNotFoundInEntityException($field->getInternalName(), $entityClass);
                     }
-
-                    continue;
-                }
-                if(!$reflectionEntity->hasProperty($field->getInternalName())) {
-                    throw new PropertyNotFoundInEntityException($field->getInternalName(), $entityClass);
                 }
 
                 $property = $reflectionEntity->getProperty($field->getInternalName());
+                if(!$storageName && $required && !$property->isInitialized($entity) && (!$ignoreErrors)) {
+                    throw new RequiredPropertyNotFoundInEntityDataSetException($field->getInternalName());
+                }else if(!$storageName) {
+                    continue;
+                }
+
                 $value = null;
 
                 switch ($property->getType()->getName()) {

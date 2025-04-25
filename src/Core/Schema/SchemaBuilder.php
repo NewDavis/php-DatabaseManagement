@@ -3,7 +3,9 @@
 namespace NewDavis\DatabaseManagement\Core\Schema;
 
 use NewDavis\DatabaseManagement\Core\Driver\Statement;
+use NewDavis\DatabaseManagement\Core\Entity\Entity;
 use NewDavis\DatabaseManagement\Core\Entity\EntityCollection;
+use NewDavis\DatabaseManagement\Core\Entity\Field\DateTimeField;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
 
@@ -138,25 +140,140 @@ class SchemaBuilder
         return $statement;
     }
 
-    public static function create($definition, EntityCollection $entities) : Statement
+    public static function create($definition, EntityCollection $entities) : array
     {
-        $statement = new Statement();
+        $statements = [];
 
-        $statement->setStatement(
-            sprintf(
-                "INSERT INTO `%s` (%s) VALUES (%s)",
-                $definition::getEntityName(),
-            )
-        );
+        foreach ($entities->getEntities() as $entity) {
+            $statement = new Statement();
 
-        return $statement;
+            $properties = self::getProperties($definition, $entity);
+
+            $values = self::getValues($properties, $entity);
+
+            $statement->setStatement(
+                sprintf(
+                    "INSERT INTO `%s` (%s) VALUES (%s);",
+                    $definition::getEntityName(),
+                    implode(', ', array_values($properties)),
+                    implode(', ', array_map(
+                        function ($value) use ($statement) {
+                            $statement->addParameter('?', $value);
+
+                            return '?';
+                        },
+                        $values
+                    ))
+                )
+            );
+
+            $statements[] = $statement;
+        }
+
+        return $statements;
     }
 
-    public static function update($definition, EntityCollection $entities) : Statement
+    public static function update($definition, EntityCollection $entities): array
     {
-        $statement = new Statement();
+        $statements = [];
 
-        return $statement;
+        foreach ($entities->getEntities() as $entity) {
+            $statement = new Statement();
+
+            $properties = self::getProperties($definition, $entity);
+
+            $values = self::getValues($properties, $entity);
+
+            $statement->setStatement(
+                sprintf(
+                    "UPDATE `%s` SET %s WHERE `%s`.`%s` = ?;",
+                    $definition::getEntityName(),
+                    implode(', ', array_map(
+                        function ($property, $value) use ($definition, $statement) {
+                            $statement->addParameter('?', $value);
+
+                            return sprintf(
+                                '`%s`.%s = ?',
+                                $definition::getEntityName(),
+                                $property
+                            );
+                        },
+                        $properties,
+                        $values
+                    )),
+                    $definition::getEntityName(),
+                    'id'
+                )
+            );
+
+            $statement->addParameter('?', $entity->getId());
+
+            $statements[] = $statement;
+        }
+
+        return $statements;
+    }
+
+    private static function getProperties($definition, Entity $entity) : array
+    {
+        $properties = [];
+
+        /** @var Field $field */
+        foreach ($definition::getDefinitionFields() as $field) {
+            $reflectionClass = new \ReflectionClass($entity);
+            if(!$reflectionClass->hasProperty($field->getInternalName())) continue;
+
+            $property = $reflectionClass->getProperty($field->getInternalName());
+            if(!$property->isInitialized($entity)) continue;
+
+            $properties[$field->getInternalName()] = sprintf(
+                "`%s`",
+                $field->getStorageName()
+            );
+        }
+
+        return $properties;
+    }
+
+    private static function getValues($properties, Entity $entity) : array
+    {
+        $values = [];
+
+        foreach ($properties as $internalName => $storageName) {
+            $reflectionClass = new \ReflectionClass($entity);
+            if(!$reflectionClass->hasProperty($internalName)) continue;
+
+            $property = $reflectionClass->getProperty($internalName);
+            if(!$property->isInitialized($entity)) continue;
+
+            $value = $property->getValue($entity);
+            switch (gettype($value)) {
+                case 'string':
+                    $value = (string)$value;
+                    break;
+                case 'integer':
+                    $value = (int)$value;
+                    break;
+                case 'boolean':
+                    $value = $value ? 1 : 0;
+                    break;
+                case 'object':
+                    if($value instanceof \DateTimeImmutable) {
+                        $value = $value->format(DateTimeField::FORMAT);
+                    }
+                    break;
+                default:
+                    dd(gettype($value));
+                    break;
+            }
+
+            $values[] = sprintf(
+                "%s",
+                $value
+            );
+        }
+
+        return $values;
     }
 
     public static function delete($definition, Criteria $criteria) : Statement

@@ -46,7 +46,11 @@ class Statement
      */
     public function addParameter(string $key, mixed $value): void
     {
-        $this->parameters[$key] = $value;
+        if($key === '?') {
+            $this->parameters[] = $value;
+        }else{
+            $this->parameters[$key] = $value;
+        }
     }
 
     /**
