@@ -18,4 +18,5 @@ interface EntityCollectionInterface
     public function searchId($id) : string|null;
     public function count() : int;
     public function getEntities() : array;
+    public static function getDefinitionClass() : ?string;
 }

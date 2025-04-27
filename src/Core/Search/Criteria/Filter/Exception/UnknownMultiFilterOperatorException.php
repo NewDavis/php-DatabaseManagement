@@ -8,7 +8,7 @@ class UnknownMultiFilterOperatorException extends \Exception
     public function __construct(string $operator)
     {
         parent::__construct(
-            'The provided operator "' . $operator . '" is not known!',
+            'The provided operator "' . $operator . '" is not known',
             0,
             null
         );

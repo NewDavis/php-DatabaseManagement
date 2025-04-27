@@ -2,13 +2,16 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use Composer\Semver\Constraint\MultiConstraint;
 use NewDavis\DatabaseManagement\Core\Driver\Connection;
-use NewDavis\DatabaseManagement\Core\Driver\Statement;
 use NewDavis\DatabaseManagement\Core\Entity\Exception\PropertyNotFoundInEntityException;
 use NewDavis\DatabaseManagement\Core\Entity\Exception\RequiredPropertyNotFoundInEntityDataSetException;
 use NewDavis\DatabaseManagement\Core\Entity\Field\DateTimeField;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\ManyToManyRelation;
+use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\ManyToOneRelation;
+use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\OneToManyRelation;
+use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\OneToOneRelation;
+use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\RelationField;
 use NewDavis\DatabaseManagement\Core\Entity\Flag\AutoIncrement;
 use NewDavis\DatabaseManagement\Core\Entity\Flag\PrimaryKey;
 use NewDavis\DatabaseManagement\Core\Entity\Flag\Required;
@@ -24,6 +27,10 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 class EntityRepository
 {
 
+    /**
+     * @param string $definition
+     * @param Connection $connection
+     */
     public function __construct(
         private readonly string $definition,
         #[Autowire(service: Connection::class)] private readonly Connection $connection
@@ -37,7 +44,8 @@ class EntityRepository
     public function upsert(EntityCollection|Entity|array $entities)
     {
         if($entities instanceof Entity) {
-            $entities = new EntityCollection([$entities]);
+            $collectionClass = $this->getDefinition()::getCollectionClass();
+            $entities = new $collectionClass([$entities]);
         }
 
         $criteria = new Criteria();
@@ -53,15 +61,14 @@ class EntityRepository
 
         $existingIds = $this->searchIds($criteria);
 
-        foreach (($entities instanceof EntityCollection ? $entities->getEntities() : $entities) as $entity)
+        $entities = ($entities instanceof EntityCollection ? $entities->getEntities() : $entities);
+        foreach ($entities as $entity)
         {
-            if(in_array(
-                ($entity instanceof Entity ? $entity->getId() : $entity['id']),
-                $existingIds
-            )) {
-                $this->update($entity);
+            $entityId = ($entity instanceof Entity ? $entity->getId() : $entity['id']);
+            if(in_array($entityId, $existingIds)) {
+                $this->update([$entity]);
             } else {
-                $this->create($entity);
+                $this->create([$entity]);
             }
         }
     }
@@ -74,68 +81,67 @@ class EntityRepository
     {
         // convert $entities to EntityCollection
         if($entities instanceof Entity) {
-            $entities = new EntityCollection([$entities]);
+            $collectionClass = $this->getDefinition()::getCollectionClass();
+            $entities = new $collectionClass([$entities]);
         }else if(is_array($entities)) {
             $entities = $this->buildEntityCollection($entities);
         }
 
         $createStatements = SchemaBuilder::create($this->definition, $entities);
 
-        /*$statement = new Statement();
-        $statement->setStatement(
-            implode(PHP_EOL, array_map(
-                fn($createStatement) => $createStatement->getStatement(),
-                $createStatements
-            ))
-        );
-
         foreach ($createStatements as $createStatement) {
-            foreach ($createStatement->getParameters() as $parameter) {
-                $statement->addParameter('?', $parameter);
-            }
-        }*/
-
-        $results = [];
-        foreach ($createStatements as $createStatement) {
-            var_dump($createStatement);
-            $results[] = $this->connection->prepare($createStatement);
+            $this->connection->prepare($createStatement);
         }
-        dd($results);
     }
 
     /**
-     * @param EntityCollection|Entity|array $entities
-     * @param array|null $entityDataSets
+     * @param EntityCollection<TElement>|TElement|array $entities
      * @return void
-     * @throws PropertyNotFoundInEntityException
-     * @throws RequiredPropertyNotFoundInEntityDataSetException
      */
     public function update(EntityCollection|Entity|array $entities)
     {
         // convert $entities to EntityCollection
         if($entities instanceof Entity) {
-            $entities = new EntityCollection([$entities]);
+            $collectionClass = $this->getDefinition()::getCollectionClass();
+            $entities = new $collectionClass([$entities]);
         }else if(is_array($entities)) {
+            $changedProperties = $entities;
             $entities = $this->buildEntityCollection($entities, true);
         }
 
-        $updateStatements = SchemaBuilder::update($this->definition, $entities);
+        foreach ($entities->getEntities() as $entity) {
+            $entity->setUpdatedAt(new \DateTimeImmutable());
+        }
 
-        dd($updateStatements);
+        $updateStatements = SchemaBuilder::update($this->definition, $entities, $changedProperties);
+
+        foreach ($updateStatements as $updateStatement) {
+            $this->connection->prepare($updateStatement);
+        }
     }
 
+    /**
+     * @param Criteria $criteria
+     * @return void
+     */
     public function delete(Criteria $criteria)
     {
         $deleteQuery = SchemaBuilder::delete($this->definition, $criteria);
 
-        dd($deleteQuery);
+        $this->connection->prepare($deleteQuery);
     }
 
+    /**
+     * @param Criteria $criteria
+     * @return int
+     */
     public function count(Criteria $criteria): int
     {
-        $searchQuery = SchemaBuilder::search($this->definition, $criteria);
+        $countQuery = SchemaBuilder::count($this->definition, $criteria);
 
-        return 0;
+        $result = $this->connection->prepare($countQuery);
+
+        return array_values($result[0])[0];
     }
 
     /**
@@ -168,96 +174,189 @@ class EntityRepository
     }
 
     /**
-     * @return TElement
+     * @return EntityCollection<TElement>
      */
-    private function buildEntityCollection(array $entityDataSets, $ignoreErrors = false) : EntityCollection
+    private function buildEntityCollection(array $entityDataSets, bool $ignoreErrors = false): EntityCollection
+    {
+        $collectionClass = $this->getDefinition()::getCollectionClass();
+        $entities = new $collectionClass();
+
+        foreach ($entityDataSets as $entityDataSet) {
+            $entities->add($this->buildEntity($entityDataSet, $ignoreErrors));
+        }
+
+        return $entities;
+    }
+
+    /**
+     * @param array $entityDataSet
+     * @param bool $ignoreErrors
+     * @return TElement
+     * @throws PropertyNotFoundInEntityException
+     * @throws RequiredPropertyNotFoundInEntityDataSetException
+     * @throws \ReflectionException
+     */
+    private function buildEntity(array $entityDataSet, bool $ignoreErrors = false): Entity
     {
         $entityClass = $this->definition::getEntityClass();
         $fields = $this->definition::getDefinitionFields();
 
-        $entities = new EntityCollection();
+        /** @var Entity $entity */
+        $entity = new $entityClass();
+        $reflectionEntity = new ReflectionClass($entityClass);
 
-        foreach ($entityDataSets as $entityDataSet) {
-            /** @var Entity $entity */
-            $entity = new $entityClass();
-            $reflectionEntity = new ReflectionClass($entityClass);
+        /** @var Field $field */
+        foreach ($fields as $field) {
+            if($field instanceof RelationField) continue;
 
-            /** @var Field $field */
-            foreach ($fields as $field) {
-                $required = ($field->hasFlag(Required::class) ||
+            // determine if the field is required or not.
+            $required = ($field->hasFlag(Required::class) ||
                     $field->hasFlag(PrimaryKey::class)) &&
-                    !$field->hasFlag(AutoIncrement::class);
+                !$field->hasFlag(AutoIncrement::class);
 
-                $storageName = array_key_exists($field->getStorageName(), $entityDataSet) ?
-                    $field->getStorageName() :
-                    (array_key_exists($field->getInternalName(), $entityDataSet) ?
-                        $field->getInternalName() :
-                        null
-                    );
+            // get storageName by storageName or internalName if the dataset is entered using upsert.
+            $storageName = $this->getStorageName($field, $entityDataSet);
+            $internalName = $this->getInternalName($field, $entityDataSet);
 
-                if(!$storageName && !$reflectionEntity->hasProperty($field->getInternalName())) {
-                    if($required && !$ignoreErrors) {
-                        throw new RequiredPropertyNotFoundInEntityDataSetException($field->getInternalName());
-                    } else if(!$ignoreErrors) {
-                        throw new PropertyNotFoundInEntityException($field->getInternalName(), $entityClass);
-                    }
+            // check if entity has property.
+            if(!$storageName && !$reflectionEntity->hasProperty($internalName)) {
+                if($required && !$ignoreErrors) {
+                    throw new RequiredPropertyNotFoundInEntityDataSetException($internalName);
+                } else if(!$ignoreErrors) {
+                    throw new PropertyNotFoundInEntityException($internalName, $entityClass);
                 }
-
-                $property = $reflectionEntity->getProperty($field->getInternalName());
-                if(!$storageName && $required && !$property->isInitialized($entity) && (!$ignoreErrors)) {
-                    throw new RequiredPropertyNotFoundInEntityDataSetException($field->getInternalName());
-                }else if(!$storageName) {
-                    continue;
-                }
-
-                $value = null;
-
-                switch ($property->getType()->getName()) {
-                    case "string":
-                        $value = (string) $entityDataSet[$storageName];
-                        break;
-                    case "bool":
-                        $value = (bool)$entityDataSet[$storageName];
-                        break;
-                    case "int":
-                        $value = (int)$entityDataSet[$storageName];
-                        break;
-                    case "DateTimeImmutable":
-                        if($entityDataSet[$storageName] instanceof \DateTimeImmutable) {
-                            $value = $entityDataSet[$storageName];
-                            break;
-                        }
-
-                        $dateTime = \DateTimeImmutable::createFromFormat(DateTimeField::FORMAT, $entityDataSet[$storageName]);
-                        if($dateTime) {
-                            $value = $dateTime;
-                        }
-                        break;
-                    case "array":
-                        if($field->getType() !== 'JSON') break;
-
-                        if(is_array($entityDataSet[$storageName])) {
-                            $value = $entityDataSet[$storageName];
-                        }
-
-                        $array = json_decode($entityDataSet[$storageName], true);
-                        if(json_last_error() === JSON_ERROR_NONE) {
-                            $value = $array;
-                        }
-
-                        break;
-                    default:
-                        dd($property->getType()->getName());
-                        break;
-                }
-
-                $property->setValue($entity, $value);
             }
 
-            $entities->add($entity);
+            $property = $reflectionEntity->getProperty($internalName);
+            // check if required property is not initialized
+            if(!$storageName && $required && !$property->isInitialized($entity) && (!$ignoreErrors)) {
+                throw new RequiredPropertyNotFoundInEntityDataSetException($internalName);
+            }else if(!$storageName) {
+                continue;
+            }
+
+            $property->setValue($entity, $this->convertValue(
+                $entityDataSet,
+                $storageName,
+                $property,
+                $field
+            ));
         }
 
-        return $entities;
+        return $entity;
+    }
+
+    /**
+     * @param array $entityDataSet
+     * @param string $storageName
+     * @param \ReflectionProperty $property
+     * @param Field $field
+     * @return array|bool|\DateTimeImmutable|int|mixed|string|null
+     */
+    private function convertValue(
+        array $entityDataSet,
+        string $storageName,
+        \ReflectionProperty $property,
+        Field $field
+    ) {
+        $value = null;
+
+        switch ($property->getType()->getName()) {
+            case "string":
+                $value = (string) $entityDataSet[$storageName];
+                break;
+            case "bool":
+                $value = (bool)$entityDataSet[$storageName];
+                break;
+            case "int":
+                $value = (int)$entityDataSet[$storageName];
+                break;
+            case "DateTimeImmutable":
+                if($entityDataSet[$storageName] instanceof \DateTimeImmutable) {
+                    $value = $entityDataSet[$storageName];
+                    break;
+                }
+
+                $dateTime = \DateTimeImmutable::createFromFormat(DateTimeField::FORMAT, $entityDataSet[$storageName]);
+                if($dateTime) {
+                    $value = $dateTime;
+                }
+                break;
+            case "array":
+                if($field->getType() !== 'JSON') break;
+
+                if(is_array($entityDataSet[$storageName])) {
+                    $value = $entityDataSet[$storageName];
+                    break;
+                }
+
+                $array = json_decode($entityDataSet[$storageName], true);
+                if(json_last_error() === JSON_ERROR_NONE) {
+                    $value = $array;
+                }
+
+                break;
+            default:
+                dd($property);
+                break;
+        }
+
+        return $value;
+    }
+
+    private function getStorageName(Field $field, array $entityDataSet)
+    {
+        $storageName = null;
+
+        if($field instanceof RelationField) {
+            switch (get_class($field)) {
+                case OneToOneRelation::class:
+                case ManyToOneRelation::class:
+                    if(array_key_exists($field->getStorageName(), $entityDataSet)) {
+                        $storageName = $field->getStorageName();
+                    }else if(array_key_exists($field->getInternalName(), $entityDataSet)) {
+                        $storageName = $field->getInternalName();
+                    }
+                    break;
+                case OneToManyRelation::class:
+                case ManyToManyRelation::class:
+                    if(array_key_exists($field->getRelationStorageName(), $entityDataSet)) {
+                        $storageName = $field->getRelationStorageName();
+                    }else if(array_key_exists($field->getRelationInternalName(), $entityDataSet)) {
+                        $storageName = $field->getRelationInternalName();
+                    }
+                    break;
+            }
+        }else{
+            if(array_key_exists($field->getStorageName(), $entityDataSet)) {
+                $storageName = $field->getStorageName();
+            }else if(array_key_exists($field->getInternalName(), $entityDataSet)) {
+                $storageName = $field->getInternalName();
+            }
+        }
+
+        return $storageName;
+    }
+
+    private function getInternalName(Field $field, array $entityDataSet)
+    {
+        $internalName = null;
+
+        if($field instanceof RelationField) {
+            $internalName = $field->getRelationInternalName();
+        }else{
+            $internalName = $field->getInternalName();
+        }
+
+        return $internalName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDefinition(): string
+    {
+        return $this->definition;
     }
 
 }

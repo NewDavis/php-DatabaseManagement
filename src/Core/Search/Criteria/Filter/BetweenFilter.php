@@ -5,15 +5,17 @@ namespace NewDavis\DatabaseManagement\Core\Search\Criteria\Filter;
 use NewDavis\DatabaseManagement\Core\Schema\SchemaBuilder;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\UnknownInternalNameException;
 
-class LessThanFilter implements Filter
+class BetweenFilter implements Filter
 {
     /**
      * @param string $internalName
-     * @param string $searchedValue
+     * @param int $start,
+     * @param int $end,
      */
     public function __construct(
         private readonly string $internalName,
-        private readonly string $searchedValue,
+        private readonly int $start,
+        private readonly int $end,
     ) {
     }
 
@@ -26,11 +28,19 @@ class LessThanFilter implements Filter
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getSearchedValue(): string
+    public function getStart(): int
     {
-        return $this->searchedValue;
+        return $this->start;
+    }
+
+    /**
+     * @return int
+     */
+    public function getEnd(): int
+    {
+        return $this->end;
     }
 
     /**
@@ -52,13 +62,18 @@ class LessThanFilter implements Filter
 
         $result->addParameter('?', sprintf(
                 "%s",
-                $this->getSearchedValue()
+                $this->getStart()
+            ));
+
+        $result->addParameter('?', sprintf(
+                "%s",
+                $this->getEnd()
             ));
 
         $result->setCondition(sprintf(
-            "`%s`.`%s` < ?",
+            "`%s`.`%s` BETWEEN ? AND ?",
             $definition::getEntityName(),
-            $field->getStorageName()
+            $field->getStorageName(),
         ));
 
         return $result;

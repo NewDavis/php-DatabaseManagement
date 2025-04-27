@@ -6,10 +6,14 @@ use NewDavis\DatabaseManagement\Core\Driver\Connection;
 use NewDavis\DatabaseManagement\Core\Entity\EntityRepository;
 use NewDavis\DatabaseManagement\Core\Schema\TableSchemaBuilder;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\BetweenFilter;
+use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\GreatherThanFilter;
+use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\LessThanFilter;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Sorting\FieldSorting;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Sorting\Sorting;
 use NewDavis\DatabaseManagement\Test\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Test\Account\AccountEntity;
+use NewDavis\DatabaseManagement\Test\Role\RoleDefinition;
 use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -35,33 +39,61 @@ class TestController extends AbstractController
             TableSchemaBuilder::build(AccountDefinition::class)
         );*/
 
+        /*$this->accountRepository->upsert([
+            [
+                'id' => Uuid::uuid4()->toString(),
+                'username' => 'Test',
+                'admin' => false,
+                'customFields' => [
+                    'role' => [
+                        [
+                            'name' => 'admin',
+                            'permissions' => [
+                                '*'
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'id' => Uuid::uuid4()->toString(),
+                'username' => 'Test2',
+                'admin' => true,
+            ],
+            [
+                'id' => Uuid::uuid4()->toString(),
+                'username' => 'Test3',
+                'admin' => true,
+            ],
+            [
+                'id' => Uuid::uuid4()->toString(),
+                'username' => 'Test4',
+                'admin' => true,
+            ],
+            [
+                'id' => Uuid::uuid4()->toString(),
+                'username' => 'Test5',
+                'admin' => false,
+            ]
+        ]);*/
+
+        $this->accountRepository->upsert([
+            [
+                'id' => '07ffbbbd-bb52-4edb-a95c-92881554e11d',
+                'username' => 'NewDavis',
+                'admin' => true,
+                'primaryRoleId' => '38e17f5f-dbb2-4383-b27a-5156974c2409'
+            ]
+        ]);
+
         $criteria = new Criteria();
         $criteria->addSorting(new FieldSorting('autoIncrement', Sorting::SORT_ASCENDING));
 
         $accounts = $this->accountRepository->search($criteria);
-        $this->accountRepository->upsert([
-            [
-                'id' => '63a3bcb0-7626-4602-94ac-f79b20e932ee',
-                'admin' => false,
-            ],
-            [
-                'id' => Uuid::uuid4()->toString(),
-                'username' => 'admini',
-                'admin' => true,
-            ]
-        ]);
-
-        dd($accounts->first());
+        dd($accounts);
 
         $response = [
-            'queries' => [
-                'table' => TableSchemaBuilder::createTable(AccountDefinition::class),
-                'flag' => TableSchemaBuilder::setFlags(AccountDefinition::class),
-                'relation' => TableSchemaBuilder::addRelations(AccountDefinition::class),
-                'search' => [
-                    'basic' => $accounts
-                ]
-            ]
+            'basic' => $accounts
         ];
 
         return new JsonResponse($response);

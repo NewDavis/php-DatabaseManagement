@@ -99,6 +99,14 @@ class Field
     /**
      * @param array<Flag> $flags
      */
+    public function addFlag(...$flags): void
+    {
+        $this->flags = $this->filterUniqueClassName(...$flags, ...$this->flags);
+    }
+
+    /**
+     * @param array<Flag> $flags
+     */
     public function setFlags(...$flags): void
     {
         $this->flags = $this->filterUniqueClassName(...$flags);

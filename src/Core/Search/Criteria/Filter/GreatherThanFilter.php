@@ -50,7 +50,10 @@ class GreatherThanFilter implements Filter
         $field = $fields[0];
         $result = new FilterResult();
 
-        $result->addParameter('?', '`' . $this->getSearchedValue() . '`');
+        $result->addParameter('?', sprintf(
+            "%s",
+            $this->getSearchedValue()
+        ));
 
         $result->setCondition(sprintf(
             "`%s`.`%s` > ?",

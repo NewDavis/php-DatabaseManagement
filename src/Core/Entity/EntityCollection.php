@@ -7,7 +7,7 @@ use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
 /**
  * @template TElement
  */
-class EntityCollection
+abstract class EntityCollection implements EntityCollectionInterface
 {
 
     /** @var TElement[] */
@@ -26,7 +26,7 @@ class EntityCollection
      * @param TElement[] $entities
      * @return void
      */
-    public function set(array $entities)
+    public function set(array $entities): void
     {
         $this->entities = $entities;
     }
@@ -34,7 +34,7 @@ class EntityCollection
     /**
      * @return void
      */
-    public function clear()
+    public function clear(): void
     {
         $this->entities = [];
     }
@@ -43,7 +43,7 @@ class EntityCollection
      * @param TElement $entity
      * @return void
      */
-    public function add($entity)
+    public function add($entity): void
     {
         $this->entities[] = $entity;
     }
@@ -52,7 +52,7 @@ class EntityCollection
      * @param TElement $entity
      * @return void
      */
-    public function remove($entity)
+    public function remove($entity): void
     {
         $this->entities = array_filter($this->entities, fn($item) => $item !== $entity);
     }
@@ -61,7 +61,7 @@ class EntityCollection
      * @param TElement $entity
      * @return bool
      */
-    public function contains($entity)
+    public function contains($entity): bool
     {
         return false;
     }
@@ -69,7 +69,7 @@ class EntityCollection
     /**
      * @return TElement|null
      */
-    public function first()
+    public function first(): ?Entity
     {
         if(count($this->entities) === 0) return null;
 
@@ -79,7 +79,7 @@ class EntityCollection
     /**
      * @return string|null
      */
-    public function firstId()
+    public function firstId(): ?string
     {
         if(count($this->entities) === 0) return null;
 
@@ -101,9 +101,9 @@ class EntityCollection
      * @param Criteria $criteria
      * @return EntityCollection<TElement>
      */
-    public function search(Criteria $criteria)
+    public function search(Criteria $criteria): EntityCollection
     {
-        return new EntityCollection([]);
+        return $this->createCollectionInstance([]);
     }
 
     /**
@@ -111,16 +111,16 @@ class EntityCollection
      * @param mixed $value
      * @return EntityCollection<TElement>
      */
-    public function searchBy(string $property, mixed $value)
+    public function searchBy(string $property, mixed $value): EntityCollection
     {
-        return new EntityCollection([]);
+        return $this->createCollectionInstance([]);
     }
 
     /**
      * @param $id
      * @return string|null
      */
-    public function searchId($id)
+    public function searchId($id): ?string
     {
         return null;
     }
@@ -128,7 +128,7 @@ class EntityCollection
     /**
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return count($this->entities);
     }
@@ -136,8 +136,26 @@ class EntityCollection
     /**
      * @return TElement[]
      */
-    public function getEntities()
+    public function getEntities(): array
     {
         return $this->entities;
+    }
+
+    /**
+     * @param array|null $entities
+     * @return EntityCollection|null
+     * @throws \ReflectionException
+     */
+    private function createCollectionInstance(?array $entities): ?EntityCollection
+    {
+        $reflectionClass = new \ReflectionClass($this);
+        if(!$reflectionClass->hasMethod('getDefinitionClass')) return null;
+
+        $method = $reflectionClass->getMethod('getDefinitionClass');
+
+        $definition = (string)$method->invoke($this);
+        $collectionClass = $definition::getCollectionClass();
+
+        return new $collectionClass($entities);
     }
 }

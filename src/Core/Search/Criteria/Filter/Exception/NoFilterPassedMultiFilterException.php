@@ -8,7 +8,7 @@ class NoFilterPassedMultiFilterException extends \Exception
     public function __construct()
     {
         parent::__construct(
-            'There is no Filter passed to MultiFilter!',
+            'There is no Filter passed to MultiFilter',
             0,
             null
         );

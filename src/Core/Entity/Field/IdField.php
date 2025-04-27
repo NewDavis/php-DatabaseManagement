@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Core\Entity\Field;
 
 use NewDavis\DatabaseManagement\Core\Entity\Flag\PrimaryKey;
 use NewDavis\DatabaseManagement\Core\Entity\Flag\Required;
+use NewDavis\DatabaseManagement\Core\Entity\Flag\Unique;
 
 class IdField extends Field
 {

@@ -57,7 +57,10 @@ class EqualsAnyFilter implements Filter
         $result = new FilterResult();
         $searchedValuesPlaceholder = array_map(
             function ($searchedValue) use ($result) {
-                $result->addParameter('?', $searchedValue);
+                $result->addParameter('?', sprintf(
+                    "%s",
+                    $searchedValue
+                ));
 
                 return '?';
             },
