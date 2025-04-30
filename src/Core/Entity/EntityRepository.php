@@ -87,6 +87,8 @@ class EntityRepository
             $entities = $this->buildEntityCollection($entities);
         }
 
+        $this->processEntitiesBeforePersist($entities);
+
         $createStatements = SchemaBuilder::create($this->definition, $entities);
 
         foreach ($createStatements as $createStatement) {
@@ -113,11 +115,33 @@ class EntityRepository
             $entity->setUpdatedAt(new \DateTimeImmutable());
         }
 
+        $this->processEntitiesBeforePersist($entities, $changedProperties);
+
         $updateStatements = SchemaBuilder::update($this->definition, $entities, $changedProperties);
 
         foreach ($updateStatements as $updateStatement) {
             $this->connection->prepare($updateStatement);
         }
+    }
+
+    /**
+     * Check for Relations to be saved. (ManyToMany)
+     * @param EntityCollection $entityCollection
+     * @return void
+     */
+    private function processEntitiesBeforePersist(EntityCollection $entityCollection, ?array $changedProperties = null)
+    {
+        $manyToManyFields = array_filter(
+            $this->getDefinition()::getDefinitionFields(),
+            fn($field) => ($field instanceof ManyToManyRelation)
+        );
+
+        foreach ($entityCollection->getEntities() as $index => $entity) {
+            $changedProps = $changedProperties[$index];
+
+            dump($changedProps, $entity, $index);
+        }
+        dd($entityCollection, $changedProperties, $manyToManyFields);
     }
 
     /**
