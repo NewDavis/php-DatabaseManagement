@@ -84,10 +84,11 @@ class EntityRepository
             $collectionClass = $this->getDefinition()::getCollectionClass();
             $entities = new $collectionClass([$entities]);
         }else if(is_array($entities)) {
+            $createdProperties = $entities;
             $entities = $this->buildEntityCollection($entities);
         }
 
-        $this->processEntitiesBeforePersist($entities);
+        $this->processEntitiesBeforePersist($entities, $createdProperties);
 
         $createStatements = SchemaBuilder::create($this->definition, $entities);
 
@@ -125,23 +126,47 @@ class EntityRepository
     }
 
     /**
-     * Check for Relations to be saved. (ManyToMany)
+     * Check for Relations to be saved. (ManyToMany, ManyToOne, OneToOne, OneToMany)
      * @param EntityCollection $entityCollection
      * @return void
      */
-    private function processEntitiesBeforePersist(EntityCollection $entityCollection, ?array $changedProperties = null)
+    private function processEntitiesBeforePersist(EntityCollection $entityCollection, ?array $properties = null)
     {
-        $manyToManyFields = array_filter(
+        $relationFields = array_filter(
             $this->getDefinition()::getDefinitionFields(),
-            fn($field) => ($field instanceof ManyToManyRelation)
+            fn($field) => ($field instanceof RelationField)
         );
 
         foreach ($entityCollection->getEntities() as $index => $entity) {
-            $changedProps = $changedProperties[$index];
+            $props = $properties[$index];
 
-            dump($changedProps, $entity, $index);
+            $affectedRelationFields = $this->getAffectedRelationsFromChangedProperties($props, $relationFields);
+            if(count($affectedRelationFields) == 0) continue;
+
+            foreach ($affectedRelationFields as $property => $relationField) {
+                dd($property, $relationField);
+            }
         }
-        dd($entityCollection, $changedProperties, $manyToManyFields);
+    }
+
+    /**
+     * @param array $changedProperties
+     * @param array<RelationField> $fields
+     * @return array<RelationField>
+     */
+    private function getAffectedRelationsFromChangedProperties(array $changedProperties, array $fields) : array
+    {
+        $found = [];
+
+        foreach (array_keys($changedProperties) as $changedProperty) {
+            foreach ($fields as $field) {
+                if($field->getInternalName() === $changedProperty) {
+                    $found[$changedProperty] = $field;
+                }
+            }
+        }
+
+        return $found;
     }
 
     /**

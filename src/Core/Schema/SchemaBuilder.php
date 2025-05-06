@@ -124,12 +124,6 @@ class SchemaBuilder
 
             $values = self::getValues($properties, $entity);
 
-            $manyToManyFields = array_filter(
-                $definition::getDefinitionFields(),
-                fn($field) => ($field instanceof ManyToManyRelation)
-            );
-            dd($manyToManyFields);
-
             $statement->setStatement(
                 sprintf(
                     "UPDATE `%s` SET %s WHERE `%s`.`%s` = ?;",

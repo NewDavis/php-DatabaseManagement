@@ -79,6 +79,15 @@ class TestController extends AbstractController
 
         $this->accountRepository->upsert([
             [
+                'id' => '07ffbbbd-bb52-4edb-a95c-92881554efaw',
+                'username' => 'Admin',
+                'admin' => true,
+                'primaryRole' => [
+                    'id' => '07ffbbbd-bb52-4edb-a95c-92881554efax',
+                    'name' => 'Administrator'
+                ]
+            ],
+            [
                 'id' => '07ffbbbd-bb52-4edb-a95c-92881554e11d',
                 'username' => 'NewDavis',
                 'admin' => true,
