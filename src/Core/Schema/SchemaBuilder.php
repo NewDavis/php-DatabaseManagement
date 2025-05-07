@@ -200,6 +200,65 @@ class SchemaBuilder
         return $statement;
     }
 
+    public static function selectExistingManyToManyDatasets(
+        $definition,
+        ManyToManyRelation $field,
+        string $id
+    ): Statement {
+        $statement = new Statement();
+
+        $tableName = TableSchemaBuilder::createManyToManyTableName(
+            $definition::getEntityName(),
+            $field->getRelatedToDefinition()::getEntityName()
+        );
+
+        $statement->setStatement(
+            sprintf(
+                "SELECT %s FROM `%s` WHERE `%s` = ?",
+                $field->getRelatedToDefinition()::getEntityName() . '_id',
+                $tableName,
+                $definition::getEntityName() . '_id',
+            )
+        );
+        $statement->addParameter('?', $id);
+
+        return $statement;
+    }
+
+    public static function writeManyToManyDatasets(
+        $definition,
+        ManyToManyRelation $field,
+        string $id,
+        array $relatedIds
+    ): Statement {
+        $statement = new Statement();
+
+        $tableName = TableSchemaBuilder::createManyToManyTableName(
+            $definition::getEntityName(),
+            $field->getRelatedToDefinition()::getEntityName()
+        );
+
+        $valuesSQL = "";
+        foreach ($relatedIds as $relatedId) {
+            $valuesSQL .= sprintf(
+                "%s, ?, ",
+                $id
+            );
+
+            $statement->addParameter('?', $relatedId);
+        }
+
+        $statement->setStatement(
+            sprintf(
+                "INSERT INTO `%s` VALUES (%s);",
+                $tableName,
+                rtrim($valuesSQL, ', ')
+            )
+        );
+
+        return $statement;
+    }
+
     /**
      * @param $definition
      * @param array $internalNames

@@ -79,12 +79,30 @@ class TestController extends AbstractController
 
         $this->accountRepository->upsert([
             [
-                'id' => '07ffbbbd-bb52-4edb-a95c-92881554efaw',
+                'id' => 'f9331499-c235-4057-aa22-0ca556158aa1',
                 'username' => 'Admin',
                 'admin' => true,
                 'primaryRole' => [
-                    'id' => '07ffbbbd-bb52-4edb-a95c-92881554efax',
+                    'id' => '4b26402e-6ecd-4478-a7e7-26fcb2d28a8f',
                     'name' => 'Administrator'
+                ],
+                'roles' => [
+                    [
+                        'id' => '4b26402e-6ecd-4478-a7e7-26fcb2d28a8f',
+                        'name' => 'Administrator'
+                    ],
+                    [
+                        'id' => '6c9a9ada-e05a-4dad-a663-44b0f1512333',
+                        'name' => 'Manager'
+                    ],
+                    [
+                        'id' => '9f885d07-e5cc-4c44-850b-c67666f3e00a',
+                        'name' => 'Entwickler'
+                    ],
+                    [
+                        'id' => '2f7a545e-2442-4d6c-bb18-749167b216fe',
+                        'name' => 'Nutzer'
+                    ],
                 ]
             ],
             [

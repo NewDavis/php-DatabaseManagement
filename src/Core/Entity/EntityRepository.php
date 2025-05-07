@@ -5,8 +5,10 @@ namespace NewDavis\DatabaseManagement\Core\Entity;
 use NewDavis\DatabaseManagement\Core\Driver\Connection;
 use NewDavis\DatabaseManagement\Core\Entity\Exception\PropertyNotFoundInEntityException;
 use NewDavis\DatabaseManagement\Core\Entity\Exception\RequiredPropertyNotFoundInEntityDataSetException;
+use NewDavis\DatabaseManagement\Core\Entity\Exception\UnableToFindMatchingFkFieldForRelatedFieldException;
 use NewDavis\DatabaseManagement\Core\Entity\Field\DateTimeField;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Core\Entity\Field\FkField;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\ManyToOneRelation;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\OneToManyRelation;
@@ -20,6 +22,7 @@ use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\EqualsAnyFilter;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  * @template TElement
@@ -33,7 +36,8 @@ class EntityRepository
      */
     public function __construct(
         private readonly string $definition,
-        #[Autowire(service: Connection::class)] private readonly Connection $connection
+        #[Autowire(service: Connection::class)] private readonly Connection $connection,
+        #[Autowire(service: 'service_container')] private readonly Container $container,
     ) {
     }
 
@@ -116,7 +120,7 @@ class EntityRepository
             $entity->setUpdatedAt(new \DateTimeImmutable());
         }
 
-        $this->processEntitiesBeforePersist($entities, $changedProperties);
+        $changedProperties = $this->processEntitiesBeforePersist($entities, $changedProperties);
 
         $updateStatements = SchemaBuilder::update($this->definition, $entities, $changedProperties);
 
@@ -132,6 +136,13 @@ class EntityRepository
      */
     private function processEntitiesBeforePersist(EntityCollection $entityCollection, ?array $properties = null)
     {
+        if(!$properties) {
+            $properties = array_map(
+                fn($entity) => $entity->jsonSerialize(),
+                $entityCollection->getEntities()
+            );
+        }
+
         $relationFields = array_filter(
             $this->getDefinition()::getDefinitionFields(),
             fn($field) => ($field instanceof RelationField)
@@ -144,9 +155,74 @@ class EntityRepository
             if(count($affectedRelationFields) == 0) continue;
 
             foreach ($affectedRelationFields as $property => $relationField) {
-                dd($property, $relationField);
+                $relationValue = $props[$property];
+
+                /** @var EntityRepository $relatedRepository */
+                $relatedRepository = $this->container->get(
+                    $relationField->getRelatedToDefinition()::getEntityName() . '.repository'
+                );
+
+                switch (get_class($relationField)) {
+                    case ManyToOneRelation::class:
+                    case OneToOneRelation::class:
+                        // find the matching ForeignKeyField
+                        $foreignKeyField = array_values(array_filter(
+                            $this->getDefinition()::getDefinitionFields(),
+                            fn($field) => $field instanceof FkField &&
+                                $field->getStorageName() == $relationField->getStorageName()
+                        ));
+
+                        if(count($foreignKeyField) == 0) {
+                            throw new UnableToFindMatchingFkFieldForRelatedFieldException(
+                                $relationField->getStorageName(),
+                                $this->definition
+                            );
+                        }
+
+                        $foreignKeyField = $foreignKeyField[0];
+
+                        // upsert the related value for example it upserts the primaryRole when upserting account
+                        $relatedRepository->upsert([$relationValue]);
+
+                        $reflectionEntity = new ReflectionClass($entity);
+
+                        if($reflectionEntity->hasProperty($foreignKeyField->getInternalName())) {
+                            // write to foreignkey field property e.g. primaryRoleId
+                            $reflectionEntity->getProperty($foreignKeyField->getInternalName())
+                                ->setValue(
+                                    $entity,
+                                    $relationValue[$relationField->getRelatedToInternalName()]
+                                );
+
+                            // add foreignkey field property to changed properties for update call.
+                            $properties[$index][
+                                $foreignKeyField->getInternalName()
+                            ] = $relationValue[$relationField->getRelatedToInternalName()];
+                        }
+
+                        break;
+                    case ManyToManyRelation::class:
+                        // upsert the related values for example it upserts the roles when upserting account
+                        $relatedRepository->upsert($relationValue);
+
+                        $id = $properties[$index][$relationField->getRelatedByInternalName()];
+                        $relatedIds = array_map(
+                            fn($entityJson) => $entityJson[$relationField->getRelatedToInternalName()],
+                            $relationValue
+                        );
+
+
+
+                        dd("ManyToMany", $id, $relatedIds, $relationField, $relationValue, $relatedRepository, $entity);
+                        break;
+                    case OneToManyRelation::class:
+                        dd("OneToMany");
+                        break;
+                }
             }
         }
+
+        return $properties;
     }
 
     /**

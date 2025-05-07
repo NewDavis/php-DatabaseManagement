@@ -53,8 +53,7 @@ class TableSchemaBuilder
         foreach ($definition::getDefinitionFields() as $field) {
             if(!($field instanceof ManyToManyRelation)) continue;
 
-            $manyToManyTableName = sprintf(
-                "%s_%s",
+            $manyToManyTableName = self::createManyToManyTableName(
                 $definition::getEntityName(),
                 $field->getRelatedToDefinition()::getEntityName()
             );
@@ -102,6 +101,21 @@ class TableSchemaBuilder
         }
 
         return $queries;
+    }
+
+    public static function createManyToManyTableName(string $entityA, string $entityB)
+    {
+        // Kleinschreibung und sortieren für Konsistenz
+        $entities = [strtolower($entityA), strtolower($entityB)];
+        sort($entities);
+
+        // Optional: Snake-Case erzwingen, falls nötig
+        // z.B. convert `UserRole` zu `user_role`
+        $entities = array_map(function ($name) {
+            return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $name));
+        }, $entities);
+
+        return implode('_', $entities);
     }
 
     private static function addManyToManyRelations(

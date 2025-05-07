@@ -55,7 +55,9 @@ class AccountDefinition implements EntityDefinition
 
             new ManyToManyRelation(
                 'roles',
-                RoleDefinition::class
+                RoleDefinition::class,
+                'id',
+                'id'
             )
         ];
     }
