@@ -225,6 +225,41 @@ class SchemaBuilder
         return $statement;
     }
 
+    public static function deleteDeletedManyToManyDatasets(
+        $definition,
+        ManyToManyRelation $field,
+        string $id,
+        array $toBeDeleted
+    ): Statement {
+        $statement = new Statement();
+
+        $tableName = TableSchemaBuilder::createManyToManyTableName(
+            $definition::getEntityName(),
+            $field->getRelatedToDefinition()::getEntityName()
+        );
+
+        $statement->addParameter('?', $id);
+        $statement->setStatement(
+            sprintf(
+                "DELETE FROM `%s` WHERE `%s` = ? AND `%s` IN (%s)",
+                $tableName,
+                $definition::getEntityName() . '_id',
+                implode(
+                    ', ',
+                    array_map(
+                        function ($s) use ($statement) {
+                            $statement->addParameter('?', $s);
+                            return '?';
+                        },
+                        $toBeDeleted
+                    )
+                )
+            )
+        );
+
+        return $statement;
+    }
+
     public static function writeManyToManyDatasets(
         $definition,
         ManyToManyRelation $field,

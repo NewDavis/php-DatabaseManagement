@@ -5,10 +5,12 @@ namespace NewDavis\DatabaseManagement\Test\Role;
 use NewDavis\DatabaseManagement\Core\Entity\EntityDefinition;
 use NewDavis\DatabaseManagement\Core\Entity\Field\DateTimeField;
 use NewDavis\DatabaseManagement\Core\Entity\Field\IdField;
+use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\ManyToOneRelation;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\OneToManyRelation;
 use NewDavis\DatabaseManagement\Core\Entity\Field\TextField;
 use NewDavis\DatabaseManagement\Core\Entity\Flag\Required;
+use NewDavis\DatabaseManagement\Test\Account\AccountDefinition;
 
 class RoleDefinition implements EntityDefinition
 {

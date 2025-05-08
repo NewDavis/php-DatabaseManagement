@@ -54,22 +54,38 @@ class TableSchemaBuilder
             if(!($field instanceof ManyToManyRelation)) continue;
 
             $manyToManyTableName = self::createManyToManyTableName(
-                $definition::getEntityName(),
-                $field->getRelatedToDefinition()::getEntityName()
+                $definition,
+                $field->getRelatedToDefinition()
             );
 
+            $primaryDefinition = self::getPrimaryManyToManyDefinition(
+                $definition,
+                $field->getRelatedToDefinition()
+            );
+            $secondaryDefinition = self::getSecondaryManyToManyDefinition(
+                $definition,
+                $field->getRelatedToDefinition()
+            );
+
+            $byFieldInternalName = $primaryDefinition == $definition ?
+                $field->getRelatedByInternalName() :
+                $field->getRelatedToInternalName();
+            $toFieldInternalName = $primaryDefinition == $definition ?
+                $field->getRelatedToInternalName() :
+                $field->getRelatedByInternalName();
+
             $byField = new IdField(
-                $field->getRelatedByInternalName(),
+                $byFieldInternalName,
                 sprintf(
                     "%s_id",
-                    $definition::getEntityName()
+                    $primaryDefinition::getEntityName()
                 )
             );
             $toField = new IdField(
-                $field->getRelatedToInternalName(),
+                $toFieldInternalName,
                 sprintf(
                     "%s_id",
-                    $field->getRelatedToDefinition()::getEntityName()
+                    $secondaryDefinition::getEntityName()
                 )
             );
 
@@ -103,10 +119,10 @@ class TableSchemaBuilder
         return $queries;
     }
 
-    public static function createManyToManyTableName(string $entityA, string $entityB)
+    public static function createManyToManyTableName($definitionA, $definitionB)
     {
         // Kleinschreibung und sortieren für Konsistenz
-        $entities = [strtolower($entityA), strtolower($entityB)];
+        $entities = [strtolower($definitionA::getEntityName()), strtolower($definitionB::getEntityName())];
         sort($entities);
 
         // Optional: Snake-Case erzwingen, falls nötig
@@ -118,8 +134,33 @@ class TableSchemaBuilder
         return implode('_', $entities);
     }
 
+    public static function getPrimaryManyToManyDefinition($definitionA, $definitionB)
+    {
+        $entities = [strtolower($definitionA::getEntityName()), strtolower($definitionB::getEntityName())];
+        sort($entities);
+
+        if($entities[0] === strtolower($definitionA::getEntityName())) {
+            return $definitionA;
+        }
+
+        return $definitionB;
+    }
+
+    public static function getSecondaryManyToManyDefinition($definitionA, $definitionB)
+    {
+        $entities = [strtolower($definitionA::getEntityName()), strtolower($definitionB::getEntityName())];
+        sort($entities);
+
+        if($entities[0] === strtolower($definitionA::getEntityName())) {
+            return $definitionB;
+        }
+
+        return $definitionA;
+    }
+
     private static function addManyToManyRelations(
-        $definition,
+        $primaryDefinition,
+        $secondaryDefinition,
         string $manyToManyTableName,
         ManyToManyRelation $relationField,
         Field $byField,
@@ -133,7 +174,7 @@ class TableSchemaBuilder
             'ADD CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES %s(`%s`) ON DELETE CASCADE',
             $foreignKey,
             $byField->getStorageName(),
-            $definition::getEntityName(),
+            $primaryDefinition::getEntityName(),
             $relationField->getRelatedByInternalName(),
         );
 
@@ -143,7 +184,7 @@ class TableSchemaBuilder
             'ADD CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES %s(`%s`) ON DELETE CASCADE',
             $foreignKey,
             $toField->getStorageName(),
-            $relationField->getRelatedToDefinition()::getEntityName(),
+            $secondaryDefinition::getEntityName(),
             $relationField->getRelatedByInternalName(),
         );
 
