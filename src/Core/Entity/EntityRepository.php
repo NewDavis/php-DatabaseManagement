@@ -211,9 +211,30 @@ class EntityRepository
                             $relationValue
                         );
 
+                        $selectIdsStatement = SchemaBuilder::selectExistingManyToManyDatasets(
+                            $this->getDefinition(),
+                            $relationField,
+                            $id
+                        );
 
+                        $selectedIds = $this->connection->prepare($selectIdsStatement);
 
-                        dd("ManyToMany", $id, $relatedIds, $relationField, $relationValue, $relatedRepository, $entity);
+                        $toBeDeleted = array_diff($selectedIds, $relatedIds);
+                        if(empty($toBeDeleted)) {
+                            // TODO delete toBeDeleted
+                        }
+
+                        $toBeWritten = array_diff($relatedIds, $selectedIds);
+                        $writeManyToManyDatasetsStatement = SchemaBuilder::writeManyToManyDatasets(
+                            $this->getDefinition(),
+                            $relationField,
+                            $id,
+                            $toBeWritten
+                        );
+
+                        $result = $this->connection->prepare($writeManyToManyDatasetsStatement);
+
+                        dd("ManyToMany", $id, $relatedIds, $selectedIds, $toBeWritten, $result);
                         break;
                     case OneToManyRelation::class:
                         dd("OneToMany");

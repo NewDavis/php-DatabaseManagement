@@ -208,8 +208,8 @@ class SchemaBuilder
         $statement = new Statement();
 
         $tableName = TableSchemaBuilder::createManyToManyTableName(
-            $definition::getEntityName(),
-            $field->getRelatedToDefinition()::getEntityName()
+            $definition,
+            $field->getRelatedToDefinition()
         );
 
         $statement->setStatement(
@@ -234,8 +234,8 @@ class SchemaBuilder
         $statement = new Statement();
 
         $tableName = TableSchemaBuilder::createManyToManyTableName(
-            $definition::getEntityName(),
-            $field->getRelatedToDefinition()::getEntityName()
+            $definition,
+            $field->getRelatedToDefinition()
         );
 
         $statement->addParameter('?', $id);
@@ -269,14 +269,14 @@ class SchemaBuilder
         $statement = new Statement();
 
         $tableName = TableSchemaBuilder::createManyToManyTableName(
-            $definition::getEntityName(),
-            $field->getRelatedToDefinition()::getEntityName()
+            $definition,
+            $field->getRelatedToDefinition()
         );
 
         $valuesSQL = "";
         foreach ($relatedIds as $relatedId) {
             $valuesSQL .= sprintf(
-                "%s, ?, ",
+                "('%s', ?), ",
                 $id
             );
 
@@ -285,7 +285,7 @@ class SchemaBuilder
 
         $statement->setStatement(
             sprintf(
-                "INSERT INTO `%s` VALUES (%s);",
+                "INSERT INTO `%s` VALUES %s;",
                 $tableName,
                 rtrim($valuesSQL, ', ')
             )
