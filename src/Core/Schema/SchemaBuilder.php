@@ -244,6 +244,7 @@ class SchemaBuilder
                 "DELETE FROM `%s` WHERE `%s` = ? AND `%s` IN (%s)",
                 $tableName,
                 $definition::getEntityName() . '_id',
+                $field->getRelatedToDefinition()::getEntityName() . '_id',
                 implode(
                     ', ',
                     array_map(

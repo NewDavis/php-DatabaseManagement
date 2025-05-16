@@ -102,14 +102,14 @@ class TestController extends AbstractController
                     [
                         'id' => '2f7a545e-2442-4d6c-bb18-749167b216fe',
                         'name' => 'Nutzer'
-                    ],
+                    ]
                 ]
             ],
             [
                 'id' => '07ffbbbd-bb52-4edb-a95c-92881554e11d',
                 'username' => 'NewDavis',
                 'admin' => true,
-                'primaryRoleId' => '38e17f5f-dbb2-4383-b27a-5156974c2409'
+                'primaryRoleId' => '6c9a9ada-e05a-4dad-a663-44b0f1512333'
             ]
         ]);
 

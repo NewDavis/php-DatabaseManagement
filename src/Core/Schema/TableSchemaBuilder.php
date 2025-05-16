@@ -109,6 +109,7 @@ class TableSchemaBuilder
 
             $queries[] = self::addManyToManyRelations(
                 $definition,
+                $field->getRelatedToDefinition(),
                 $manyToManyTableName,
                 $field,
                 $byField,
@@ -260,8 +261,8 @@ class TableSchemaBuilder
 
         $result = $modifyColumns;
 
-        // search and apply ADD PRIMARY KEY or ADD UNIQUE Flags.
-        $extraFlags = [PrimaryKey::class, Unique::class];
+        // search and apply ADD PRIMARY KEY Flags.
+        $extraFlags = [PrimaryKey::class];
         foreach ($extraFlags as $extraFlag) {
             $filteredFields = self::filterFieldFlags($fields, [$extraFlag]);
             $storageNames = array_map(
@@ -270,7 +271,17 @@ class TableSchemaBuilder
             );
             $result .= sprintf(
                 count($filteredFields) > 0 ? $extraFlag::getKeyword() . ', ' : '',
-                implode(', ', $storageNames)
+                implode(', ', $storageNames),
+            );
+        }
+
+        $uniqueFields = self::filterFieldFlags($fields, [Unique::class]);
+        foreach ($uniqueFields as $uniqueField) {
+            $storageName = $uniqueField->getStorageName();
+            $result .= sprintf(
+                Unique::getKeyword(),
+                $storageName,
+                $storageName
             );
         }
 

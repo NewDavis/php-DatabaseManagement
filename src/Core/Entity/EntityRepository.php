@@ -44,6 +44,7 @@ class EntityRepository
     /**
      * @param EntityCollection<TElement>|TElement|array $entities
      * @return void
+     * @throws UnableToFindMatchingFkFieldForRelatedFieldException
      */
     public function upsert(EntityCollection|Entity|array $entities)
     {
@@ -80,6 +81,7 @@ class EntityRepository
     /**
      * @param EntityCollection<TElement>|TElement|array $entities
      * @return void
+     * @throws UnableToFindMatchingFkFieldForRelatedFieldException
      */
     public function create(EntityCollection|Entity|array $entities)
     {
@@ -92,18 +94,21 @@ class EntityRepository
             $entities = $this->buildEntityCollection($entities);
         }
 
-        $this->processEntitiesBeforePersist($entities, $createdProperties);
+        $this->processEntities($entities, true, $createdProperties);
 
         $createStatements = SchemaBuilder::create($this->definition, $entities);
 
         foreach ($createStatements as $createStatement) {
             $this->connection->prepare($createStatement);
         }
+
+        $this->processEntities($entities, false, $createdProperties);
     }
 
     /**
      * @param EntityCollection<TElement>|TElement|array $entities
      * @return void
+     * @throws UnableToFindMatchingFkFieldForRelatedFieldException
      */
     public function update(EntityCollection|Entity|array $entities)
     {
@@ -120,21 +125,23 @@ class EntityRepository
             $entity->setUpdatedAt(new \DateTimeImmutable());
         }
 
-        $changedProperties = $this->processEntitiesBeforePersist($entities, $changedProperties);
+        $changedProperties = $this->processEntities($entities, true, $changedProperties);
 
         $updateStatements = SchemaBuilder::update($this->definition, $entities, $changedProperties);
 
         foreach ($updateStatements as $updateStatement) {
             $this->connection->prepare($updateStatement);
         }
+
+        $this->processEntities($entities, false, $changedProperties);
     }
 
     /**
      * Check for Relations to be saved. (ManyToMany, ManyToOne, OneToOne, OneToMany)
      * @param EntityCollection $entityCollection
-     * @return void
+     * @return array|null
      */
-    private function processEntitiesBeforePersist(EntityCollection $entityCollection, ?array $properties = null)
+    private function processEntities(EntityCollection $entityCollection, bool $before, ?array $properties = null): ?array
     {
         if(!$properties) {
             $properties = array_map(
@@ -165,6 +172,9 @@ class EntityRepository
                 switch (get_class($relationField)) {
                     case ManyToOneRelation::class:
                     case OneToOneRelation::class:
+                        // handled only in before
+                        if (!$before) break;
+
                         // find the matching ForeignKeyField
                         $foreignKeyField = array_values(array_filter(
                             $this->getDefinition()::getDefinitionFields(),
@@ -202,6 +212,9 @@ class EntityRepository
 
                         break;
                     case ManyToManyRelation::class:
+                        // handled only in after
+                        if ($before) break;
+
                         // upsert the related values for example it upserts the roles when upserting account
                         $relatedRepository->upsert($relationValue);
 
@@ -211,30 +224,42 @@ class EntityRepository
                             $relationValue
                         );
 
-                        $selectIdsStatement = SchemaBuilder::selectExistingManyToManyDatasets(
+                        $existingIdsStatement = SchemaBuilder::selectExistingManyToManyDatasets(
                             $this->getDefinition(),
                             $relationField,
                             $id
                         );
 
-                        $selectedIds = $this->connection->prepare($selectIdsStatement);
-
-                        $toBeDeleted = array_diff($selectedIds, $relatedIds);
-                        if(empty($toBeDeleted)) {
-                            // TODO delete toBeDeleted
-                        }
-
-                        $toBeWritten = array_diff($relatedIds, $selectedIds);
-                        $writeManyToManyDatasetsStatement = SchemaBuilder::writeManyToManyDatasets(
-                            $this->getDefinition(),
-                            $relationField,
-                            $id,
-                            $toBeWritten
+                        $existingIdsResult = $this->connection->prepare($existingIdsStatement);
+                        $existingIds = array_map(
+                            fn($id) => $id[$relationField->getRelatedToDefinition()::getEntityName() . '_id'],
+                            $existingIdsResult
                         );
 
-                        $result = $this->connection->prepare($writeManyToManyDatasetsStatement);
+                        $toBeDeleted = array_diff($existingIds, $relatedIds);
+                        if(!empty($toBeDeleted)) {
+                            $deleteManyToManyDatasetsStatement = SchemaBuilder::deleteDeletedManyToManyDatasets(
+                                $this->getDefinition(),
+                                $relationField,
+                                $id,
+                                $toBeDeleted
+                            );
 
-                        dd("ManyToMany", $id, $relatedIds, $selectedIds, $toBeWritten, $result);
+                            $this->connection->prepare($deleteManyToManyDatasetsStatement);
+                        }
+
+                        $toBeWritten = array_diff($relatedIds, $existingIds);
+                        if(!empty($toBeWritten)) {
+                            $writeManyToManyDatasetsStatement = SchemaBuilder::writeManyToManyDatasets(
+                                $this->getDefinition(),
+                                $relationField,
+                                $id,
+                                $toBeWritten
+                            );
+
+                            $result = $this->connection->prepare($writeManyToManyDatasetsStatement);
+                        }
+
                         break;
                     case OneToManyRelation::class:
                         dd("OneToMany");

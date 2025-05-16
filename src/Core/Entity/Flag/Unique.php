@@ -11,6 +11,6 @@ class Unique implements Flag
 
     public static function getKeyword(): string
     {
-        return 'ADD UNIQUE (%s)';
+        return 'ADD UNIQUE KEY `UQ_%s` (`%s`), ';
     }
 }
