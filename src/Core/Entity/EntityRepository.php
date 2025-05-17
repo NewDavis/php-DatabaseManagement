@@ -72,9 +72,9 @@ class EntityRepository
         {
             $entityId = ($entity instanceof Entity ? $entity->getId() : $entity['id']);
             if(in_array($entityId, $existingIds)) {
-                $this->update($entity);
+                $this->update($entity->jsonSerialize());
             } else {
-                $this->create($entity);
+                $this->create($entity->jsonSerialize());
             }
         }
     }
