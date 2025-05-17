@@ -5,7 +5,7 @@ namespace NewDavis\DatabaseManagement\Core\Search\Criteria\Filter;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\NoFilterPassedMultiFilterException;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\UnknownMultiFilterOperatorException;
 
-class MultiFilter implements Filter
+class MultiFilter extends AbstractFilter
 {
     const OPERATOR_AND = 'AND';
     const OPERATOR_OR = 'OR';

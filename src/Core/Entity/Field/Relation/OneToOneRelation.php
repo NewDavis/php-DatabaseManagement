@@ -9,15 +9,15 @@ class OneToOneRelation extends RelationField
         string $internalName,
         string $storageName,
         string $relatedToDefinition,
-        string $relatedToInternalName = 'id',
-        bool $autoload = false
+        string $relatedTo = 'id',
+        bool   $autoload = false
     ) {
         parent::__construct(
             $internalName,
             $storageName,
             $relatedToDefinition,
             null,
-            $relatedToInternalName,
+            $relatedTo,
             $autoload
         );
     }

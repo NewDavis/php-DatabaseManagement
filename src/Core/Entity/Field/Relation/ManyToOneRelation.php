@@ -6,18 +6,18 @@ class ManyToOneRelation extends RelationField
 {
 
     public function __construct(
-        string $relationInternalName,
-        string $relationStorageName,
+        string $internalName,
+        string $storageName,
         string $relatedToDefinition,
-        string $relatedToInternalName = 'id',
-        bool $autoload = false
+        string $relatedTo = 'id',
+        bool   $autoload = false
     ) {
         parent::__construct(
-            $relationInternalName,
-            $relationStorageName,
+            $internalName,
+            $storageName,
             $relatedToDefinition,
             null,
-            $relatedToInternalName,
+            $relatedTo,
             $autoload
         );
     }

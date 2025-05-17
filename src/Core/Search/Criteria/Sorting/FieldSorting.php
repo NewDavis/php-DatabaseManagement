@@ -22,7 +22,7 @@ class FieldSorting extends Sorting
 
         // check if internalName is in the Definition
         if(count($fields) == 0) {
-            throw new UnknownInternalNameException($this->internalName);
+            throw new UnknownInternalNameException($definition, $this->internalName);
         }
 
         return $fields[0]->getStorageName();

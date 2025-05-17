@@ -40,9 +40,10 @@ class RoleDefinition implements EntityDefinition
 
             new OneToManyRelation(
                 'accounts',
-                RoleDefinition::class,
+                AccountDefinition::class,
                 'id',
-                'role_id'
+                'primary_role_id',
+                true
             ),
         ];
     }

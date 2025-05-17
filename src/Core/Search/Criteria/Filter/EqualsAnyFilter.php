@@ -6,7 +6,7 @@ use NewDavis\DatabaseManagement\Core\Schema\SchemaBuilder;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\EmptySearchedValueException;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\UnknownInternalNameException;
 
-class EqualsAnyFilter implements Filter
+class EqualsAnyFilter extends AbstractFilter
 {
     /**
      * @param string $internalName
@@ -49,7 +49,7 @@ class EqualsAnyFilter implements Filter
 
         // check if internalName is in the Definition
         if(count($fields) == 0) {
-            throw new UnknownInternalNameException($this->getInternalName());
+            throw new UnknownInternalNameException($definition, $this->getInternalName());
         }
 
         $field = $fields[0];

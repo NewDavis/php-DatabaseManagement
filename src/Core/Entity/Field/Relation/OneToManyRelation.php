@@ -6,18 +6,18 @@ class OneToManyRelation extends RelationField
 {
 
     public function __construct(
-        string $relationInternalName,
+        string $internalName,
         string $relatedToDefinition,
-        string $relatedByInternalName = 'id',
-        string $relatedToInternalName = 'id',
-        bool $autoload = false
+        string $relatedBy = 'id',
+        string $relatedTo = 'id',
+        bool   $autoload = false
     ) {
         parent::__construct(
-            $relationInternalName,
+            $internalName,
             null,
             $relatedToDefinition,
-            $relatedByInternalName,
-            $relatedToInternalName,
+            $relatedBy,
+            $relatedTo,
             $autoload
         );
     }

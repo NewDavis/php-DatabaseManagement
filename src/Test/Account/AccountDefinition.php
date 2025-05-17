@@ -50,14 +50,16 @@ class AccountDefinition implements EntityDefinition
                 'primaryRole',
                 'primary_role_id',
                 RoleDefinition::class,
-                'id'
+                'id',
+                false
             ),
 
             new ManyToManyRelation(
                 'roles',
                 RoleDefinition::class,
                 'id',
-                'id'
+                'id',
+                false
             )
         ];
     }

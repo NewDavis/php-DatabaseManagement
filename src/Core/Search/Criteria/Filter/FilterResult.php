@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Core\Search\Criteria\Filter;
 
 class FilterResult
 {
+    private array $joins;
     private string $condition;
     private array $parameters = [];
 
@@ -11,8 +12,27 @@ class FilterResult
         string $condition = '',
         array $parameters = []
     ) {
+        $this->joins = [];
         $this->condition = $condition;
         $this->parameters = $parameters;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getJoins(): array
+    {
+        return $this->joins;
+    }
+
+    /**
+     * @param string $join
+     */
+    public function addJoin(string $join): void
+    {
+        if(in_array($join, $this->joins)) return;
+
+        $this->joins[] = $join;
     }
 
     /**

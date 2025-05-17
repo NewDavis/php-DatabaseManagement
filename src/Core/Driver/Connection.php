@@ -54,6 +54,8 @@ class Connection
         return $this->pdo;
     }
 
+    public static $executedQueries = 0;
+
     public function prepare(Statement $query): array|null
     {
         if($this->connect() == null) return null;
@@ -82,6 +84,7 @@ class Connection
             if ($statement->execute($parameters)) {
                 $this->pdo->commit();
                 $result = $statement->fetchAll();
+                self::$executedQueries++;
             } else {
                 $this->pdo->rollBack();
             }

@@ -6,12 +6,12 @@ abstract class RelationField
 {
 
     public function __construct(
-        private readonly string $internalName,
+        private readonly string  $internalName,
         private readonly ?string $storageName,
-        private readonly string $relatedToDefinition,
-        private readonly ?string $relatedByInternalName = 'id',
-        private readonly string $relatedToInternalName = 'id',
-        private readonly bool $autoload = false
+        private readonly string  $relatedToDefinition,
+        private readonly ?string $relatedBy = 'id',
+        private readonly string  $relatedTo = 'id',
+        private readonly bool    $autoload = false
     ) {}
 
     /**
@@ -41,17 +41,17 @@ abstract class RelationField
     /**
      * @return string|null
      */
-    public function getRelatedByInternalName(): ?string
+    public function getRelatedBy(): ?string
     {
-        return $this->relatedByInternalName;
+        return $this->relatedBy;
     }
 
     /**
      * @return string
      */
-    public function getRelatedToInternalName(): string
+    public function getRelatedTo(): string
     {
-        return $this->relatedToInternalName;
+        return $this->relatedTo;
     }
 
     /**

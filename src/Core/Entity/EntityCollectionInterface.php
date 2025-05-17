@@ -13,9 +13,9 @@ interface EntityCollectionInterface
     public function contains(Entity $entity) : bool;
     public function first() : Entity|null;
     public function firstId() : string|null;
-    public function search(Criteria $criteria) : EntityCollection;
+    /*public function search(Criteria $criteria) : EntityCollection;
     public function searchBy(string $property, mixed $value) : EntityCollection;
-    public function searchId($id) : string|null;
+    public function searchId($id) : string|null;*/
     public function count() : int;
     public function getEntities() : array;
     public static function getDefinitionClass() : ?string;

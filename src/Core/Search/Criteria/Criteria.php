@@ -19,6 +19,8 @@ class Criteria
     private array $filter = [];
     /** @var string<Sorting> */
     private array $sorting = [];
+    /** @var array $associations */
+    private array $associations = [];
 
     /**
      * @param int $limit
@@ -107,6 +109,40 @@ class Criteria
     public function getSorting(): array
     {
         return $this->sorting;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAssociations(): array
+    {
+        return $this->associations;
+    }
+
+    /**
+     * @param string[] $associations
+     * @return void
+     */
+    public function addAssociations(string... $associations): Criteria
+    {
+        foreach ($associations as $association) {
+            $this->addAssociation($association);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $association
+     * @return void
+     */
+    public function addAssociation(string $association): Criteria
+    {
+        if(in_array($association, $this->associations)) return $this;
+
+        $this->associations[] = $association;
+
+        return $this;
     }
 
 }

@@ -18,14 +18,22 @@ class SchemaBuilder
     {
         $statement = new Statement();
 
+        $buildWhereResult = self::buildWhere($definition, $criteria, $statement);
+        $joins = $buildWhereResult['joins'];
+        $where = $buildWhereResult['where'];
+        $order = self::buildOrder($definition, $criteria);
+        $limit = self::buildLimit($criteria);
+
         $statement->setStatement(
             rtrim(
                 sprintf(
-                    "SELECT * FROM `%s` %s %s %s",
+                    "SELECT `%s`.* FROM `%s` %s %s %s %s",
                     $definition::getEntityName(),
-                    self::buildWhere($definition, $criteria, $statement) ?? '',
-                    self::buildOrder($definition, $criteria) ?? '',
-                    self::buildLimit($criteria) ?? ''
+                    $definition::getEntityName(),
+                    implode(' ', $joins),
+                    $where ?? '',
+                    $order ?? '',
+                    $limit ?? ''
                 )
             )
         );
@@ -37,14 +45,21 @@ class SchemaBuilder
     {
         $statement = new Statement();
 
+        $buildWhereResult = self::buildWhere($definition, $criteria, $statement);
+        $joins = $buildWhereResult['joins'];
+        $where = $buildWhereResult['where'];
+        $order = self::buildOrder($definition, $criteria);
+        $limit = self::buildLimit($criteria);
+
         $statement->setStatement(
             rtrim(
                 sprintf(
-                    "SELECT id FROM `%s` %s %s %s",
+                    "SELECT id FROM `%s` %s %s %s %s",
                     $definition::getEntityName(),
-                    self::buildWhere($definition, $criteria, $statement) ?? '',
-                    self::buildOrder($definition, $criteria) ?? '',
-                    self::buildLimit($criteria) ?? ''
+                    implode(' ', $joins),
+                    $where ?? '',
+                    $order ?? '',
+                    $limit ?? ''
                 )
             )
         );
@@ -56,12 +71,17 @@ class SchemaBuilder
     {
         $statement = new Statement();
 
+        $buildWhereResult = self::buildWhere($definition, $criteria, $statement);
+        $joins = $buildWhereResult['joins'];
+        $where = $buildWhereResult['where'];
+
         $statement->setStatement(
             rtrim(
                 sprintf(
-                    "SELECT COUNT(id) FROM `%s` %s",
+                    "SELECT COUNT(id) FROM `%s` %s %s",
                     $definition::getEntityName(),
-                    self::buildWhere($definition, $criteria, $statement) ?? ''
+                    implode(' ', $joins),
+                    $where ?? ''
                 )
             )
         );
@@ -316,18 +336,45 @@ class SchemaBuilder
 
     /**
      * @param $definition
+     * @param array $storageName
+     * @return array<Field>
+     */
+    public static function filterFieldsByStorageName($definition, ...$storageName) : array
+    {
+        $filtered = [];
+
+        foreach ($definition::getDefinitionFields() as $field) {
+            if($field->getStorageName() == null && in_array($field->getRelatedBy(), $storageName)) {
+                $filtered[] = $field;
+                break;
+            }else if (in_array($field->getStorageName(), $storageName)) {
+                $filtered[] = $field;
+                break;
+            }
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * @param $definition
      * @param Criteria $criteria
      * @param Statement|null $statement
-     * @return string|null
+     * @return array{joins: array, where: string}
      */
-    private static function buildWhere($definition, Criteria $criteria, ?Statement $statement): ?string
+    private static function buildWhere($definition, Criteria $criteria, ?Statement $statement): array
     {
+        $joins = [];
         $where = null;
         foreach ($criteria->getFilter() as $filter) {
             $converted = $filter->convert($definition);
 
             if($where == null && $converted->getCondition()) {
                 $where = 'WHERE ';
+            }
+
+            if(!in_array($converted->getCondition(), $joins)) {
+                $joins = array_merge($joins, $converted->getJoins());
             }
 
             $where .= $converted->getCondition() . ' AND ';
@@ -340,7 +387,10 @@ class SchemaBuilder
             $where = rtrim($where, ' AND ');
         }
 
-        return $where;
+        return [
+            'joins' => $joins,
+            'where' => $where
+        ];
     }
 
     /**

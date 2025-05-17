@@ -6,7 +6,7 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\NoFilterPassedMultiFilterException;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\UnknownMultiFilterOperatorException;
 
-class MultiNotFilter implements Filter
+class MultiNotFilter extends AbstractFilter
 {
     const OPERATOR_AND = 'AND';
     const OPERATOR_OR = 'OR';

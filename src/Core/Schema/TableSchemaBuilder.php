@@ -68,11 +68,11 @@ class TableSchemaBuilder
             );
 
             $byFieldInternalName = $primaryDefinition == $definition ?
-                $field->getRelatedByInternalName() :
-                $field->getRelatedToInternalName();
+                $field->getRelatedBy() :
+                $field->getRelatedTo();
             $toFieldInternalName = $primaryDefinition == $definition ?
-                $field->getRelatedToInternalName() :
-                $field->getRelatedByInternalName();
+                $field->getRelatedTo() :
+                $field->getRelatedBy();
 
             $byField = new IdField(
                 $byFieldInternalName,
@@ -176,7 +176,7 @@ class TableSchemaBuilder
             $foreignKey,
             $byField->getStorageName(),
             $primaryDefinition::getEntityName(),
-            $relationField->getRelatedByInternalName(),
+            $relationField->getRelatedBy(),
         );
 
         $foreignKey = sprintf('FK_%s', $toField->getStorageName());
@@ -186,7 +186,7 @@ class TableSchemaBuilder
             $foreignKey,
             $toField->getStorageName(),
             $secondaryDefinition::getEntityName(),
-            $relationField->getRelatedByInternalName(),
+            $relationField->getRelatedBy(),
         );
 
         return rtrim(sprintf(
@@ -324,7 +324,7 @@ class TableSchemaBuilder
                     $foreignKey,
                     $field->getStorageName(),
                     $field->getRelatedDefinitionClass()::getEntityName(),
-                    $matchingRelation->getRelatedToInternalName(),
+                    $matchingRelation->getRelatedTo(),
                     $onDelete ?? '',
                     $onUpdate ?? ''
                 );

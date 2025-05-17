@@ -2,8 +2,6 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
-use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
-
 /**
  * @template TElement
  */
@@ -11,7 +9,7 @@ abstract class EntityCollection implements EntityCollectionInterface
 {
 
     /** @var TElement[] */
-    private $entities;
+    private array $entities;
 
     /**
      * @param array<TElement> $entities
@@ -63,6 +61,10 @@ abstract class EntityCollection implements EntityCollectionInterface
      */
     public function contains($entity): bool
     {
+        foreach ($this->entities as $loopEntity) {
+            if ($entity->getId() == $loopEntity->getId()) return true;
+        }
+
         return false;
     }
 
@@ -97,33 +99,36 @@ abstract class EntityCollection implements EntityCollectionInterface
         );
     }
 
+    /*
     /**
      * @param Criteria $criteria
      * @return EntityCollection<TElement>
      */
-    public function search(Criteria $criteria): EntityCollection
+    /*public function search(Criteria $criteria): EntityCollection
     {
         return $this->createCollectionInstance([]);
-    }
+    }*/
 
+    /*
     /**
      * @param string $property
      * @param mixed $value
      * @return EntityCollection<TElement>
      */
-    public function searchBy(string $property, mixed $value): EntityCollection
+    /*public function searchBy(string $property, mixed $value): EntityCollection
     {
         return $this->createCollectionInstance([]);
-    }
+    }*/
 
+    /*
     /**
      * @param $id
      * @return string|null
      */
-    public function searchId($id): ?string
+    /*public function searchId($id): ?string
     {
         return null;
-    }
+    }*/
 
     /**
      * @return int

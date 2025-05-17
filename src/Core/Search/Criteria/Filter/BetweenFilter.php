@@ -5,7 +5,7 @@ namespace NewDavis\DatabaseManagement\Core\Search\Criteria\Filter;
 use NewDavis\DatabaseManagement\Core\Schema\SchemaBuilder;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Filter\Exception\UnknownInternalNameException;
 
-class BetweenFilter implements Filter
+class BetweenFilter extends AbstractFilter
 {
     /**
      * @param string $internalName
@@ -53,11 +53,10 @@ class BetweenFilter implements Filter
         $fields = SchemaBuilder::filterFieldsByInternalName($definition, $this->getInternalName());
 
         // check if internalName is in the Definition
-        if(count($fields) == 0) {
-            throw new UnknownInternalNameException($this->getInternalName());
+        if(count($fields) == 0 && !str_contains($this->getInternalName(), '.')) {
+            throw new UnknownInternalNameException($definition, $this->getInternalName());
         }
 
-        $field = $fields[0];
         $result = new FilterResult();
 
         $result->addParameter('?', sprintf(
@@ -70,11 +69,18 @@ class BetweenFilter implements Filter
                 $this->getEnd()
             ));
 
-        $result->setCondition(sprintf(
-            "`%s`.`%s` BETWEEN ? AND ?",
-            $definition::getEntityName(),
-            $field->getStorageName(),
-        ));
+        if (str_contains($this->getInternalName(), '.')) {
+            // is deepsearch
+            $this->handleDeepSearch($definition, $result, "`%s`.`%s` BETWEEN ? AND ?");
+        } else {
+            $field = $fields[0];
+
+            $result->setCondition(sprintf(
+                "`%s`.`%s` BETWEEN ? AND ?",
+                $definition::getEntityName(),
+                $field->getStorageName(),
+            ));
+        }
 
         return $result;
     }
