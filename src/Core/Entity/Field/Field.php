@@ -7,19 +7,18 @@ use NewDavis\DatabaseManagement\Core\Entity\Flag\Flag;
 class Field
 {
     private string $internalName;
+    private string $storageName;
     private string $type;
     private int $length;
-    private string $storageName;
-
     /** @var array<Flag> */
     private array $flags;
 
-    public function __construct(string $internalName, string $type, int $length, string $storageName, ...$flags)
+    public function __construct(string $internalName, string $storageName, string $type, int $length, ...$flags)
     {
         $this->setInternalName($internalName);
+        $this->setStorageName($storageName);
         $this->setType($type);
         $this->setLength($length);
-        $this->setStorageName($storageName);
         $this->setFlags(...$flags);
     }
 

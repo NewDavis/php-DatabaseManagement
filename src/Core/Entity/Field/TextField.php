@@ -8,8 +8,8 @@ use NewDavis\DatabaseManagement\Core\Entity\Flag\Required;
 
 class TextField extends Field
 {
-    public function __construct(string $internalName, int $length, string $storageName, ...$flags)
+    public function __construct(string $internalName, string $storageName, int $length, ...$flags)
     {
-        parent::__construct($internalName, 'VARCHAR', $length, $storageName, ...$flags);
+        parent::__construct($internalName, $storageName, 'VARCHAR', $length, ...$flags);
     }
 }

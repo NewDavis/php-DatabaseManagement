@@ -14,6 +14,6 @@ class AutoIncrementField extends Field
         $flags[] = new Required();
         $flags[] = new AutoIncrement();
 
-        parent::__construct($internalName, 'INT', -1, $storageName, ...$flags);
+        parent::__construct($internalName, $storageName, 'INT', -1, ...$flags);
     }
 }

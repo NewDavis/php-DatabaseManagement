@@ -13,6 +13,6 @@ class IdField extends Field
         $flags[] = new PrimaryKey();
         $flags[] = new Required();
 
-        parent::__construct($internalName, 'UUID', -1, $storageName, ...$flags);
+        parent::__construct($internalName, $storageName, 'UUID', -1, ...$flags);
     }
 }

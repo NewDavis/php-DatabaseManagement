@@ -10,6 +10,6 @@ class JSONField extends Field
 {
     public function __construct(string $internalName, string $storageName, ...$flags)
     {
-        parent::__construct($internalName, 'JSON', -1, $storageName, ...$flags);
+        parent::__construct($internalName, $storageName, 'JSON', -1, ...$flags);
     }
 }

@@ -10,7 +10,7 @@ class FkField extends Field
         private readonly string $relatedDefinitionClass,
         ...$flags
     ) {
-        parent::__construct($internalName, 'UUID', -1, $storageName, ...$flags);
+        parent::__construct($internalName, $storageName, 'UUID', -1, ...$flags);
     }
 
     /**

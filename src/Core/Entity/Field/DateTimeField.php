@@ -8,6 +8,6 @@ class DateTimeField extends Field
 
     public function __construct(string $internalName, string $storageName, ...$flags)
     {
-        parent::__construct($internalName, 'DATETIME', 3, $storageName, ...$flags);
+        parent::__construct($internalName, $storageName, 'DATETIME', 3, ...$flags);
     }
 }
