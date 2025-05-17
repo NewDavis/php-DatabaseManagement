@@ -10,7 +10,7 @@ class EqualsAnyFilter extends AbstractFilter
 {
     /**
      * @param string $internalName
-     * @param string[] $searchedValues
+     * @param mixed[] $searchedValues
      */
     public function __construct(
         private readonly string $internalName,
@@ -27,7 +27,7 @@ class EqualsAnyFilter extends AbstractFilter
     }
 
     /**
-     * @return array<string>
+     * @return array
      */
     public function getSearchedValues(): array
     {

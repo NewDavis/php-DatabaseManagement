@@ -62,7 +62,7 @@ abstract class EntityCollection implements EntityCollectionInterface
     public function contains($entity): bool
     {
         foreach ($this->entities as $loopEntity) {
-            if ($entity->getId() == $loopEntity->getId()) return true;
+            if ($entity->getId() === $loopEntity->getId()) return true;
         }
 
         return false;

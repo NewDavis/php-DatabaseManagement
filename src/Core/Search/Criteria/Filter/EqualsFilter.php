@@ -9,11 +9,11 @@ class EqualsFilter extends AbstractFilter
 {
     /**
      * @param string $internalName
-     * @param string $searchedValue
+     * @param mixed $searchedValue
      */
     public function __construct(
         private readonly string $internalName,
-        private readonly string $searchedValue,
+        private readonly mixed $searchedValue,
     ) {
     }
 
@@ -26,9 +26,9 @@ class EqualsFilter extends AbstractFilter
     }
 
     /**
-     * @return string
+     * @return mixed
      */
-    public function getSearchedValue(): string
+    public function getSearchedValue(): mixed
     {
         return $this->searchedValue;
     }

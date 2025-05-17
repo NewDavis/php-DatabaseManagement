@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Core\Schema;
 
+use App\Entity\Translation\TranslationDefinition;
 use NewDavis\DatabaseManagement\Core\Driver\Statement;
 use NewDavis\DatabaseManagement\Core\Entity\Entity;
 use NewDavis\DatabaseManagement\Core\Entity\EntityCollection;
@@ -359,13 +360,14 @@ class SchemaBuilder
     /**
      * @param $definition
      * @param Criteria $criteria
-     * @param Statement|null $statement
+     * @param Statement $statement
      * @return array{joins: array, where: string}
      */
-    private static function buildWhere($definition, Criteria $criteria, ?Statement $statement): array
+    private static function buildWhere($definition, Criteria $criteria, Statement $statement): array
     {
         $joins = [];
         $where = null;
+
         foreach ($criteria->getFilter() as $filter) {
             $converted = $filter->convert($definition);
 
@@ -378,8 +380,13 @@ class SchemaBuilder
             }
 
             $where .= $converted->getCondition() . ' AND ';
+
             foreach ($converted->getParameters() as $key => $value) {
-                $statement?->addParameter($key, $value);
+                if(is_numeric($key)) {
+                    $key = '?';
+                }
+
+                $statement->addParameter($key, $value);
             }
         }
 
@@ -484,26 +491,19 @@ class SchemaBuilder
             $property = $reflectionClass->getProperty($internalName);
             if(!$property->isInitialized($entity)) continue;
 
-            $value = self::convertValue($property->getValue($entity));
-
-            $values[] = sprintf(
-                "%s",
-                $value
-            );
+            $values[] = self::convertValue($property->getValue($entity));
         }
 
         return $values;
     }
 
-    private static function convertValue(mixed $value)
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
+    private static function convertValue(mixed $value) : mixed
     {
         switch (gettype($value)) {
-            case 'string':
-                $value = (string)$value;
-                break;
-            case 'integer':
-                $value = (int)$value;
-                break;
             case 'boolean':
                 $value = $value ? 1 : 0;
                 break;
@@ -519,7 +519,7 @@ class SchemaBuilder
                 }
                 break;
             default:
-                dd(gettype($value));
+                //dd("SchemaBuilder#convertValue", gettype($value));
                 break;
         }
 

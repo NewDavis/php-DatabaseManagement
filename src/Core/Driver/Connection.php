@@ -16,7 +16,7 @@ class Connection
         #[Autowire(service: 'service_container')] private readonly Container $container
     ) {
     }
-    
+
     private function connect()
     {
         if($this->pdo === null) {
@@ -50,7 +50,7 @@ class Connection
                 throw new \PDOException($e->getMessage(), (int)$e->getCode());
             }
         }
-        
+
         return $this->pdo;
     }
 
@@ -71,17 +71,13 @@ class Connection
             }
             $statement = $this->pdo->prepare($query->getStatement());
 
-            $parameters = [];
             foreach ($query->getParameters() as $key => $value) {
-                if(!is_numeric($key)) {
-                    $statement->bindValue($key, $value);
-                    continue;
-                }
+                $key = is_numeric($key) ? (int)$key + 1 : $key;
 
-                $parameters[] = $value;
+                $statement->bindValue($key, $value);
             }
 
-            if ($statement->execute($parameters)) {
+            if ($statement->execute()) {
                 $this->pdo->commit();
                 $result = $statement->fetchAll();
                 self::$executedQueries++;

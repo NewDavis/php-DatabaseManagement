@@ -220,9 +220,9 @@ class TableSchemaBuilder
                 case OneToOneRelation::class:
                     $field->addFlag(new Unique());
                     break;
-                case ManyToOneRelation::class:
+                /*case ManyToOneRelation::class:
                     $field->addFlag(new PrimaryKey());
-                    break;
+                    break;*/
             }
         }
 

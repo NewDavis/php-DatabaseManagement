@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
+use App\Entity\ImageUpload\ImageUploadDefinition;
+use App\Entity\Language\LanguageDefinition;
 use NewDavis\DatabaseManagement\Core\Driver\Connection;
 use NewDavis\DatabaseManagement\Core\Entity\Exception\PropertyNotFoundInEntityException;
 use NewDavis\DatabaseManagement\Core\Entity\Exception\RequiredPropertyNotFoundInEntityDataSetException;
@@ -56,12 +58,14 @@ class EntityRepository
 
         $criteria = new Criteria();
 
-        if(is_array($entities)) {
+        if(is_array($entities) && (count($entities) == 0 || $entities[0] == null)) return;
+
+        if (is_array($entities)) {
             $criteria->addFilter(new EqualsAnyFilter('id', array_map(
                 fn($dataSet) => $dataSet['id'],
                 $entities
             )));
-        }else{
+        } else {
             $criteria->addFilter(new EqualsAnyFilter('id', $entities->getIds()));
         }
 
@@ -71,10 +75,12 @@ class EntityRepository
         foreach ($entities as $entity)
         {
             $entityId = ($entity instanceof Entity ? $entity->getId() : $entity['id']);
+            $entity = is_array($entity) ? [$entity] : $entity;
+
             if(in_array($entityId, $existingIds)) {
-                $this->update([$entity->jsonSerialize()]);
+                $this->update($entity);
             } else {
-                $this->create([$entity->jsonSerialize()]);
+                $this->create($entity);
             }
         }
     }
@@ -86,11 +92,13 @@ class EntityRepository
      */
     public function create(EntityCollection|Entity|array $entities)
     {
+        $createdProperties = null;
+
         // convert $entities to EntityCollection
-        if($entities instanceof Entity) {
+        if ($entities instanceof Entity) {
             $collectionClass = $this->getDefinition()::getCollectionClass();
             $entities = new $collectionClass([$entities]);
-        }else if(is_array($entities)) {
+        } else if (is_array($entities)) {
             $createdProperties = $entities;
             $entities = $this->buildEntityCollection($entities);
         }
@@ -113,6 +121,8 @@ class EntityRepository
      */
     public function update(EntityCollection|Entity|array $entities)
     {
+        $changedProperties = null;
+
         // convert $entities to EntityCollection
         if($entities instanceof Entity) {
             $collectionClass = $this->getDefinition()::getCollectionClass();
@@ -168,6 +178,8 @@ class EntityRepository
             foreach ($affectedRelationFields as $property => $relationField) {
                 $relationValue = $props[$property];
 
+                if($relationValue == null) continue;
+
                 /** @var EntityRepository $relatedRepository */
                 $relatedRepository = $this->container->get(
                     $relationField->getRelatedToDefinition()::getEntityName() . '.repository'
@@ -210,7 +222,7 @@ class EntityRepository
 
                             // add foreignkey field property to changed properties for update call.
                             $properties[$index][
-                                $foreignKeyField->getInternalName()
+                            $foreignKeyField->getInternalName()
                             ] = $relationValue[$relationField->getRelatedTo()];
                         }
 
@@ -395,10 +407,10 @@ class EntityRepository
                         $criteria = new Criteria();
                         $criteria->addAssociations(
                             ...$this->getRemainingAssociations(
-                                $field,
-                                $associations,
-                                $depth + 1
-                            )
+                            $field,
+                            $associations,
+                            $depth + 1
+                        )
                         );
                         $criteria->addFilter(new EqualsFilter(
                             $relatedToInternalName,
@@ -433,10 +445,10 @@ class EntityRepository
                         $criteria = new Criteria();
                         $criteria->addAssociations(
                             ...$this->getRemainingAssociations(
-                                $field,
-                                $associations,
-                                $depth + 1
-                            )
+                            $field,
+                            $associations,
+                            $depth + 1
+                        )
                         );
                         $criteria->addFilter(new EqualsAnyFilter(
                             $relatedToInternalName,
@@ -457,10 +469,10 @@ class EntityRepository
                         $criteria = new Criteria();
                         $criteria->addAssociations(
                             ...$this->getRemainingAssociations(
-                                $field,
-                                $associations,
-                                $depth + 1
-                            )
+                            $field,
+                            $associations,
+                            $depth + 1
+                        )
                         );
                         $criteria->addFilter(new EqualsFilter(
                             $relatedToInternalName,
@@ -562,7 +574,7 @@ class EntityRepository
             try {
                 $entities->add($this->buildEntity($entityDataSet, $ignoreErrors));
             } catch (
-                PropertyNotFoundInEntityException|
+            PropertyNotFoundInEntityException|
             RequiredPropertyNotFoundInEntityDataSetException|
             \ReflectionException $ignore) {}
         }
@@ -676,13 +688,13 @@ class EntityRepository
 
         switch ($property->getType()->getName()) {
             case "string":
-                $value = (string) $entityDataSet[$storageName];
+                $value = $entityDataSet[$storageName];
                 break;
             case "bool":
-                $value = (bool)$entityDataSet[$storageName];
+                $value = (bool) $entityDataSet[$storageName];
                 break;
             case "int":
-                $value = (int)$entityDataSet[$storageName];
+                $value = (int) $entityDataSet[$storageName];
                 break;
             case "DateTimeImmutable":
                 if($entityDataSet[$storageName] instanceof \DateTimeImmutable) {
@@ -710,7 +722,7 @@ class EntityRepository
 
                 break;
             default:
-                dd($property);
+                dd("EntityRepository#convertValue", $property);
                 break;
         }
 
