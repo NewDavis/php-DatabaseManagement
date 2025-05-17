@@ -169,7 +169,7 @@ class TableSchemaBuilder
     ) : string {
         $constraints = [];
 
-        $foreignKey = sprintf('FK_%s', $byField->getStorageName());
+        $foreignKey = sprintf('FK_%s_%s', $manyToManyTableName, $byField->getStorageName());
 
         $constraints[] = sprintf(
             'ADD CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES %s(`%s`) ON DELETE CASCADE',
@@ -179,7 +179,7 @@ class TableSchemaBuilder
             $relationField->getRelatedBy(),
         );
 
-        $foreignKey = sprintf('FK_%s', $toField->getStorageName());
+        $foreignKey = sprintf('FK_%s_%s', $manyToManyTableName, $toField->getStorageName());
 
         $constraints[] = sprintf(
             'ADD CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES %s(`%s`) ON DELETE CASCADE',
@@ -313,7 +313,7 @@ class TableSchemaBuilder
                 );
             }
 
-            $foreignKey = sprintf('FK_%s', $field->getStorageName());
+            $foreignKey = sprintf('FK_%s_%s', $definition::getEntityName(), $field->getStorageName());
             // TODO add possibility to add ON DELETE.
             $onDelete = null;
             $onUpdate = null;
