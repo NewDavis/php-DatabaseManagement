@@ -58,21 +58,21 @@ class TableSchemaBuilder
                 $field->getRelatedToDefinition()
             );
 
-            $primaryDefinition = self::getPrimaryManyToManyDefinition(
+            $primaryDefinition = $definition; /*self::getPrimaryManyToManyDefinition(
                 $definition,
                 $field->getRelatedToDefinition()
-            );
-            $secondaryDefinition = self::getSecondaryManyToManyDefinition(
+            );*/
+            $secondaryDefinition = $field->getRelatedToDefinition(); /*self::getSecondaryManyToManyDefinition(
                 $definition,
                 $field->getRelatedToDefinition()
-            );
+            );*/
 
-            $byFieldInternalName = $primaryDefinition == $definition ?
+            $byFieldInternalName = $field->getRelatedBy(); /*$primaryDefinition == $definition ?
                 $field->getRelatedBy() :
-                $field->getRelatedTo();
-            $toFieldInternalName = $primaryDefinition == $definition ?
+                $field->getRelatedTo();*/
+            $toFieldInternalName = $field->getRelatedTo(); /*$primaryDefinition == $definition ?
                 $field->getRelatedTo() :
-                $field->getRelatedBy();
+                $field->getRelatedBy();*/
 
             $byField = new IdField(
                 $byFieldInternalName,

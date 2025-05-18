@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Core\Entity;
 
+use App\Entity\Badge\BadgeDefinition;
 use App\Entity\ImageUpload\ImageUploadDefinition;
 use App\Entity\Language\LanguageDefinition;
 use NewDavis\DatabaseManagement\Core\Driver\Connection;
@@ -54,83 +55,81 @@ class EntityRepository
         if($entities instanceof Entity) {
             $collectionClass = $this->getDefinition()::getCollectionClass();
             $entities = new $collectionClass([$entities]);
+        }else if(is_array($entities) && count($entities) > 0 && $entities[0] instanceof Entity)  {
+            $collectionClass = $this->getDefinition()::getCollectionClass();
+            $entities = new $collectionClass($entities);
         }
-
-        $criteria = new Criteria();
 
         if(is_array($entities) && (count($entities) == 0 || $entities[0] == null)) return;
 
-        if (is_array($entities)) {
-            $criteria->addFilter(new EqualsAnyFilter('id', array_map(
-                fn($dataSet) => $dataSet['id'],
-                $entities
-            )));
-        } else {
-            $criteria->addFilter(new EqualsAnyFilter('id', $entities->getIds()));
+        $ids = [];
+        foreach (($entities instanceof EntityCollection ? $entities->getEntities() : $entities) as $entity) {
+            $ids[] = $entity instanceof Entity ? $entity->getId() : $entity['id'];
         }
 
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsAnyFilter('id', $ids));
         $existingIds = $this->searchIds($criteria);
 
-        $entities = ($entities instanceof EntityCollection ? $entities->getEntities() : $entities);
-        foreach ($entities as $entity)
-        {
-            $entityId = ($entity instanceof Entity ? $entity->getId() : $entity['id']);
-            $entity = is_array($entity) ? [$entity] : $entity;
+        $entities = (
+            $entities instanceof EntityCollection ?
+            array_map(
+                fn($entity) => $entity->jsonSerialize(),
+                $entities->getEntities()
+            ) :
+            $entities
+        );
 
-            if(in_array($entityId, $existingIds)) {
-                $this->update($entity);
+        $toBeUpdated = [];
+        $toBeCreated = [];
+
+        foreach ($entities as $entity) {
+            $id = $entity instanceof Entity ? $entity->getId() : $entity['id'];
+            if (in_array($id, $existingIds)) {
+                $toBeUpdated[] = $entity;
             } else {
-                $this->create($entity);
+                $toBeCreated[] = $entity;
             }
         }
+
+        if(!empty($toBeUpdated)) {
+            $this->update($toBeUpdated);
+        }
+        if(!empty($toBeCreated)) {
+            $this->create($toBeCreated);
+        }
     }
 
     /**
-     * @param EntityCollection<TElement>|TElement|array $entities
+     * @param array $entities
      * @return void
      * @throws UnableToFindMatchingFkFieldForRelatedFieldException
      */
-    public function create(EntityCollection|Entity|array $entities)
+    public function create(array $entities)
     {
-        $createdProperties = null;
+        $groups = $this->groupEntitiesByChangedProperties($entities);
+        foreach ($groups as $group) {
+            $entityCollection = $this->buildEntityCollection($group);
 
-        // convert $entities to EntityCollection
-        if ($entities instanceof Entity) {
-            $collectionClass = $this->getDefinition()::getCollectionClass();
-            $entities = new $collectionClass([$entities]);
-        } else if (is_array($entities)) {
-            $createdProperties = $entities;
-            $entities = $this->buildEntityCollection($entities);
-        }
+            $this->processEntities($entityCollection, true, $group);
 
-        $this->processEntities($entities, true, $createdProperties);
+            $createStatement = SchemaBuilder::create($this->getDefinition(), $entityCollection);
 
-        $createStatements = SchemaBuilder::create($this->getDefinition(), $entities);
-
-        foreach ($createStatements as $createStatement) {
             $this->connection->prepare($createStatement);
-        }
 
-        $this->processEntities($entities, false, $createdProperties);
+            $this->processEntities($entityCollection, false, $group);
+        }
     }
 
     /**
-     * @param EntityCollection<TElement>|TElement|array $entities
+     * @param array $entities
      * @return void
      * @throws UnableToFindMatchingFkFieldForRelatedFieldException
      */
-    public function update(EntityCollection|Entity|array $entities)
+    public function update(array $entities)
     {
-        $changedProperties = null;
-
-        // convert $entities to EntityCollection
-        if($entities instanceof Entity) {
-            $collectionClass = $this->getDefinition()::getCollectionClass();
-            $entities = new $collectionClass([$entities]);
-        }else if(is_array($entities)) {
-            $changedProperties = $entities;
-            $entities = $this->buildEntityCollection($entities, true);
-        }
+        $changedProperties = $entities;
+        $entities = $this->buildEntityCollection($entities, true);
 
         foreach ($entities->getEntities() as $entity) {
             $entity->setUpdatedAt(new \DateTimeImmutable());
@@ -145,6 +144,21 @@ class EntityRepository
         }
 
         $this->processEntities($entities, false, $changedProperties);
+    }
+
+    private function groupEntitiesByChangedProperties(array $entityDataSets)
+    {
+        $groups = [];
+
+        foreach ($entityDataSets as $entityDataSet) {
+            $keys = array_keys($entityDataSet);
+            sort($keys);
+            $signature = implode('|', $keys);
+
+            $groups[$signature][] = $entityDataSet;
+        }
+
+        return $groups;
     }
 
     /**
@@ -273,7 +287,7 @@ class EntityRepository
                                 $toBeWritten
                             );
 
-                            $result = $this->connection->prepare($writeManyToManyDatasetsStatement);
+                            $this->connection->prepare($writeManyToManyDatasetsStatement);
                         }
 
                         break;
@@ -333,25 +347,14 @@ class EntityRepository
 
     /**
      * @param Criteria $criteria
-     * @param bool $preventAutoloadAssociations
-     * @param int $depth
      * @return EntityCollection<TElement>
      */
     public function search(
-        Criteria $criteria,
-        bool $preventAutoloadAssociations = false,
-        int $depth = -1
+        Criteria $criteria
     ): EntityCollection {
         $statement = SchemaBuilder::search($this->getDefinition(), $criteria);
 
         $statementResult = $this->connection->prepare($statement);
-
-        $statementResult = $this->loadAssociations(
-            $criteria->getAssociations(),
-            $statementResult,
-            $preventAutoloadAssociations,
-            $depth
-        );
 
         return $this->buildEntityCollection($statementResult);
     }
@@ -364,186 +367,7 @@ class EntityRepository
     {
         $statement = SchemaBuilder::search($this->getDefinition(), $criteria);
 
-        $statementResult = $this->connection->prepare($statement);
-
-        return $this->loadAssociations($criteria->getAssociations(), $statementResult);
-    }
-
-    private function loadAssociations(
-        array $associations,
-        ?array $result,
-        bool $preventAutoloadAssociations = false,
-        int $depth = -1
-    ): ?array {
-        if(!$result) return [];
-
-        $fields = array_filter(
-            $this->getDefinition()::getDefinitionFields(),
-            fn($field) => $field instanceof RelationField
-        );
-
-        for ($i = 0; $i < count($result); $i++) {
-            /** @var RelationField $field */
-            foreach ($fields as $field) {
-                if(!$this->shouldLoadAssociation(
-                    $field,
-                    $associations,
-                    $preventAutoloadAssociations,
-                    $depth + 1
-                )) continue;
-
-                /** @var EntityRepository $relatedRepository */
-                $relatedRepository = $this->container->get(
-                    $field->getRelatedToDefinition()::getEntityName() . '.repository'
-                );
-
-                switch (get_class($field)) {
-                    case ManyToOneRelation::class:
-                    case OneToOneRelation::class:
-                        if(!array_key_exists($field->getStorageName(), $result[$i])) break;
-
-                        $relatedToInternalName = $this->convertRelatedToToInternalName($field);
-
-                        $criteria = new Criteria();
-                        $criteria->addAssociations(
-                            ...$this->getRemainingAssociations(
-                            $field,
-                            $associations,
-                            $depth + 1
-                        )
-                        );
-                        $criteria->addFilter(new EqualsFilter(
-                            $relatedToInternalName,
-                            $result[$i][$field->getStorageName()]
-                        ));
-
-                        $result[$i][$field->getInternalName()] = $relatedRepository->search(
-                            $criteria,
-                            false,
-                            $depth + 1
-                        );
-                        break;
-                    case ManyToManyRelation::class:
-                        if(!array_key_exists($field->getRelatedBy(), $result[$i])) break;
-
-                        $existingIdsStatement = SchemaBuilder::selectExistingManyToManyDatasets(
-                            $this->getDefinition(),
-                            $field,
-                            $result[$i][$field->getRelatedBy()]
-                        );
-
-                        $existingIdsResult = $this->connection->prepare($existingIdsStatement);
-                        if(count($existingIdsResult) == 0) break;
-
-                        $existingIds = array_map(
-                            fn($a) => $a[$field->getRelatedToDefinition()::getEntityName() . '_id'],
-                            $existingIdsResult
-                        );
-
-                        $relatedToInternalName = $this->convertRelatedToToInternalName($field);
-
-                        $criteria = new Criteria();
-                        $criteria->addAssociations(
-                            ...$this->getRemainingAssociations(
-                            $field,
-                            $associations,
-                            $depth + 1
-                        )
-                        );
-                        $criteria->addFilter(new EqualsAnyFilter(
-                            $relatedToInternalName,
-                            $existingIds
-                        ));
-
-                        $result[$i][$field->getInternalName()] = $relatedRepository->search(
-                            $criteria,
-                            false,
-                            $depth + 1
-                        );
-                        break;
-                    case OneToManyRelation::class:
-                        if(!array_key_exists($field->getRelatedBy(), $result[$i])) break;
-
-                        $relatedToInternalName = $this->convertRelatedToToInternalName($field);
-
-                        $criteria = new Criteria();
-                        $criteria->addAssociations(
-                            ...$this->getRemainingAssociations(
-                            $field,
-                            $associations,
-                            $depth + 1
-                        )
-                        );
-                        $criteria->addFilter(new EqualsFilter(
-                            $relatedToInternalName,
-                            $result[$i][$field->getRelatedBy()]
-                        ));
-
-                        $result[$i][$field->getInternalName()] = $relatedRepository->search(
-                            $criteria,
-                            true,
-                            $depth + 1
-                        );
-                        break;
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    private function convertRelatedToToInternalName(RelationField $field)
-    {
-        $filtered = SchemaBuilder::filterFieldsByStorageName($field->getRelatedToDefinition(), $field->getRelatedTo());
-        if(count($filtered) == 0) return null;
-
-        /** @var array<RelationField> $filtered */
-        return $filtered[0]->getInternalName();
-    }
-
-    private function shouldLoadAssociation(
-        RelationField $field,
-        array $associations,
-        bool $preventAutoloadAssociations,
-        int $depth = -1
-    ): bool {
-        $shouldLoad = false;
-
-        foreach ($associations as $association) {
-            $explodedAssociation = explode('.', $association);
-
-            if (count($explodedAssociation) <= $depth) continue;
-
-            if ($explodedAssociation[$depth] == $field->getInternalName()) {
-                $shouldLoad = true;
-            }
-        }
-
-        if (!$shouldLoad && (!$field->isAutoload() || $preventAutoloadAssociations)) return false;
-
-        return true;
-    }
-
-    private function getRemainingAssociations(
-        RelationField $field,
-        array $associations,
-        int $depth
-    ): array {
-        $remainingAssociations = [];
-
-        foreach ($associations as $association) {
-            $explodedAssociation = explode('.', $association);
-
-            if (count($explodedAssociation) <= $depth) continue;
-
-            $associationDepth = $explodedAssociation[$depth];
-
-            if($associationDepth != $field->getInternalName()) continue;
-
-            $remainingAssociations[] = $association;
-        }
-
-        return $remainingAssociations;
+        return $this->connection->prepare($statement);
     }
 
     /**
@@ -565,12 +389,12 @@ class EntityRepository
     /**
      * @return EntityCollection<TElement>
      */
-    private function buildEntityCollection(array $entityDataSets, bool $ignoreErrors = false): EntityCollection
+    private function buildEntityCollection(array $group, bool $ignoreErrors = false): EntityCollection
     {
         $collectionClass = $this->getDefinition()::getCollectionClass();
         $entities = new $collectionClass();
 
-        foreach ($entityDataSets as $entityDataSet) {
+        foreach ($group as $entityDataSet) {
             try {
                 $entities->add($this->buildEntity($entityDataSet, $ignoreErrors));
             } catch (
@@ -609,7 +433,38 @@ class EntityRepository
                 }
 
                 $value = $entityDataSet[$internalName];
-                if (!($value instanceof EntityCollection)) continue;
+                if(is_string($value)) {
+                    $jsonDecode = json_decode($value, true);
+                    if(json_last_error() != JSON_ERROR_NONE) continue;
+
+                    $relatedDefinition = $field->getRelatedToDefinition();
+                    /** @var EntityRepository $repository */
+                    $relatedRepository = $this->container->get($relatedDefinition::getEntityName() . '.repository');
+
+                    foreach ($relatedDefinition::getDefinitionFields() as $relationField) {
+                        for ($i = 0; $i < count($jsonDecode); $i++) {
+                            $beforeKeyCount = count(array_keys($jsonDecode[$i]));
+
+                            if(!array_key_exists($relationField->getInternalName(), $jsonDecode[$i]) ||
+                                $jsonDecode[$i][$relationField->getInternalName()] == null) continue;
+
+                            if($relationField instanceof RelationField) {
+                                $jsonDecode[$i][$relationField->getInternalName()] = json_encode(
+                                    $jsonDecode[$i][$relationField->getInternalName()]
+                                );
+                            }else{
+                                $jsonDecode[$i][$relationField->getStorageName()] = $jsonDecode[$i][$relationField->getInternalName()];
+                            }
+
+                            if($beforeKeyCount < count(array_keys($jsonDecode[$i]))) {
+                                // remove array key with internal name because replaced by storage name
+                                unset($jsonDecode[$i][$relationField->getInternalName()]);
+                            }
+                        }
+                    }
+
+                    $value = $relatedRepository->buildEntityCollection($jsonDecode, $ignoreErrors);
+                } else if (!($value instanceof EntityCollection)) continue;
 
                 if (!$reflectionEntity->hasProperty($internalName)) {
                     if (!$ignoreErrors) {

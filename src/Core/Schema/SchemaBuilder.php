@@ -10,6 +10,7 @@ use NewDavis\DatabaseManagement\Core\Entity\Field\DateTimeField;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Core\Entity\Field\Relation\RelationField;
+use NewDavis\DatabaseManagement\Core\Search\Association\Association;
 use NewDavis\DatabaseManagement\Core\Search\Criteria\Criteria;
 
 class SchemaBuilder
@@ -19,6 +20,7 @@ class SchemaBuilder
     {
         $statement = new Statement();
 
+        $associations = self::buildAssociations($definition, $criteria);
         $buildWhereResult = self::buildWhere($definition, $criteria, $statement);
         $joins = $buildWhereResult['joins'];
         $where = $buildWhereResult['where'];
@@ -28,8 +30,9 @@ class SchemaBuilder
         $statement->setStatement(
             rtrim(
                 sprintf(
-                    "SELECT `%s`.* FROM `%s` %s %s %s %s",
+                    "SELECT `%s`.*%s FROM `%s` %s %s %s %s",
                     $definition::getEntityName(),
+                    $associations ? ', ' . implode(', ', $associations) : '',
                     $definition::getEntityName(),
                     implode(' ', $joins),
                     $where ?? '',
@@ -90,44 +93,54 @@ class SchemaBuilder
         return $statement;
     }
 
-    public static function create($definition, EntityCollection $entities) : array
+    /**
+     * @param $definition
+     * @param EntityCollection $entities
+     * @return Statement
+     */
+    public static function create($definition, EntityCollection $entities) : Statement
     {
-        $statements = [];
+        $statement = new Statement();
 
-        foreach ($entities->getEntities() as $entity) {
-            $statement = new Statement();
+        $properties = self::getProperties($definition, $entities->first());
 
-            $properties = self::getProperties($definition, $entity);
+        $groupedValues = array_map(
+            fn($entity) => self::getValues($properties, $entity),
+            $entities->getEntities()
+        );
 
-            $values = self::getValues($properties, $entity);
+        $statement->setStatement(
+            sprintf(
+                "INSERT INTO `%s` (%s) VALUES %s;",
+                $definition::getEntityName(),
+                implode(', ', array_map(
+                    fn($property) => sprintf(
+                        '`%s`.%s',
+                        $definition::getEntityName(),
+                        $property
+                    ),
+                    array_values($properties)
+                )),
+                implode(', ', array_map(
+                    function ($values) use ($statement) {
+                        return sprintf(
+                            "(%s)",
+                            implode(', ', array_map(
+                                function ($value) use ($statement) {
+                                    $statement->addParameter('?', $value);
 
-            $statement->setStatement(
-                sprintf(
-                    "INSERT INTO `%s` (%s) VALUES (%s);",
-                    $definition::getEntityName(),
-                    implode(', ', array_map(
-                        fn($property) => sprintf(
-                            '`%s`.%s',
-                            $definition::getEntityName(),
-                            $property
-                        ),
-                        array_values($properties)
-                    )),
-                    implode(', ', array_map(
-                        function ($value) use ($statement) {
-                            $statement->addParameter('?', $value);
+                                    return '?';
+                                },
+                                $values
+                            ))
+                        );
+                    },
+                    $groupedValues
+                )),
+            )
+        );
 
-                            return '?';
-                        },
-                        $values
-                    ))
-                )
-            );
-
-            $statements[] = $statement;
-        }
-
-        return $statements;
+        return $statement;
     }
 
     public static function update($definition, EntityCollection $entities, ?array $changedProperties): array
@@ -355,6 +368,27 @@ class SchemaBuilder
         }
 
         return $filtered;
+    }
+
+    private static function buildAssociations($definition, Criteria $criteria): array
+    {
+        $associations = [];
+
+        foreach ($definition::getDefinitionFields() as $field) {
+            if(!($field instanceof RelationField)) continue;
+
+            $associations[] = (new Association(
+                $field,
+                $definition,
+                $criteria,
+                0
+            ))->convert();
+        }
+
+        return array_filter(
+            $associations,
+            fn($association) => $association
+        );
     }
 
     /**
