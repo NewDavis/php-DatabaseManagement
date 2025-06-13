@@ -20,7 +20,12 @@ abstract class Entity implements EntityInterface
     use CreatedAtTrait;
     use UpdatedAtTrait;
 
-    public function jsonSerialize(array &$visited = []): array
+    public function jsonSerialize(): array
+    {
+        return $this->serializeEntity();
+    }
+
+    private function serializeEntity(array &$visited = []): array
     {
         $objectId = spl_object_id($this);
         if (isset($visited[$objectId])) {
@@ -41,12 +46,12 @@ abstract class Entity implements EntityInterface
             }
 
             if ($value instanceof Entity) {
-                $json[$property->getName()] = $value->jsonSerialize($visited);
+                $json[$property->getName()] = $value->serializeEntity($visited);
                 continue;
             } elseif ($value instanceof EntityCollection) {
                 $json[$property->getName()] = [];
                 foreach ($value->getEntities() as $entity) {
-                    $json[$property->getName()][] = $entity->jsonSerialize($visited);
+                    $json[$property->getName()][] = $entity->serializeEntity($visited);
                 }
                 continue;
             }
