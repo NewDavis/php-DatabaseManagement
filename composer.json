@@ -20,7 +20,7 @@
   },
   "extra": {
     "symfony": {
-      "bundle": "NewDavis\\DatabaseManagement\\NewDavisDatabaseManagementBundle"
+      "bundle": "NewDavis\\DatabaseManagement\\DatabaseManagementBundle"
     }
   }
 }
