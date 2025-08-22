@@ -58,7 +58,7 @@ class MultiFilter extends AbstractFilter
 
             $conditions .= $converted->getCondition() . ' ' . $this->getOperator();
             foreach ($converted->getParameters() as $key => $value) {
-                $result->addParameter($key, $value);
+                $result->addParameter(is_numeric($key) ? '?' : $key, $value);
             }
         }
 
