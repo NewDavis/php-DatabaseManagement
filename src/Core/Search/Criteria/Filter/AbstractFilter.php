@@ -89,7 +89,7 @@ abstract class AbstractFilter implements Filter
                 break;
         }
 
-        if(!$joinName) {
+        if(!isset($joinName)) {
             $joinName = sprintf(
                 "%s__%s__%s__%s",
                 $field->getRelatedToDefinition()::getEntityName(),
