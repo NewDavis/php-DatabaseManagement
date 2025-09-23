@@ -398,9 +398,12 @@ class EntityRepository
             try {
                 $entities->add($this->buildEntity($entityDataSet, $ignoreErrors));
             } catch (
-            PropertyNotFoundInEntityException|
-            RequiredPropertyNotFoundInEntityDataSetException|
-            \ReflectionException $ignore) {}
+                PropertyNotFoundInEntityException|
+                RequiredPropertyNotFoundInEntityDataSetException|
+                \ReflectionException $ignore
+            ) {
+                throw $ignore;
+            }
         }
 
         return $entities;
@@ -435,7 +438,7 @@ class EntityRepository
                 $value = $entityDataSet[$internalName];
                 if(is_string($value)) {
                     $jsonDecode = json_decode($value, true);
-                    if(json_last_error() != JSON_ERROR_NONE) continue;
+                    if (json_last_error() != JSON_ERROR_NONE) continue;
 
                     $relatedDefinition = $field->getRelatedToDefinition();
                     /** @var EntityRepository $repository */
@@ -445,18 +448,18 @@ class EntityRepository
                         for ($i = 0; $i < count($jsonDecode); $i++) {
                             $beforeKeyCount = count(array_keys($jsonDecode[$i]));
 
-                            if(!array_key_exists($relationField->getInternalName(), $jsonDecode[$i]) ||
+                            if (!array_key_exists($relationField->getInternalName(), $jsonDecode[$i]) ||
                                 $jsonDecode[$i][$relationField->getInternalName()] == null) continue;
 
-                            if($relationField instanceof RelationField) {
+                            if ($relationField instanceof RelationField) {
                                 $jsonDecode[$i][$relationField->getInternalName()] = json_encode(
                                     $jsonDecode[$i][$relationField->getInternalName()]
                                 );
-                            }else{
+                            } else {
                                 $jsonDecode[$i][$relationField->getStorageName()] = $jsonDecode[$i][$relationField->getInternalName()];
                             }
 
-                            if($beforeKeyCount < count(array_keys($jsonDecode[$i]))) {
+                            if ($beforeKeyCount < count(array_keys($jsonDecode[$i]))) {
                                 // remove array key with internal name because replaced by storage name
                                 unset($jsonDecode[$i][$relationField->getInternalName()]);
                             }
@@ -464,6 +467,10 @@ class EntityRepository
                     }
 
                     $value = $relatedRepository->buildEntityCollection($jsonDecode, $ignoreErrors);
+                } else if ($value instanceof Entity) {
+                    $collectionClass = $field->getRelatedToDefinition()::getCollectionClass();
+
+                    $value = new $collectionClass([$value]);
                 } else if (!($value instanceof EntityCollection)) continue;
 
                 if (!$reflectionEntity->hasProperty($internalName)) {
