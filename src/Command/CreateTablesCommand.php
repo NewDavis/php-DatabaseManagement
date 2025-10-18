@@ -30,7 +30,7 @@ class CreateTablesCommand extends Command
         $this->setDescription(self::COMMAND_DESC);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $repositories = array_map(
             function ($repositoryId) {
