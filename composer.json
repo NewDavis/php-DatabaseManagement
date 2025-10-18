@@ -2,10 +2,10 @@
   "name": "newdavis/database-management",
   "description": "Custom ORM Bundle made for Symfony. Easily create your database entities and use them object oriented in your code.",
   "type": "symfony-bundle",
-  "version": "1.0.4",
+  "version": "1.0.4.1",
   "license": "MIT",
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.0",
     "ext-pdo": "*"
   },
   "autoload": {
