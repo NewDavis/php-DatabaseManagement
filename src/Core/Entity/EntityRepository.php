@@ -115,7 +115,7 @@ class EntityRepository
 
             $createStatement = SchemaBuilder::create($this->getDefinition(), $entityCollection);
 
-            $this->connection->prepare($createStatement);
+            $this->connection->prepare($createStatement, false);
 
             $this->processEntities($entityCollection, false, $group);
         }
@@ -140,7 +140,7 @@ class EntityRepository
         $updateStatements = SchemaBuilder::update($this->getDefinition(), $entities, $changedProperties);
 
         foreach ($updateStatements as $updateStatement) {
-            $this->connection->prepare($updateStatement);
+            $this->connection->prepare($updateStatement, false);
         }
 
         $this->processEntities($entities, false, $changedProperties);
@@ -275,7 +275,7 @@ class EntityRepository
                                 $toBeDeleted
                             );
 
-                            $this->connection->prepare($deleteManyToManyDatasetsStatement);
+                            $this->connection->prepare($deleteManyToManyDatasetsStatement, false);
                         }
 
                         $toBeWritten = array_diff($relatedIds, $existingIds);
@@ -287,7 +287,7 @@ class EntityRepository
                                 $toBeWritten
                             );
 
-                            $this->connection->prepare($writeManyToManyDatasetsStatement);
+                            $this->connection->prepare($writeManyToManyDatasetsStatement, false);
                         }
 
                         break;
@@ -329,7 +329,7 @@ class EntityRepository
     {
         $deleteQuery = SchemaBuilder::delete($this->getDefinition(), $criteria);
 
-        $this->connection->prepare($deleteQuery);
+        $this->connection->prepare($deleteQuery, false);
     }
 
     /**

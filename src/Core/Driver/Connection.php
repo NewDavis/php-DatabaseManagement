@@ -56,13 +56,13 @@ class Connection
 
     public static $executedQueries = 0;
 
-    public function prepare(Statement $query): array|null
+    public function prepare(Statement $query, bool $search = true): array|null
     {
         if($this->connect() == null) return null;
 
         $result = null;
 
-        if($this->pdo->beginTransaction()) {
+        if($search || $this->pdo->beginTransaction()) {
             if(DatabaseManagementBundle::DEBUG) {
                 print_r("\n");
                 print_r("\n" . $query->getStatement());
@@ -78,11 +78,15 @@ class Connection
             }
 
             if ($statement->execute()) {
-                $this->pdo->commit();
+                if (!$search) {
+                    $this->pdo->commit();
+                }
                 $result = $statement->fetchAll();
                 self::$executedQueries++;
             } else {
-                $this->pdo->rollBack();
+                if (!$search) {
+                    $this->pdo->rollBack();
+                }
             }
         }
 
