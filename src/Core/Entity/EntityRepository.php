@@ -564,8 +564,13 @@ class EntityRepository
                     break;
                 }
 
+                if (null === $entityDataSet[$storageName]) {
+                    break;
+                }
+
                 $dateTime = \DateTimeImmutable::createFromFormat(DateTimeField::FORMAT, $entityDataSet[$storageName]);
-                if($dateTime) {
+
+                if ($dateTime instanceof \DateTimeImmutable) {
                     $value = $dateTime;
                 }
                 break;
