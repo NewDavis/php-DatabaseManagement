@@ -14,16 +14,4 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
 
     $services->defaults()->public()->autowire()->autoconfigure();
-
-    $services->set(CreateTablesCommand::class, CreateTablesCommand::class);
-
-    /*$services->set(TestController::class, TestController::class);
-
-    $services->set(AccountDefinition::getEntityName() . '.repository', EntityRepository::class)
-        ->arg('$definition', AccountDefinition::class);
-
-    $services->set(RoleDefinition::getEntityName() . '.repository', EntityRepository::class)
-        ->arg('$definition', RoleDefinition::class);*/
-
-    $services->set(Connection::class, Connection::class);
 };
