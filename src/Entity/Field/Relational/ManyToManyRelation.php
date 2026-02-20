@@ -7,11 +7,16 @@ class ManyToManyRelation extends RelationalField
     public function __construct(
         string $internalName,
         string $relatedToDefinition,
-        ?string $relatedByInternalName,
+        string $relatedByInternalName,
         string $relatedToInternalName,
-        bool $autoLoad,
-        array ...$flags
+        bool $autoLoad = false
     ) {
-        parent::__construct($internalName, $relatedToDefinition, $relatedByInternalName, $relatedToInternalName, $autoLoad, $flags);
+        parent::__construct(
+            $internalName,
+            $relatedToDefinition,
+            $relatedByInternalName,
+            $relatedToInternalName,
+            $autoLoad
+        );
     }
 }

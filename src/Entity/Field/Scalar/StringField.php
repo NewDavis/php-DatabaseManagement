@@ -2,16 +2,14 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
-use NewDavis\DatabaseManagement\Entity\Field\Field;
-
-class StringField extends Field
+class StringField extends ScalarField
 {
     public function __construct(
         string $internalName,
         string $storageName,
         int $length = 255,
-        array ...$flags
+        array $flags = []
     ) {
-        parent::__construct($internalName, $storageName, 'VARCHAR', $length, ...$flags);
+        parent::__construct($internalName, $storageName, 'VARCHAR', $length, $flags);
     }
 }

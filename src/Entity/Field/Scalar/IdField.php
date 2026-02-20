@@ -2,9 +2,9 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
-use NewDavis\DatabaseManagement\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
 
-class IdField extends Field
+class IdField extends ScalarField
 {
     public function __construct()
     {
@@ -13,7 +13,7 @@ class IdField extends Field
             'id',
             'UUID',
             null,
-            // TODO add flags
+            [new PrimaryKey()]
         );
     }
 }

@@ -2,23 +2,26 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
+use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\FieldInterface;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
 
-abstract class RelationalField implements RelationalFieldInterface, FieldInterface
+abstract class RelationalField extends Field implements RelationalFieldInterface, FieldInterface, RelatedToInterface
 {
-    /** @var Flag[] */
-    private readonly array $flags;
-
+    /**
+     * @param string $internalName
+     * @param string $relatedToDefinition
+     * @param string $relatedByInternalName
+     * @param string $relatedToInternalName
+     * @param bool $autoload
+     */
     public function __construct(
         private readonly string $internalName,
         private readonly string $relatedToDefinition,
         private readonly string $relatedByInternalName,
         private readonly string $relatedToInternalName,
-        private readonly bool $autoload,
-        array ...$flags
+        private readonly bool $autoload
     ) {
-        $this->flags = $flags;
+        parent::__construct($this->internalName);
     }
 
     /**
@@ -56,13 +59,5 @@ abstract class RelationalField implements RelationalFieldInterface, FieldInterfa
     public function shouldAutoLoad(): bool
     {
         return $this->autoload;
-    }
-
-    /**
-     * @return Flag[]
-     */
-    public function getFlags(): array
-    {
-        return $this->flags;
     }
 }

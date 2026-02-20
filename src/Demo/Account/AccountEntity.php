@@ -2,7 +2,12 @@
 
 namespace NewDavis\DatabaseManagement\Demo\Account;
 
-class AccountEntity
-{
+use NewDavis\DatabaseManagement\Entity\AbstractEntity;
 
+class AccountEntity extends AbstractEntity
+{
+    public static function getDefinitionClass(): string
+    {
+        return AccountDefinitionInterface::class;
+    }
 }

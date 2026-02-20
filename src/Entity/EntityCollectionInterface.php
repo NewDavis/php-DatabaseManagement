@@ -2,7 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
-interface EntityInterface
+interface EntityCollectionInterface
 {
     public static function getDefinitionClass(): string;
 }

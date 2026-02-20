@@ -2,9 +2,9 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
-use NewDavis\DatabaseManagement\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\AutoIncrement;
 
-class AutoIncrementField extends Field
+class AutoIncrementField extends ScalarField
 {
     public function __construct()
     {
@@ -13,7 +13,7 @@ class AutoIncrementField extends Field
             'auto_increment',
             'INT',
             null,
-            // TODO add auto increment flag.
+            [new AutoIncrement()]
         );
     }
 }

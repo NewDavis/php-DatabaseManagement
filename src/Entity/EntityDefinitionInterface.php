@@ -4,7 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity;
 
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 
-interface EntityDefinition
+interface EntityDefinitionInterface
 {
     public static function getEntityName(): string;
     /** @return Field[] */

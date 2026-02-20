@@ -2,17 +2,27 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
-use NewDavis\DatabaseManagement\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 
-class FkField extends Field
+class FkField extends ScalarField implements RelatedToInterface
 {
     public function __construct(
         string $internalName,
         string $storageName,
-        string $type,
-        ?int $length,
-        array ...$flags
+        private readonly string $relatedToDefinition,
+        array $flags = []
     ) {
-        parent::__construct($internalName, $storageName, $type, $length, ...$flags);
+        parent::__construct(
+            $internalName,
+            $storageName,
+            'UUID',
+            null,
+            $flags
+        );
+    }
+
+    public function getRelatedToDefinition(): string
+    {
+        return $this->relatedToDefinition;
     }
 }

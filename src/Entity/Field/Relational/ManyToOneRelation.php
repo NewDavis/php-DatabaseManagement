@@ -2,24 +2,24 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
-class ManyToOneRelation extends RelationalField
+use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
+
+class ManyToOneRelation extends RelationalField implements StorableInterface
 {
     public function __construct(
         string $internalName,
         private readonly string $storageName,
         string $relatedToDefinition,
-        ?string $relatedByInternalName,
+        string $relatedByInternalName,
         string $relatedToInternalName,
-        bool $autoLoad,
-        array ...$flags
+        bool $autoLoad = false
     ) {
         parent::__construct(
             $internalName,
             $relatedToDefinition,
             $relatedByInternalName,
             $relatedToInternalName,
-            $autoLoad,
-            $flags
+            $autoLoad
         );
     }
 
