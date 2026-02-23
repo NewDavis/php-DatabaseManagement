@@ -6,9 +6,11 @@ use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 class Unique implements Flag
 {
-    public function getType(): FlagType
+    public function getTypes(): FlagTypeCollection
     {
-        return FlagType::NEW_LINE;
+        return new FlagTypeCollection([
+            FlagType::NEW_LINE
+        ]);
     }
 
     public function getPriority(): int|null
@@ -16,10 +18,10 @@ class Unique implements Flag
         return 10;
     }
 
-    public function convert(Field $field, mixed ...$values): string
+    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
     {
         return <<<SQL
-UNIQUE KEY `uniq_{$field->getInternalName()}` ({$field->getInternalName()})
+UNIQUE KEY `uniq_{$field->getStorageName()}` ({$field->getStorageName()})
 SQL;
     }
 }

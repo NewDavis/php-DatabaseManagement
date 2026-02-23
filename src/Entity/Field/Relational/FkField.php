@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
+use NewDavis\DatabaseManagement\Entity\Field\Flag\Index;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 
 class FkField extends ScalarField implements RelatedToInterface
@@ -17,7 +19,7 @@ class FkField extends ScalarField implements RelatedToInterface
             $storageName,
             'UUID',
             null,
-            $flags
+            [new PrimaryKey(), new Index(), ...$flags]
         );
     }
 

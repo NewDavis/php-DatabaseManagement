@@ -2,7 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Demo\Token;
 
-use NewDavis\DatabaseManagement\Demo\Account\AccountDefinitionInterface;
+use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
@@ -11,6 +11,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\StringField;
+use NewDavis\DatabaseManagement\Entity\FieldCollection;
 
 class TokenDefinition implements EntityDefinitionInterface
 {
@@ -19,16 +20,16 @@ class TokenDefinition implements EntityDefinitionInterface
         return 'token';
     }
 
-    public static function getFields(): array
+    public static function getFields(): FieldCollection
     {
-        return [
+        return new FieldCollection([
             new IdField(),
 
             new StringField('token', 'token', 255, [new Required(), new Unique()]),
 
-            new FkField('accountId', 'account_id', AccountDefinitionInterface::class, [new Required()]),
-            new OneToOneRelation('account', 'account_id', AccountDefinitionInterface::class, 'id', 'id', false),
-        ];
+            new FkField('accountId', 'account_id', AccountDefinition::class, [new Required()]),
+            new OneToOneRelation('account', 'account_id', AccountDefinition::class, 'id', 'id', false),
+        ]);
     }
 
     public static function getEntityClass(): string

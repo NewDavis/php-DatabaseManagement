@@ -6,9 +6,11 @@ use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 class Nullable implements Flag
 {
-    public function getType(): FlagType
+    public function getTypes(): FlagTypeCollection
     {
-        return FlagType::INLINE_PROPERTY;
+        return new FlagTypeCollection([
+            FlagType::INLINE_PROPERTY
+        ]);
     }
 
     public function getPriority(): int|null
@@ -16,7 +18,7 @@ class Nullable implements Flag
         return null;
     }
 
-    public function convert(Field $field, mixed ...$values): string
+    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
     {
         return <<<SQL
 NULL

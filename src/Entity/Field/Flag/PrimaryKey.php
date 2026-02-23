@@ -6,9 +6,11 @@ use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 class PrimaryKey implements Flag
 {
-    public function getType(): FlagType
+    public function getTypes(): FlagTypeCollection
     {
-        return FlagType::NEW_LINE;
+        return new FlagTypeCollection([
+            FlagType::NEW_LINE
+        ]);
     }
 
     public function getPriority(): int|null
@@ -16,10 +18,10 @@ class PrimaryKey implements Flag
         return 0;
     }
 
-    public function convert(Field $field, mixed ...$values): string
+    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
     {
         return sprintf(<<<SQL
 PRIMARY KEY (%s)
-SQL, $values);
+SQL, implode(', ', $values));
     }
 }

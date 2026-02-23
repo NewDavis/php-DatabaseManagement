@@ -8,6 +8,6 @@ class AccountCollection extends AbstractEntityCollection
 {
     public static function getDefinitionClass(): string
     {
-        return AccountDefinitionInterface::class;
+        return AccountDefinition::class;
     }
 }

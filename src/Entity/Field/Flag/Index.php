@@ -4,12 +4,12 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Flag;
 
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 
-class AutoIncrement implements Flag
+class Index implements Flag
 {
     public function getTypes(): FlagTypeCollection
     {
         return new FlagTypeCollection([
-            FlagType::INLINE_PROPERTY
+            FlagType::NEW_LINE
         ]);
     }
 
@@ -20,8 +20,8 @@ class AutoIncrement implements Flag
 
     public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
     {
-        return <<<SQL
-AUTO_INCREMENT
-SQL;
+        return sprintf(<<<SQL
+INDEX %s (`%s`)
+SQL, ...$values);
     }
 }

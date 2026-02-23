@@ -11,9 +11,11 @@ class OnDelete implements Flag, ForeignKeyFlag
     ) {
     }
 
-    public function getType(): FlagType
+    public function getTypes(): FlagTypeCollection
     {
-        return FlagType::INLINE_CONSTRAINT;
+        return new FlagTypeCollection([
+            FlagType::INLINE_CONSTRAINT
+        ]);
     }
 
     public function getPriority(): int|null
@@ -21,7 +23,7 @@ class OnDelete implements Flag, ForeignKeyFlag
         return null;
     }
 
-    public function convert(Field $field, ...$values): string
+    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
     {
         return sprintf(<<<SQL
 ON DELETE %s

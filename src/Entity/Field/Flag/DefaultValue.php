@@ -6,9 +6,16 @@ use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 class DefaultValue implements Flag
 {
-    public function getType(): FlagType
+    public function __construct(
+        private readonly mixed $defaultValue
+    ) {
+    }
+
+    public function getTypes(): FlagTypeCollection
     {
-        return FlagType::INLINE_PROPERTY;
+        return new FlagTypeCollection([
+            FlagType::INLINE_PROPERTY
+        ]);
     }
 
     public function getPriority(): int|null
@@ -16,10 +23,10 @@ class DefaultValue implements Flag
         return null;
     }
 
-    public function convert(Field $field, ...$values): string
+    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
     {
         return sprintf(<<<SQL
 DEFAULT %s
-SQL, $values);
+SQL, $this->defaultValue);
     }
 }

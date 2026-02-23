@@ -6,7 +6,8 @@ use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 interface Flag
 {
-    public function getType(): FlagType;
+    /** @return FlagTypeCollection */
+    public function getTypes(): FlagTypeCollection;
     public function getPriority(): int|null;
-    public function convert(Field $field, mixed ...$values): string;
+    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string;
 }

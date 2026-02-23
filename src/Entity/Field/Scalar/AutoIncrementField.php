@@ -3,6 +3,8 @@
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
 use NewDavis\DatabaseManagement\Entity\Field\Flag\AutoIncrement;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
 
 class AutoIncrementField extends ScalarField
 {
@@ -13,7 +15,7 @@ class AutoIncrementField extends ScalarField
             'auto_increment',
             'INT',
             null,
-            [new AutoIncrement()]
+            [new Required(), new Unique(), new AutoIncrement()]
         );
     }
 }

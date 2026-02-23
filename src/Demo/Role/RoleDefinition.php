@@ -8,6 +8,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\AutoIncrementField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\StringField;
+use NewDavis\DatabaseManagement\Entity\FieldCollection;
 
 class RoleDefinition implements EntityDefinitionInterface
 {
@@ -16,14 +17,14 @@ class RoleDefinition implements EntityDefinitionInterface
         return 'role';
     }
 
-    public static function getFields(): array
+    public static function getFields(): FieldCollection
     {
-        return [
+        return new FieldCollection([
             new IdField(),
             new AutoIncrementField(),
 
             new StringField('name', 'name', 255, [new Required(), new Unique()])
-        ];
+        ]);
     }
 
     public static function getEntityClass(): string
