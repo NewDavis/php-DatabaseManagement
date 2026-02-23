@@ -86,10 +86,14 @@ SQL;
                 fn (Flag $flag) => $flag->getTypes()->hasType(FlagType::INLINE_PROPERTY)
             ) as $flag
         ) {
-            dd($flag);
+            switch (get_class($flag)) {
+                default:
+                    $flags[] = $flag->convert($field, FlagType::INLINE_PROPERTY, $this->definition);
+                    break;
+            }
         }
 
-        return implode(",\n", $flags);
+        return implode(" ", $flags);
     }
 
     private function buildProperties(): string
@@ -104,7 +108,7 @@ SQL;
             as $field
         ) {
             $properties[] = <<<SQL
-`{$field->getStorageName()}` {$this->buildPropertyType($field)}
+`{$field->getStorageName()}` {$this->buildPropertyType($field)} {$this->buildPropertyFlags($field)}
 SQL;
         }
 
@@ -147,9 +151,6 @@ SQL;
                 ) as $flag
             ) {
                 switch (get_class($flag)) {
-                    case Unique::class:
-                        $flags[] = $flag->convert($field, FlagType::NEW_LINE, $this->definition);
-                        break;
                     case Index::class:
                         $flags[] = $flag->convert($field, FlagType::NEW_LINE, $this->definition, [
                             $this->buildIndexName($field),
@@ -163,6 +164,9 @@ SQL;
                             $this->definition,
                             $this->primaryKeys
                         );
+                        break;
+                    default:
+                        $flags[] = $flag->convert($field, FlagType::NEW_LINE, $this->definition);
                         break;
                 }
             }
@@ -185,7 +189,7 @@ SQL;
 CREATE TABLE IF NOT EXISTS `{$this->tableName}` (
 {$properties},
 {$newLineFlags}
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     }
 

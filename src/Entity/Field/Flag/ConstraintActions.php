@@ -7,4 +7,5 @@ enum ConstraintActions
     case CASCADE;
     case SET_NULL;
     case NO_ACTION;
+    case CUSTOM;
 }

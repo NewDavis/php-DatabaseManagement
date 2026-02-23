@@ -7,7 +7,8 @@ use NewDavis\DatabaseManagement\Entity\Field\Field;
 class OnUpdate implements Flag, ForeignKeyFlag
 {
     public function __construct(
-        private readonly ConstraintActions $action
+        private readonly ConstraintActions $action,
+        private readonly mixed $customValue,
     ) {
     }
 
@@ -24,10 +25,14 @@ class OnUpdate implements Flag, ForeignKeyFlag
         return null;
     }
 
-    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
-    {
+    public function convert(
+        Field $field,
+        FlagType $convertType,
+        ?string $definitionClass = null,
+        array $values = []
+    ): string {
         return sprintf(<<<SQL
 ON UPDATE %s
-SQL, $this->action->name);
+SQL, ($this->action == ConstraintActions::CUSTOM ? $this->customValue : $this->action->name));
     }
 }
