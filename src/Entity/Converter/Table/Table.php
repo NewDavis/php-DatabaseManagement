@@ -2,18 +2,14 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Converter\Table;
 
-use Doctrine\DBAL\Schema\Exception\UniqueConstraintDoesNotExist;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\AutoIncrement;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\DefaultValue;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagType;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Index;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\Nullable;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\OnUpdate;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
@@ -64,11 +60,68 @@ class Table
         return $this;
     }
 
-    private function buildForeignKeys(): string
+    private function buildConstraintName(RelationalField $field): ?string
     {
-        return <<<SQL
+        switch (get_class($field)) {
+            case ManyToOneRelation::class:
+            case OneToOneRelation::class:
+                $hashContent = $this->tableName . '.' . $field->getStorageName();
+                break;
+            case ManyToManyRelation::class:
+                // TODO
+                return null;
+            default:
+                return null;
+        }
 
+        $relatedField = $this->definedFields->getRelatedField($field);
+
+        $relatedEntityName = $field->getRelatedToDefinition()::getEntityName();
+
+        $hashContent .= '|' .
+            $relatedEntityName .
+            '.' .
+            $relatedField->getStorageName();
+
+        $indexHash = hash('sha256', $hashContent, true);
+        $shorten = substr($indexHash, 0, 16);
+        $shortHex = bin2hex($shorten);
+
+        return 'fk_' . $shortHex;
+    }
+
+    private function buildConstraints(): string
+    {
+        $constraints = [];
+
+        foreach (
+            array_filter(
+                $this->definedFields->getFields(),
+                fn (Field $field) => $field instanceof RelationalField
+            )
+            as $field
+        ) {
+            $constraintName = $this->buildConstraintName($field);
+
+            if ($constraintName == null) continue;
+
+            $fkField = $this->definedFields->getForeignKeyFieldByRelationalField($field);
+
+            $relatedEntityName = $this->definedFields->getRelatedDefinition($field)::getEntityName();
+            $relatedField = $this->definedFields->getRelatedField($field);
+
+            $constraint = <<<SQL
+CONSTRAINT `{$constraintName}`
+    FOREIGN KEY (`{$fkField->getStorageName()}`)
+    REFERENCES `{$relatedEntityName}` (`{$relatedField->getStorageName()}`)
 SQL;
+
+            // TODO Constraint Flags
+
+            $constraints[] = $constraint;
+        }
+
+        return implode(",\n", $constraints);
     }
 
     private function buildPropertyType(ScalarField $field): string
@@ -115,20 +168,9 @@ SQL;
         return implode(",\n", $properties);
     }
 
-    private function buildIndexName(Field $field): string
+    private function buildIndexName(SupportsFlags $field): string
     {
         $hashContent = $this->tableName . '.' . $field->getStorageName();
-
-        if ($field instanceof RelationalField) {
-            $relatedField = $field->getRelatedToDefinition()::getFields()->getByInternalName(
-                $field->getRelatedToInternalName()
-            );
-
-            $hashContent .= '|' .
-                $field->getRelatedToDefinition()::getEntityName() .
-                '.' .
-                $relatedField->getStorageName();
-        }
 
         $indexHash = hash('sha256', $hashContent, true);
         $shorten = substr($indexHash, 0, 16);
@@ -184,11 +226,13 @@ SQL;
     {
         $properties = $this->buildProperties();
         $newLineFlags = $this->buildNewLineFlags();
+        $constraints = $this->buildConstraints();
 
         return <<<SQL
 CREATE TABLE IF NOT EXISTS `{$this->tableName}` (
 {$properties},
-{$newLineFlags}
+{$newLineFlags},
+{$constraints}
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     }

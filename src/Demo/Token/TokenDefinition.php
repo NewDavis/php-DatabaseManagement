@@ -28,8 +28,8 @@ class TokenDefinition implements EntityDefinitionInterface
             new StringField('token', 'token', 255, [new Required(), new Unique()]),
 
             new FkField('accountId', 'account_id', AccountDefinition::class, [new Required()]),
-            new OneToOneRelation('account', 'account_id', AccountDefinition::class, 'id', 'id', false),
-        ]);
+            new OneToOneRelation('account', 'account_id', AccountDefinition::class, 'id', false),
+        ], self::class);
     }
 
     public static function getEntityClass(): string

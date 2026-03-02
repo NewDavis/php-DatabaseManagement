@@ -2,25 +2,65 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use NewDavis\DatabaseManagement\Entity\Exception\FieldNotFoundException;
+use NewDavis\DatabaseManagement\Entity\Exception\ForeignKeyNotFoundException;
+use NewDavis\DatabaseManagement\Entity\Exception\RelatedFieldNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
+use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 
 class FieldCollection
 {
     public function __construct(
         private readonly array $fields,
+        private readonly string $definition,
     ) {
     }
 
-    public function getByInternalName(string $internalName): ?Field
+    public function getByInternalName(string $internalName): Field
     {
-        return array_filter($this->fields, function (Field $field) use ($internalName) {
+        return array_values(array_filter($this->fields, function (Field $field) use ($internalName) {
             return $field->getInternalName() === $internalName;
-        })[0];
+        }))[0] ?? throw new FieldNotFoundException($this->getDefinition()::getEntityName(), $internalName);
+    }
+
+    public function getForeignKeyFieldByRelationalField(StorableInterface $relationalField): FkField
+    {
+        return array_values(array_filter(
+            $this->fields,
+            fn (Field $field) => $field instanceof FkField &&
+                $field->getStorageName() === $relationalField->getStorageName() &&
+                $field->getRelatedToDefinition() === $relationalField->getRelatedToDefinition()
+        ))[0] ?? throw new ForeignKeyNotFoundException($this->getDefinition()::getEntityName(), $relationalField);
+    }
+
+    public function getRelatedDefinition(RelationalField|FkField $field): string
+    {
+        return $field->getRelatedToDefinition();
+    }
+
+    public function getRelatedField(RelationalField $field): StorableInterface
+    {
+        $relatedDefinition = $this->getRelatedDefinition($field);
+
+        return array_values(array_filter(
+            $relatedDefinition::getFields()->getFields(),
+            fn (Field $relatedDefinitionField) => $field instanceof StorableInterface && $relatedDefinitionField->getInternalName() === $field->getRelatedToInternalName()
+        ))[0] ?? throw new RelatedFieldNotFoundException($this->getDefinition()::getEntityName(), $field);
     }
 
     /** @return array<Field> */
     public function getFields(): array
     {
         return $this->fields;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDefinition(): string
+    {
+        return $this->definition;
     }
 }

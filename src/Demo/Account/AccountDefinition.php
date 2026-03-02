@@ -42,16 +42,16 @@ class AccountDefinition implements EntityDefinitionInterface
             new ManyToManyRelation('roles', RoleDefinition::class, 'id', 'id', true),
 
             new FkField('primaryRoleId', 'primary_role_id', RoleDefinition::class, [new Required()]),
-            new ManyToOneRelation('primaryRole', 'primary_role_id', RoleDefinition::class, 'id', 'id', true),
+            new ManyToOneRelation('primaryRole', 'primary_role_id', RoleDefinition::class, 'id', true),
 
             new FkField('tokenId', 'token_id', TokenDefinition::class),
-            new OneToOneRelation('token', 'token', TokenDefinition::class, 'id', 'id', true),
+            new OneToOneRelation('token', 'token_id', TokenDefinition::class, 'id', true),
 
-            new OneToManyRelation('follower', AccountDefinition::class, 'id', 'id', false),
+            new OneToManyRelation('follower', AccountDefinition::class, 'id', false),
 
             new CreatedAtField(),
             new UpdatedAtField(),
-        ]);
+        ], self::class);
     }
 
     public static function getEntityClass(): string

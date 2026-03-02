@@ -10,14 +10,12 @@ abstract class RelationalField extends Field implements RelationalFieldInterface
     /**
      * @param string $internalName
      * @param string $relatedToDefinition
-     * @param string $relatedByInternalName
      * @param string $relatedToInternalName
      * @param bool $autoload
      */
     public function __construct(
         private readonly string $internalName,
         private readonly string $relatedToDefinition,
-        private readonly string $relatedByInternalName,
         private readonly string $relatedToInternalName,
         private readonly bool $autoload
     ) {
@@ -38,14 +36,6 @@ abstract class RelationalField extends Field implements RelationalFieldInterface
     public function getRelatedToDefinition(): string
     {
         return $this->relatedToDefinition;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRelatedByInternalName(): string
-    {
-        return $this->relatedByInternalName;
     }
 
     /**
