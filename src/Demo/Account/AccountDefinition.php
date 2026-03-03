@@ -51,7 +51,7 @@ class AccountDefinition implements EntityDefinitionInterface
 
             new CreatedAtField(),
             new UpdatedAtField(),
-        ], self::class);
+        ], self::getEntityName());
     }
 
     public static function getEntityClass(): string

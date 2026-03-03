@@ -24,7 +24,7 @@ class RoleDefinition implements EntityDefinitionInterface
             new AutoIncrementField(),
 
             new StringField('name', 'name', 255, [new Required(), new Unique()])
-        ], self::class);
+        ], self::getEntityName());
     }
 
     public static function getEntityClass(): string

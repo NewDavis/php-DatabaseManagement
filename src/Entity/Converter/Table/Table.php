@@ -7,6 +7,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagType;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Index;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
@@ -21,12 +22,6 @@ class Table
     /** @var array<Table> */
     private array $mappingTables = [];
 
-    /** @var array<string> */
-    private array $primaryKeys = [];
-
-    /** @var array<string> */
-    private array $foreignKeys = [];
-
     /**
      * @param string $tableName
      * @param FieldCollection $definedFields
@@ -36,11 +31,13 @@ class Table
         private readonly FieldCollection $definedFields,
         private readonly ?string $definition = null
     ) {
-        $this->collectPrimaryKeys();
+        $this->createMappingTables();
     }
 
-    private function collectPrimaryKeys(): Table
+    private function getPrimaryKeys(): array
     {
+        $primaryKeys = [];
+
         foreach ($this->definedFields->getFields() as $field) {
             if (
                 !$field instanceof SupportsFlags ||
@@ -54,10 +51,10 @@ class Table
 
             if (!$isPrimaryKey) continue;
 
-            $this->primaryKeys[] = '`' . $field->getStorageName() . '`';
+            $primaryKeys[] = '`' . $field->getStorageName() . '`';
         }
 
-        return $this;
+        return $primaryKeys;
     }
 
     private function buildConstraintName(RelationalField $field): ?string
@@ -204,7 +201,7 @@ SQL;
                             $field,
                             FlagType::NEW_LINE,
                             $this->definition,
-                            $this->primaryKeys
+                            $this->getPrimaryKeys()
                         );
                         break;
                     default:
@@ -217,9 +214,40 @@ SQL;
         return implode(",\n", $flags);
     }
 
-    private function createMappingTables(): Table
+    private function buildMappingTableName(ManyToManyRelation $relation): string
     {
-        return $this;
+        $currentTableName = $this->tableName;
+        $currentInternalName = $relation->getInternalName();
+
+        $relateTableName = $relation->getRelatedToDefinition()::getEntityName();
+        $relatedInternalName = $relation->getRelatedToInternalName();
+
+        $unsortedTableNames = [
+            $currentTableName,
+            $relateTableName
+        ];
+        $sortedTableNames = sort($unsortedTableNames);
+
+        return "{$this->tableName}_{$relation->getInternalName()}_";
+    }
+
+    private function createMappingTables(): void
+    {
+        foreach (
+            array_filter(
+                $this->definedFields->getFields(),
+                fn (Field $field) => $field instanceof ManyToManyRelation
+            )
+            as $manyToManyField
+        ) {
+
+
+            $mappingEntityName = '';
+            $mappingFields = new FieldCollection([
+                new FkField(),
+                new FkField()
+            ], $mappingEntityName);
+        }
     }
 
     public function build(): string

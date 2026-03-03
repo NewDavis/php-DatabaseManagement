@@ -14,7 +14,7 @@ class FieldCollection
 {
     public function __construct(
         private readonly array $fields,
-        private readonly string $definition,
+        private readonly ?string $entityName,
     ) {
     }
 
@@ -22,7 +22,7 @@ class FieldCollection
     {
         return array_values(array_filter($this->fields, function (Field $field) use ($internalName) {
             return $field->getInternalName() === $internalName;
-        }))[0] ?? throw new FieldNotFoundException($this->getDefinition()::getEntityName(), $internalName);
+        }))[0] ?? throw new FieldNotFoundException($this->getEntityName(), $internalName);
     }
 
     public function getForeignKeyFieldByRelationalField(StorableInterface $relationalField): FkField
@@ -32,7 +32,7 @@ class FieldCollection
             fn (Field $field) => $field instanceof FkField &&
                 $field->getStorageName() === $relationalField->getStorageName() &&
                 $field->getRelatedToDefinition() === $relationalField->getRelatedToDefinition()
-        ))[0] ?? throw new ForeignKeyNotFoundException($this->getDefinition()::getEntityName(), $relationalField);
+        ))[0] ?? throw new ForeignKeyNotFoundException($this->getEntityName(), $relationalField);
     }
 
     public function getRelatedDefinition(RelationalField|FkField $field): string
@@ -47,7 +47,7 @@ class FieldCollection
         return array_values(array_filter(
             $relatedDefinition::getFields()->getFields(),
             fn (Field $relatedDefinitionField) => $field instanceof StorableInterface && $relatedDefinitionField->getInternalName() === $field->getRelatedToInternalName()
-        ))[0] ?? throw new RelatedFieldNotFoundException($this->getDefinition()::getEntityName(), $field);
+        ))[0] ?? throw new RelatedFieldNotFoundException($this->getEntityName(), $field);
     }
 
     /** @return array<Field> */
@@ -59,8 +59,8 @@ class FieldCollection
     /**
      * @return string
      */
-    public function getDefinition(): string
+    public function getEntityName(): string
     {
-        return $this->definition;
+        return $this->entityName;
     }
 }

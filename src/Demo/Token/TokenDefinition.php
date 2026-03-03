@@ -29,7 +29,7 @@ class TokenDefinition implements EntityDefinitionInterface
 
             new FkField('accountId', 'account_id', AccountDefinition::class, [new Required()]),
             new OneToOneRelation('account', 'account_id', AccountDefinition::class, 'id', false),
-        ], self::class);
+        ], self::getEntityName());
     }
 
     public static function getEntityClass(): string
