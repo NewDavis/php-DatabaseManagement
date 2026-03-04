@@ -5,7 +5,7 @@ namespace NewDavis\DatabaseManagement\Controller;
 use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Demo\Role\RoleDefinition;
 use NewDavis\DatabaseManagement\Demo\Token\TokenDefinition;
-use NewDavis\DatabaseManagement\Entity\Converter\Table\TableBuilder;
+use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;

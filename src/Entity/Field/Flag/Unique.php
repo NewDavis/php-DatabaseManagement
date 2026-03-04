@@ -6,6 +6,12 @@ use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 class Unique implements Flag
 {
+    public function __construct(
+        private readonly UniqueConvertion $convertion = UniqueConvertion::DEFAULT,
+        private readonly array $storageNames = []
+    ) {
+    }
+
     public function getTypes(): FlagTypeCollection
     {
         return new FlagTypeCollection([
@@ -20,8 +26,17 @@ class Unique implements Flag
 
     public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
     {
-        return <<<SQL
+        switch ($this->convertion) {
+            case UniqueConvertion::MULTIPLE:
+                $keys = implode(', ', array_values($this->storageNames));
+
+                return <<<SQL
+UNIQUE ({$keys})
+SQL;
+            default:
+                return <<<SQL
 UNIQUE KEY `uniq_{$field->getStorageName()}` ({$field->getStorageName()})
 SQL;
+        }
     }
 }

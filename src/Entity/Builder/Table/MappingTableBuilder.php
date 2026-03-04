@@ -1,10 +1,13 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Converter\Table;
+namespace NewDavis\DatabaseManagement\Entity\Builder\Table;
 
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\ConstraintActions;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\OnDelete;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\UniqueConvertion;
+use NewDavis\DatabaseManagement\Entity\Field\FlagField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\FieldCollection;
@@ -68,6 +71,7 @@ class MappingTableBuilder
                 return $a['table'] <=> $b['table'];
             });
 
+            $keys = [];
             $fields = [];
             foreach ($fieldDataSets as $fieldData) {
                 $fields[] = new FkField(
@@ -79,7 +83,16 @@ class MappingTableBuilder
                         new OnDelete(ConstraintActions::CASCADE),
                     ]
                 );
+
+                $keys[] = "{$fieldData['table']}_{$fieldData['property']}";
             }
+
+            $fields[] = new FlagField([
+                new Unique(
+                    UniqueConvertion::MULTIPLE,
+                    $keys
+                )
+            ]);
 
             $mappingEntityName = $this->buildMappingTableName($manyToManyField);
             $mappingFields = new FieldCollection($fields, $mappingEntityName);

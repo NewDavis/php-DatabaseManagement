@@ -1,6 +1,6 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Converter\Table;
+namespace NewDavis\DatabaseManagement\Entity\Builder\Table;
 
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagType;

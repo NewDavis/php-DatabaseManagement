@@ -1,6 +1,6 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Converter\Table;
+namespace NewDavis\DatabaseManagement\Entity\Builder\Table;
 
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
@@ -72,15 +72,13 @@ class ConstraintBuilder
 
             if ($constraintName == null) continue;
 
-            $fkField = $this->table->getDefinedFields()->getForeignKeyFieldByStorableRelationalField($field);
-
             $relatedEntityName = $this->table->getDefinedFields()->getRelatedDefinition($field)::getEntityName();
             $relatedField = $this->table->getDefinedFields()->getRelatedField($field);
             $flags = $this->buildConstraintFlags($field);
 
             $constraint = <<<SQL
 CONSTRAINT `{$constraintName}`
-    FOREIGN KEY (`{$fkField->getStorageName()}`)
+    FOREIGN KEY (`{$field->getStorageName()}`)
     REFERENCES `{$relatedEntityName}` (`{$relatedField->getStorageName()}`)
     {$flags}
 SQL;
