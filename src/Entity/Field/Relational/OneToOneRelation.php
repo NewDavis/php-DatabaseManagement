@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 
 class OneToOneRelation extends RelationalField implements StorableInterface
 {
@@ -24,5 +25,10 @@ class OneToOneRelation extends RelationalField implements StorableInterface
     public function getStorageName(): string
     {
         return $this->storageName;
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

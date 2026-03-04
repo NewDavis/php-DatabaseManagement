@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+
 class OneToManyRelation extends RelationalField
 {
     public function __construct(
@@ -16,5 +18,10 @@ class OneToManyRelation extends RelationalField
             $relatedToInternalName,
             $autoLoad
         );
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

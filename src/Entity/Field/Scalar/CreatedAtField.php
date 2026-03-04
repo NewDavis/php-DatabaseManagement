@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
 use NewDavis\DatabaseManagement\Entity\Field\Flag\DefaultValue;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 
 class CreatedAtField extends ScalarField
 {
@@ -15,5 +16,10 @@ class CreatedAtField extends ScalarField
             3,
             [new DefaultValue('CURRENT_TIMESTAMP(3)'), new Required()]
         );
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

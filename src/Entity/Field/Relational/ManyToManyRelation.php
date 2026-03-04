@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+
 class ManyToManyRelation extends RelationalField implements RelatedByInterface
 {
     public function __construct(
@@ -31,5 +33,10 @@ class ManyToManyRelation extends RelationalField implements RelatedByInterface
     public function getMappingTableName(): ?string
     {
         return $this->mappingTableName;
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

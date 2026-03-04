@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+
 class DateTimeField extends ScalarField
 {
     public const FORMAT = 'Y-m-d H:i:s.u';
@@ -18,5 +20,10 @@ class DateTimeField extends ScalarField
             3,
             $flags
         );
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

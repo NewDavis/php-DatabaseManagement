@@ -4,8 +4,9 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\FieldInterface;
+use NewDavis\DatabaseManagement\Entity\Field\Serializable;
 
-abstract class RelationalField extends Field implements RelationalFieldInterface, FieldInterface
+abstract class RelationalField extends Field implements RelationalFieldInterface, FieldInterface, Serializable
 {
     /**
      * @param string $internalName

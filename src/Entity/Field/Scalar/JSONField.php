@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+
 class JSONField extends ScalarField
 {
     public function __construct(
@@ -10,5 +12,10 @@ class JSONField extends ScalarField
         array $flags = []
     ) {
         parent::__construct($internalName, $storageName, 'JSON', null, $flags);
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

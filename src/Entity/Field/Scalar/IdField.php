@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
 use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 
 class IdField extends ScalarField
 {
@@ -16,5 +17,10 @@ class IdField extends ScalarField
             16,
             [new PrimaryKey(), new Required()]
         );
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

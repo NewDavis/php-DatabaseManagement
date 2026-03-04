@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Scalar\Convertable;
 
 use NewDavis\DatabaseManagement\Entity\Field\ConvertableFieldInterface;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 
 /**
  * @implements ConvertableFieldInterface<string>
@@ -25,5 +26,10 @@ class PasswordField extends ScalarField implements ConvertableFieldInterface
         }
 
         return password_hash($input, PASSWORD_ARGON2ID);
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

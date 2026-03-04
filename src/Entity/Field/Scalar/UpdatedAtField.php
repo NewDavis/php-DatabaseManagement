@@ -5,6 +5,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\ConstraintActions;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Nullable;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\OnUpdate;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 
 class UpdatedAtField extends ScalarField
 {
@@ -17,5 +18,10 @@ class UpdatedAtField extends ScalarField
             3,
             [new OnUpdate(ConstraintActions::CUSTOM, 'CURRENT_TIMESTAMP(3)'), new Nullable()]
         );
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

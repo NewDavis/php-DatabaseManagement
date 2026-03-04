@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+
 class BooleanField extends ScalarField
 {
     public function __construct(
@@ -10,5 +12,10 @@ class BooleanField extends ScalarField
         array $flags = []
     ) {
         parent::__construct($internalName, $storageName, 'TINYINT', 1, $flags);
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

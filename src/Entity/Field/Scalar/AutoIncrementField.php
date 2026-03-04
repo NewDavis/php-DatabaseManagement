@@ -5,6 +5,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\AutoIncrement;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 
 class AutoIncrementField extends ScalarField
 {
@@ -17,5 +18,10 @@ class AutoIncrementField extends ScalarField
             null,
             [new Required(), new Unique(), new AutoIncrement()]
         );
+    }
+
+    public function getSerializer(): ?AbstractFieldSerializer
+    {
+        return null;
     }
 }

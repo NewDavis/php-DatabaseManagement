@@ -2,7 +2,9 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
-interface ScalarFieldInterface
+use NewDavis\DatabaseManagement\Entity\Field\Serializable;
+
+interface ScalarFieldInterface extends Serializable
 {
     /**
      * @return string
