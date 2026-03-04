@@ -2,11 +2,11 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Exception;
 
-use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalFieldInterface;
 
 class RelatedFieldNotFoundException extends \Exception
 {
-    public function __construct(string $tableName, RelationalField $field)
+    public function __construct(string $tableName, RelationalFieldInterface $field)
     {
         $relatedTableName = $field->getRelatedToDefinition()::getEntityName();
 

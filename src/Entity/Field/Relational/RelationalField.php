@@ -5,7 +5,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\FieldInterface;
 
-abstract class RelationalField extends Field implements RelationalFieldInterface, FieldInterface, RelatedToInterface
+abstract class RelationalField extends Field implements RelationalFieldInterface, FieldInterface
 {
     /**
      * @param string $internalName

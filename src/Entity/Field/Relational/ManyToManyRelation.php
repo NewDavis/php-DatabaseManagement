@@ -9,6 +9,7 @@ class ManyToManyRelation extends RelationalField implements RelatedByInterface
         string $relatedToDefinition,
         private readonly string $relatedByInternalName,
         string $relatedToInternalName,
+        private readonly ?string $mappingTableName = null,
         bool $autoLoad = false
     ) {
         parent::__construct(
@@ -22,5 +23,13 @@ class ManyToManyRelation extends RelationalField implements RelatedByInterface
     public function getRelatedByInternalName(): string
     {
         return $this->relatedByInternalName;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMappingTableName(): ?string
+    {
+        return $this->mappingTableName;
     }
 }

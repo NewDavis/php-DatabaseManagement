@@ -3,16 +3,15 @@
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Index;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
-use Ramsey\Uuid\Uuid;
 
-class FkField extends ScalarField implements RelatedToInterface
+class FkField extends ScalarField implements RelationalFieldInterface
 {
     public function __construct(
         string $internalName,
         string $storageName,
         private readonly string $relatedToDefinition,
+        private readonly string $relatedToInternalName = 'id',
         array $flags = []
     ) {
         parent::__construct(
@@ -27,5 +26,15 @@ class FkField extends ScalarField implements RelatedToInterface
     public function getRelatedToDefinition(): string
     {
         return $this->relatedToDefinition;
+    }
+
+    public function getRelatedToInternalName(): string
+    {
+        return $this->relatedToInternalName;
+    }
+
+    public function shouldAutoload(): bool
+    {
+        return true;
     }
 }

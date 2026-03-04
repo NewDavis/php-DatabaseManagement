@@ -7,7 +7,8 @@ use NewDavis\DatabaseManagement\Entity\Field\Field;
 class OnDelete implements Flag, ForeignKeyFlag
 {
     public function __construct(
-        private readonly ConstraintActions $action
+        private readonly ConstraintActions $action,
+        private readonly mixed $customValue = null,
     ) {
     }
 
@@ -27,6 +28,6 @@ class OnDelete implements Flag, ForeignKeyFlag
     {
         return sprintf(<<<SQL
 ON DELETE %s
-SQL, $this->action->name);
+SQL, ($this->action == ConstraintActions::CUSTOM ? $this->customValue : $this->action->name));
     }
 }

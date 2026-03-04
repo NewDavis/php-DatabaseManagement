@@ -39,9 +39,9 @@ class AccountDefinition implements EntityDefinitionInterface
             new StringField('email', 'email', 255, [new Required(), new Unique()]),
             new PasswordField('password', 'password', [new Required()]),
 
-            new ManyToManyRelation('roles', RoleDefinition::class, 'id', 'id', true),
+            new ManyToManyRelation('roles', RoleDefinition::class, 'id', 'id', null, true),
 
-            new FkField('primaryRoleId', 'primary_role_id', RoleDefinition::class, [new Required()]),
+            new FkField('primaryRoleId', 'primary_role_id', RoleDefinition::class, 'id', [new Required()]),
             new ManyToOneRelation('primaryRole', 'primary_role_id', RoleDefinition::class, 'id', true),
 
             new FkField('tokenId', 'token_id', TokenDefinition::class),

@@ -8,7 +8,7 @@ class OnUpdate implements Flag, ForeignKeyFlag
 {
     public function __construct(
         private readonly ConstraintActions $action,
-        private readonly mixed $customValue,
+        private readonly mixed $customValue = null,
     ) {
     }
 

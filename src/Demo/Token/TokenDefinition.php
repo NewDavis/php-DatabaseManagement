@@ -5,6 +5,8 @@ namespace NewDavis\DatabaseManagement\Demo\Token;
 use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\ConstraintActions;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\OnDelete;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
@@ -27,7 +29,7 @@ class TokenDefinition implements EntityDefinitionInterface
 
             new StringField('token', 'token', 255, [new Required(), new Unique()]),
 
-            new FkField('accountId', 'account_id', AccountDefinition::class, [new Required()]),
+            new FkField('accountId', 'account_id', AccountDefinition::class, 'id', [new Required(), new OnDelete(ConstraintActions::CASCADE)]),
             new OneToOneRelation('account', 'account_id', AccountDefinition::class, 'id', false),
         ], self::getEntityName());
     }

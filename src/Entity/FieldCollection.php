@@ -8,6 +8,7 @@ use NewDavis\DatabaseManagement\Entity\Exception\RelatedFieldNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalFieldInterface;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 
 class FieldCollection
@@ -25,7 +26,7 @@ class FieldCollection
         }))[0] ?? throw new FieldNotFoundException($this->getEntityName(), $internalName);
     }
 
-    public function getForeignKeyFieldByRelationalField(StorableInterface $relationalField): FkField
+    public function getForeignKeyFieldByStorableRelationalField(StorableInterface $relationalField): FkField
     {
         return array_values(array_filter(
             $this->fields,
@@ -35,12 +36,12 @@ class FieldCollection
         ))[0] ?? throw new ForeignKeyNotFoundException($this->getEntityName(), $relationalField);
     }
 
-    public function getRelatedDefinition(RelationalField|FkField $field): string
+    public function getRelatedDefinition(RelationalFieldInterface $field): string
     {
         return $field->getRelatedToDefinition();
     }
 
-    public function getRelatedField(RelationalField $field): StorableInterface
+    public function getRelatedField(RelationalFieldInterface $field): StorableInterface
     {
         $relatedDefinition = $this->getRelatedDefinition($field);
 
