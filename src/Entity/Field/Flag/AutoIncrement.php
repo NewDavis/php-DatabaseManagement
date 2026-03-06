@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Flag;
 
+use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 class AutoIncrement implements Flag
@@ -18,7 +19,7 @@ class AutoIncrement implements Flag
         return null;
     }
 
-    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
+    public function convert(Field $field, FlagType $convertType, ?EntityDefinitionInterface $definition = null, array $values = []): string
     {
         return <<<SQL
 AUTO_INCREMENT

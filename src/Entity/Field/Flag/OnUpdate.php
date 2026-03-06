@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Flag;
 
+use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 class OnUpdate implements Flag, ForeignKeyFlag
@@ -28,7 +29,7 @@ class OnUpdate implements Flag, ForeignKeyFlag
     public function convert(
         Field $field,
         FlagType $convertType,
-        ?string $definitionClass = null,
+        ?EntityDefinitionInterface $definition = null,
         array $values = []
     ): string {
         return sprintf(<<<SQL

@@ -1,6 +1,6 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Exception;
+namespace NewDavis\DatabaseManagement\Entity\Exception\Table;
 
 class NoDefinitionFoundForMappingCreationException extends \Exception
 {

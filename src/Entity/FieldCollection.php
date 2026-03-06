@@ -2,12 +2,11 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
-use NewDavis\DatabaseManagement\Entity\Exception\FieldNotFoundException;
-use NewDavis\DatabaseManagement\Entity\Exception\ForeignKeyNotFoundException;
-use NewDavis\DatabaseManagement\Entity\Exception\RelatedFieldNotFoundException;
+use NewDavis\DatabaseManagement\Entity\Exception\Table\FieldNotFoundException;
+use NewDavis\DatabaseManagement\Entity\Exception\Table\ForeignKeyNotFoundException;
+use NewDavis\DatabaseManagement\Entity\Exception\Table\RelatedFieldNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
-use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalFieldInterface;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 

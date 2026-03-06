@@ -18,7 +18,7 @@ class CaseSensitive implements Flag
         return null;
     }
 
-    public function convert(Field $field, FlagType $convertType, ?string $definitionClass = null, array $values = []): string
+    public function convert(Field $field, FlagType $convertType, ?EntityDefinitionInterface $definition = null, array $values = []): string
     {
         return <<<SQL
 CHARACTER SET utf8mb4 COLLATE utf8mb4_bin

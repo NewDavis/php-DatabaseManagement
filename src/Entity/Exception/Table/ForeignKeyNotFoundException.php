@@ -1,6 +1,6 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Exception;
+namespace NewDavis\DatabaseManagement\Entity\Exception\Table;
 
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;

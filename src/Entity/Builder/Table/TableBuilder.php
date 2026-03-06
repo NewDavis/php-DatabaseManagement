@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Builder\Table;
 
+use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagType;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Index;
@@ -19,11 +20,12 @@ class TableBuilder
     /**
      * @param string $tableName
      * @param FieldCollection $definedFields
+     * @param null|EntityDefinitionInterface $definition
      */
     public function __construct(
         private readonly string $tableName,
         private readonly FieldCollection $definedFields,
-        private readonly ?string $definition = null
+        private readonly ?EntityDefinitionInterface $definition = null
     ) {
         $this->mappingTableBuilder = new MappingTableBuilder($this);
         $this->propertyBuilder = new PropertyBuilder($this);
@@ -148,19 +150,19 @@ SQL;
     }
 
     /**
-     * @return string|null
+     * @return EntityDefinitionInterface|null
      */
-    public function getDefinition(): ?string
+    public function getDefinition(): ?EntityDefinitionInterface
     {
         return $this->definition;
     }
 
-    public static function fromDefinition(string $definitionClass): TableBuilder
+    public static function fromDefinition(EntityDefinitionInterface $definition): TableBuilder
     {
         return new TableBuilder(
-            $definitionClass::getEntityName(),
-            $definitionClass::getFields(),
-            $definitionClass
+            $definition->getEntityName(),
+            $definition->getFields(),
+            $definition
         );
     }
 }

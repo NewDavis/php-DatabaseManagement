@@ -17,12 +17,12 @@ use NewDavis\DatabaseManagement\Entity\FieldCollection;
 
 class TokenDefinition implements EntityDefinitionInterface
 {
-    public static function getEntityName(): string
+    public function getEntityName(): string
     {
         return 'token';
     }
 
-    public static function getFields(): FieldCollection
+    public function getFields(): FieldCollection
     {
         return new FieldCollection([
             new IdField(),
@@ -34,12 +34,12 @@ class TokenDefinition implements EntityDefinitionInterface
         ], self::getEntityName());
     }
 
-    public static function getEntityClass(): string
+    public function getEntityClass(): string
     {
         return TokenEntity::class;
     }
 
-    public static function getCollectionClass(): string
+    public function getCollectionClass(): string
     {
         return TokenCollection::class;
     }

@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 use NewDavis\DatabaseManagement\Controller\TestController;
+use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
+use NewDavis\DatabaseManagement\Demo\Role\RoleDefinition;
+use NewDavis\DatabaseManagement\Demo\Token\TokenDefinition;
+use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
@@ -12,4 +16,15 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(TestController::class)
         ->tag('controller.service_arguments');
+
+    $services->set(AccountDefinition::class)
+        ->tag('newdavis.entity.definition');
+
+    $services->set(RoleDefinition::class)
+        ->tag('newdavis.entity.definition');
+
+    $services->set(TokenDefinition::class)
+        ->tag('newdavis.entity.definition');
+
+    $services->set(EntityRegistry::class);
 };

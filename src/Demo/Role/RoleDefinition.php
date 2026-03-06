@@ -12,12 +12,12 @@ use NewDavis\DatabaseManagement\Entity\FieldCollection;
 
 class RoleDefinition implements EntityDefinitionInterface
 {
-    public static function getEntityName(): string
+    public function getEntityName(): string
     {
         return 'role';
     }
 
-    public static function getFields(): FieldCollection
+    public function getFields(): FieldCollection
     {
         return new FieldCollection([
             new IdField(),
@@ -27,12 +27,12 @@ class RoleDefinition implements EntityDefinitionInterface
         ], self::getEntityName());
     }
 
-    public static function getEntityClass(): string
+    public function getEntityClass(): string
     {
         return RoleEntity::class;
     }
 
-    public static function getCollectionClass(): string
+    public function getCollectionClass(): string
     {
         return RoleCollection::class;
     }
