@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class IntegerField extends ScalarField
 {
@@ -14,8 +15,8 @@ class IntegerField extends ScalarField
         parent::__construct($internalName, $storageName, 'INT', null, $flags);
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

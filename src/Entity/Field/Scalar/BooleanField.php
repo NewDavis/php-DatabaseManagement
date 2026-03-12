@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class BooleanField extends ScalarField
 {
@@ -14,8 +15,8 @@ class BooleanField extends ScalarField
         parent::__construct($internalName, $storageName, 'TINYINT', 1, $flags);
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class StringField extends ScalarField
 {
@@ -15,8 +16,8 @@ class StringField extends ScalarField
         parent::__construct($internalName, $storageName, 'VARCHAR', $length, $flags);
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

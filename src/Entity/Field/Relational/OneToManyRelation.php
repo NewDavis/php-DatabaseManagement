@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class OneToManyRelation extends RelationalField
 {
@@ -20,8 +21,8 @@ class OneToManyRelation extends RelationalField
         );
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

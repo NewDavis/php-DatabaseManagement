@@ -6,6 +6,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\AutoIncrement;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class AutoIncrementField extends ScalarField
 {
@@ -20,8 +21,8 @@ class AutoIncrementField extends ScalarField
         );
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

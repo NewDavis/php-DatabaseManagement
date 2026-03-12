@@ -5,8 +5,8 @@ namespace NewDavis\DatabaseManagement\Demo\Account;
 use NewDavis\DatabaseManagement\Demo\Role\RoleDefinition;
 use NewDavis\DatabaseManagement\Demo\Token\TokenDefinition;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
+use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\CaseSensitive;
-use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagTypeCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
@@ -15,12 +15,11 @@ use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\AutoIncrementField;
-use NewDavis\DatabaseManagement\Entity\Field\Scalar\Convertable\PasswordField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\CreatedAtField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
+use NewDavis\DatabaseManagement\Entity\Field\Scalar\PasswordField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\StringField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\UpdatedAtField;
-use NewDavis\DatabaseManagement\Entity\FieldCollection;
 
 class AccountDefinition implements EntityDefinitionInterface
 {

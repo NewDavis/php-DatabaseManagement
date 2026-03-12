@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity\Builder\Table;
 
 use NewDavis\DatabaseManagement\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\ConstraintActions;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\OnDelete;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
@@ -10,7 +11,6 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\UniqueConvertion;
 use NewDavis\DatabaseManagement\Entity\Field\FlagField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
-use NewDavis\DatabaseManagement\Entity\FieldCollection;
 use NewDavis\DatabaseManagement\Util\Helper\StringHelper;
 
 class MappingTableBuilder
@@ -30,7 +30,9 @@ class MappingTableBuilder
         }
 
         $currentTableName = $this->table->getTableName();
-        $relatedTableName = $relation->getRelatedToDefinition()::getEntityName();
+        $relatedTableName = $this->table->getRegistry()->getDefinitionByDefinitionClass(
+            $relation->getRelatedToDefinition()
+        )->getEntityName();
 
         $sorted = [
             $currentTableName,
@@ -55,15 +57,19 @@ class MappingTableBuilder
             )
             as $manyToManyField
         ) {
+            $relatedDefinition = $this->table->getRegistry()->getDefinitionByDefinitionClass(
+                $manyToManyField->getRelatedToDefinition()
+            );
+
             $fieldDataSets = [
                 [
                     'table' => $this->table->getTableName(),
-                    'definition' => $this->table->getDefinition(),
+                    'definition' => $this->table->getDefinition()::class,
                     'property' => $manyToManyField->getRelatedByInternalName(),
                 ],
                 [
-                    'table' => $manyToManyField->getRelatedToDefinition()::getEntityName(),
-                    'definition' => $this->table->getDefinedFields()->getRelatedDefinition($manyToManyField),
+                    'table' => $relatedDefinition->getEntityName(),
+                    'definition' => $relatedDefinition::class,
                     'property' => $manyToManyField->getRelatedToInternalName(),
                 ]
             ];
@@ -99,7 +105,8 @@ class MappingTableBuilder
 
             $this->mappingTables[] = new TableBuilder(
                 $mappingEntityName,
-                $mappingFields
+                $mappingFields,
+                $this->table->getRegistry()
             );
         }
     }

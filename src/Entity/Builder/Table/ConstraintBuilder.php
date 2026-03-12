@@ -17,9 +17,12 @@ class ConstraintBuilder
     private function buildConstraintName(FkField $field): ?string
     {
         $hashContent = $this->table->getTableName() . '.' . $field->getStorageName();
-        $relatedField = $this->table->getDefinedFields()->getRelatedField($field);
+        $relatedDefinition = $this->table->getRegistry()->getDefinitionByDefinitionClass($field->getRelatedToDefinition());
+        $relatedField = $this->table->getDefinedFields()->getRelatedField($field, $relatedDefinition);
 
-        $relatedEntityName = $field->getRelatedToDefinition()::getEntityName();
+        $relatedEntityName = $this->table->getRegistry()->getDefinitionByDefinitionClass(
+            $field->getRelatedToDefinition()
+        )->getEntityName();
 
         $hashContent .= '|' .
             $relatedEntityName .
@@ -72,8 +75,11 @@ class ConstraintBuilder
 
             if ($constraintName == null) continue;
 
-            $relatedEntityName = $this->table->getDefinedFields()->getRelatedDefinition($field)::getEntityName();
-            $relatedField = $this->table->getDefinedFields()->getRelatedField($field);
+            $relatedDefinition = $this->table->getRegistry()->getDefinitionByDefinitionClass(
+                $this->table->getDefinedFields()->getRelatedDefinition($field)
+            );
+            $relatedEntityName = $relatedDefinition->getEntityName();
+            $relatedField = $this->table->getDefinedFields()->getRelatedField($field, $relatedDefinition);
             $flags = $this->buildConstraintFlags($field);
 
             $constraint = <<<SQL

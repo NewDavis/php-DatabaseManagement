@@ -3,12 +3,12 @@
 namespace NewDavis\DatabaseManagement\Demo\Role;
 
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
+use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\AutoIncrementField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\StringField;
-use NewDavis\DatabaseManagement\Entity\FieldCollection;
 
 class RoleDefinition implements EntityDefinitionInterface
 {

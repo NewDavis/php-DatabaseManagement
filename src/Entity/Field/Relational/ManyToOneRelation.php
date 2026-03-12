@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class ManyToOneRelation extends RelationalField implements StorableInterface
 {
@@ -27,8 +28,8 @@ class ManyToOneRelation extends RelationalField implements StorableInterface
         return $this->storageName;
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

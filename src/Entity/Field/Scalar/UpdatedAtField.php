@@ -6,6 +6,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\ConstraintActions;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Nullable;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\OnUpdate;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class UpdatedAtField extends ScalarField
 {
@@ -20,8 +21,8 @@ class UpdatedAtField extends ScalarField
         );
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

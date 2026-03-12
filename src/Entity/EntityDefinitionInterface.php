@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
+
 interface EntityDefinitionInterface
 {
     public function getEntityName(): string;

@@ -1,14 +1,13 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity;
+namespace NewDavis\DatabaseManagement\Entity\Field;
 
+use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Exception\Table\FieldNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Exception\Table\ForeignKeyNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Exception\Table\RelatedFieldNotFoundException;
-use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalFieldInterface;
-use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 
 class FieldCollection
 {
@@ -16,6 +15,16 @@ class FieldCollection
         private readonly array $fields,
         private readonly ?string $entityName,
     ) {
+    }
+
+    public function filter(string $className): array
+    {
+        return array_values(
+            array_filter(
+                $this->fields,
+                fn(Field $field) => $field instanceof $className,
+            )
+        );
     }
 
     public function getByInternalName(string $internalName): Field
@@ -40,12 +49,10 @@ class FieldCollection
         return $field->getRelatedToDefinition();
     }
 
-    public function getRelatedField(RelationalFieldInterface $field): StorableInterface
+    public function getRelatedField(RelationalFieldInterface $field, EntityDefinitionInterface $relatedDefinition): StorableInterface
     {
-        $relatedDefinition = $this->getRelatedDefinition($field);
-
         return array_values(array_filter(
-            $relatedDefinition::getFields()->getFields(),
+            $relatedDefinition->getFields()->getFields(),
             fn (Field $relatedDefinitionField) => $field instanceof StorableInterface && $relatedDefinitionField->getInternalName() === $field->getRelatedToInternalName()
         ))[0] ?? throw new RelatedFieldNotFoundException($this->getEntityName(), $field);
     }

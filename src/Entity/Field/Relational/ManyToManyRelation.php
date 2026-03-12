@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class ManyToManyRelation extends RelationalField implements RelatedByInterface
 {
@@ -35,8 +36,8 @@ class ManyToManyRelation extends RelationalField implements RelatedByInterface
         return $this->mappingTableName;
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

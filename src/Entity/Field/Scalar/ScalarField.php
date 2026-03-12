@@ -7,6 +7,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 use NewDavis\DatabaseManagement\Entity\Field\SupportsFlags;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class ScalarField extends Field implements ScalarFieldInterface, StorableInterface, SupportsFlags
 {
@@ -56,8 +57,8 @@ class ScalarField extends Field implements ScalarFieldInterface, StorableInterfa
         return $this->flags;
     }
 
-    public function getSerializer(): ?AbstractFieldSerializer
+    public function getSerializer(): AbstractFieldSerializer
     {
-        return null;
+        return new DefaultSerializer($this);
     }
 }

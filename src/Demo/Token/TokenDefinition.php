@@ -4,7 +4,7 @@ namespace NewDavis\DatabaseManagement\Demo\Token;
 
 use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
-use NewDavis\DatabaseManagement\Entity\Field\Field;
+use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\ConstraintActions;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\OnDelete;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
@@ -13,7 +13,6 @@ use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\StringField;
-use NewDavis\DatabaseManagement\Entity\FieldCollection;
 
 class TokenDefinition implements EntityDefinitionInterface
 {

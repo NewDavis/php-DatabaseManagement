@@ -11,17 +11,17 @@ interface FieldSerializerInterface
      * @param T $value
      * @return mixed
      */
-    public function encode(Field $field, mixed $value): mixed;
+    public function encode(mixed $value): mixed;
 
     /**
      * @param mixed $data
      * @return T
      */
-    public function decode(Field $field, mixed $data);
+    public function decode(mixed $data): mixed;
 
     /**
      * @param T $value
      * @return bool
      */
-    public function validate(Field $field, mixed $value): bool;
+    public function validate(mixed $value): bool;
 }

@@ -3,13 +3,14 @@
 namespace NewDavis\DatabaseManagement\Entity\Builder\Table;
 
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
+use NewDavis\DatabaseManagement\Entity\EntityRegistry;
+use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagType;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Index;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 use NewDavis\DatabaseManagement\Entity\Field\SupportsFlags;
-use NewDavis\DatabaseManagement\Entity\FieldCollection;
 
 class TableBuilder
 {
@@ -25,6 +26,7 @@ class TableBuilder
     public function __construct(
         private readonly string $tableName,
         private readonly FieldCollection $definedFields,
+        private readonly EntityRegistry $registry,
         private readonly ?EntityDefinitionInterface $definition = null
     ) {
         $this->mappingTableBuilder = new MappingTableBuilder($this);
@@ -150,6 +152,14 @@ SQL;
     }
 
     /**
+     * @return EntityRegistry
+     */
+    public function getRegistry(): EntityRegistry
+    {
+        return $this->registry;
+    }
+
+    /**
      * @return EntityDefinitionInterface|null
      */
     public function getDefinition(): ?EntityDefinitionInterface
@@ -157,11 +167,12 @@ SQL;
         return $this->definition;
     }
 
-    public static function fromDefinition(EntityDefinitionInterface $definition): TableBuilder
+    public static function fromDefinition(EntityRegistry $registry, EntityDefinitionInterface $definition): TableBuilder
     {
         return new TableBuilder(
             $definition->getEntityName(),
             $definition->getFields(),
+            $registry,
             $definition
         );
     }

@@ -2,36 +2,80 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
+use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
+use NewDavis\DatabaseManagement\Entity\Write\EntityConverter;
 
 class EntityRegistry
 {
-    public const REPOSITORY_SUFFIX = '.repository';
-
+    private EntityConverter $converter;
+    private array $repositories = [];
     private array $definitions = [];
+    private array $tableBuilders = [];
 
-    public function createRepository(EntityDefinitionInterface $entityDefinition, ContainerBuilder $container): EntityRepository
+    public function __construct()
     {
-        $entityName = $entityDefinition->getEntityName();
-
-        $repository = new EntityRepository($entityDefinition);
-
-        $definition = new Definition(EntityRepository::class);
-        $definition->setArguments([
-            $entityDefinition
-        ]);
-
-        $container->set($entityName . self::REPOSITORY_SUFFIX, $definition);
-
-        return $repository;
+        $this->converter = new EntityConverter($this);
     }
 
-    public function register(EntityDefinitionInterface $definition, EntityRepository $entityRepository): void
+    public function register(EntityDefinitionInterface $definition, EntityRepository $repository): void
     {
-        $this->definitions[$definition::class] = [
-            'instance' => $definition,
-            'repository' => $entityRepository
-        ];
+        $this->definitions[$definition->getEntityName()] = $definition;
+        $this->definitions[$definition::class] = $definition;
+        $this->repositories[$definition->getEntityName()] = $repository;
+        $this->repositories[$definition::class] = $repository;
+        $this->tableBuilders[$definition::class] = TableBuilder::fromDefinition($this, $definition);
+    }
+
+    public function getDefinitionByEntityName(string $entityName): ?EntityDefinitionInterface
+    {
+        if (!array_key_exists($entityName, $this->definitions)) {
+            return null;
+        }
+
+        return $this->definitions[$entityName];
+    }
+
+    public function getDefinitionByDefinitionClass(string $definitionClass): ?EntityDefinitionInterface
+    {
+        if (!array_key_exists($definitionClass, $this->definitions)) {
+            return null;
+        }
+
+        return $this->definitions[$definitionClass];
+    }
+
+    public function getRepositoryByEntityName(string $entityName): ?EntityRepositoryInterface
+    {
+        if (!array_key_exists($entityName, $this->repositories)) {
+            return null;
+        }
+
+        return $this->repositories[$entityName];
+    }
+
+    public function getRepositoryByDefinitionClass(string $definitionClass): ?EntityRepositoryInterface
+    {
+        if (!array_key_exists($definitionClass, $this->repositories)) {
+            return null;
+        }
+
+        return $this->repositories[$definitionClass];
+    }
+
+    public function getTableBuilderByDefinitionClass(string $definitionClass): ?TableBuilder
+    {
+        if (!array_key_exists($definitionClass, $this->tableBuilders)) {
+            return null;
+        }
+
+        return $this->tableBuilders[$definitionClass];
+    }
+
+    /**
+     * @return EntityConverter
+     */
+    public function getConverter(): EntityConverter
+    {
+        return $this->converter;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Flag;
 
+use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 
 class CaseSensitive implements Flag
