@@ -2,7 +2,10 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Write;
 
-class EntityWriteStatementCollection
+use Countable;
+use Traversable;
+
+class EntityWriteStatementCollection implements \IteratorAggregate, Countable
 {
     /**
      * @param array<EntityWriteStatement> $statements
@@ -12,16 +15,21 @@ class EntityWriteStatementCollection
     ) {
     }
 
-    public function count(): int
-    {
-        return count($this->statements);
-    }
-
     /**
      * @return array
      */
     public function getStatements(): array
     {
         return $this->statements;
+    }
+
+    public function getIterator(): Traversable
+    {
+        return new \ArrayIterator($this->statements);
+    }
+
+    public function count(): int
+    {
+        return count($this->statements);
     }
 }

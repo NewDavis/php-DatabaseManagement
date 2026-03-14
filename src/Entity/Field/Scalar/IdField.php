@@ -6,6 +6,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\IdFieldSerializer;
 
 class IdField extends ScalarField
 {
@@ -22,6 +23,6 @@ class IdField extends ScalarField
 
     public function getSerializer(): AbstractFieldSerializer
     {
-        return new DefaultSerializer($this);
+        return new IdFieldSerializer($this);
     }
 }

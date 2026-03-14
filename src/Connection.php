@@ -47,7 +47,7 @@ class Connection
             $this->pdo->beginTransaction();
 
             /** @var EntityWriteStatement $statement */
-            foreach ($statements->getStatements() as $statement) {
+            foreach ($statements as $statement) {
                 $this->pdo
                     ->prepare($statement->getQuery())
                     ->execute($statement->getParameters());

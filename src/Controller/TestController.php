@@ -61,10 +61,10 @@ class TestController extends AbstractController
     public function write(Request $request)
     {
         $accountId = Uuid::uuid4();
-        $tokenId = Uuid::uuid4();
-        $roleId = Uuid::uuid4();
+        //$tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
+        $roleId = Uuid::fromString("A9A4795083C94947ADE47D2DFE914391");
 
-        dd($this->accountRepository->create([
+        $this->accountRepository->create([
             [
                 'id' => $accountId,
                 'username' => 'admin',
@@ -81,13 +81,13 @@ class TestController extends AbstractController
                         'name' => 'Administrator'
                     ]
                 ],
-                'tokenId' => $tokenId,
+                /*'tokenId' => $tokenId,
                 'token' => [
                     'id' => $tokenId,
                     'token' => 'eyjfidwegfouehrghsefojigseijt'
-                ]
+                ]*/
             ],
-        ]));
+        ]);
 
         return new JsonResponse([
             'success' => true

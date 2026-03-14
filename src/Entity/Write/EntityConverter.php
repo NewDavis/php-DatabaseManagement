@@ -72,8 +72,9 @@ class EntityConverter
             }
 
             $entity->set(
+                $relationalField,
                 $relationalField->getInternalName(),
-                $relationalField->getSerializer()->encode($relatedValue)
+                $relatedValue
             );
         }
 
@@ -84,8 +85,9 @@ class EntityConverter
             $propertyData = $entityData[$scalarField->getInternalName()];
 
             $entity->set(
+                $scalarField,
                 $scalarField->getInternalName(),
-                $scalarField->getSerializer()->encode($propertyData)
+                $propertyData
             );
         }
 

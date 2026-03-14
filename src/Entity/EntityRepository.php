@@ -2,7 +2,6 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
-use NewDavis\DatabaseManagement\Connection;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteBuilder;
 use NewDavis\DatabaseManagement\Entity\Search\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteResult;

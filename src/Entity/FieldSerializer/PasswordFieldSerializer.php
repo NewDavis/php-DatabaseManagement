@@ -2,8 +2,6 @@
 
 namespace NewDavis\DatabaseManagement\Entity\FieldSerializer;
 
-use NewDavis\DatabaseManagement\Entity\Field\Field;
-
 class PasswordFieldSerializer extends AbstractFieldSerializer
 {
     /**
@@ -12,16 +10,20 @@ class PasswordFieldSerializer extends AbstractFieldSerializer
      */
     public function encode(mixed $value): mixed
     {
-        if (null == $value || !is_string($value)) {
-            return null;
-        }
-
-        return password_hash($value, PASSWORD_ARGON2ID);
+        return $value;
     }
 
     public function decode(mixed $data): mixed
     {
-        return $data;
+        if (null == $data || !is_string($data)) {
+            return null;
+        }
+
+        if (str_starts_with($data, '$argon2id$')) {
+            return $data;
+        }
+
+        return password_hash($data, PASSWORD_ARGON2ID);
     }
 
     public function validate(mixed $value): bool

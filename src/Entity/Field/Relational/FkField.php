@@ -6,6 +6,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\Index;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\FkFieldSerializer;
 
 class FkField extends ScalarField implements RelationalFieldInterface
 {
@@ -42,6 +43,6 @@ class FkField extends ScalarField implements RelationalFieldInterface
 
     public function getSerializer(): AbstractFieldSerializer
     {
-        return new DefaultSerializer($this);
+        return new FkFieldSerializer($this);
     }
 }

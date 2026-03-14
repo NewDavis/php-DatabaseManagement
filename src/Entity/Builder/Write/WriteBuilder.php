@@ -8,13 +8,17 @@ use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
+use NewDavis\DatabaseManagement\ORM;
 
 class WriteBuilder
 {
+    private readonly MappingWriteBuilder $mappingWriteBuilder;
+
     public function __construct(
         private readonly EntityRegistry $registry,
         private readonly EntityDefinitionInterface $definition
     ) {
+        $this->mappingWriteBuilder = new MappingWriteBuilder($this->registry, $this->definition);
     }
 
     public function buildProperties(): string
@@ -29,13 +33,21 @@ class WriteBuilder
         return implode(', ', $properties);
     }
 
-    public function buildPlaceholder(int $rowCount): string
+    public function buildPlaceholderFromValues(array $values, AbstractEntityCollection $collection): string
     {
         $rows = [];
 
-        for ($i = 0; $i < $rowCount; $i++) {
+        for ($i = 0; $i < $collection->count(); $i++) {
             $placeholder = array_map(
-                fn(ScalarField $scalarField) => ":" . $this->buildValueKey($i, $scalarField),
+                function (ScalarField $scalarField) use ($values, $i) {
+                    $key = $this->buildValueKey($i, $scalarField);
+
+                    if (!array_key_exists($key, $values)) {
+                        return ORM::DEFAULT->value;
+                    }
+
+                    return ":" . $key;
+                },
                 $this->definition->getFields()->filter(
                     ScalarField::class
                 )
@@ -60,9 +72,14 @@ class WriteBuilder
                 )
                 as $scalarField
             ) {
-                $values[
-                    $this->buildValueKey($i, $scalarField)
-                ] = $entity->get($scalarField->getInternalName());
+                $value = $entity->get(
+                    $scalarField,
+                    $scalarField->getInternalName()
+                );
+
+                if ($value === ORM::DEFAULT) continue;
+
+                $values[$this->buildValueKey($i, $scalarField)] = $value;
             }
         }
 
@@ -71,13 +88,14 @@ class WriteBuilder
 
     private function buildValueKey(int $row, ScalarField $scalarField): string
     {
-        return "r{$row}-{$scalarField->getStorageName()}";
+        return "r{$row}_{$this->definition->getEntityName()}_{$scalarField->getStorageName()}";
     }
 
     public function build(AbstractEntityCollection $collection): EntityWriteStatementCollection
     {
         $properties = $this->buildProperties();
-        $placeholder = $this->buildPlaceholder($collection->count());
+        $values = $this->buildValues($collection);
+        $placeholder = $this->buildPlaceholderFromValues($values, $collection);
 
         $query = <<<SQL
 INSERT INTO `{$this->definition->getEntityName()}`
@@ -85,8 +103,6 @@ INSERT INTO `{$this->definition->getEntityName()}`
 VALUES
 {$placeholder}
 SQL;
-
-        $values = $this->buildValues($collection);
 
         return new EntityWriteStatementCollection(
             [new EntityWriteStatement($query, $values)]

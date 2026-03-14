@@ -2,16 +2,13 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use Traversable;
+
 abstract class AbstractEntityCollection implements EntityCollectionInterface
 {
     public function __construct(
         private array $entities = []
     ) {
-    }
-
-    public function count(): int
-    {
-        return count($this->entities);
     }
 
     public function add(EntityInterface $entity): void
@@ -30,5 +27,15 @@ abstract class AbstractEntityCollection implements EntityCollectionInterface
     public function getEntities(): array
     {
         return $this->entities;
+    }
+
+    public function getIterator(): Traversable
+    {
+        return new \ArrayIterator($this->entities);
+    }
+
+    public function count(): int
+    {
+        return count($this->entities);
     }
 }

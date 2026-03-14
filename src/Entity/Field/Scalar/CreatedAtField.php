@@ -5,6 +5,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\DefaultValue;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
+use NewDavis\DatabaseManagement\Entity\FieldSerializer\DateTimeFieldSerializer;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class CreatedAtField extends ScalarField
@@ -21,6 +22,6 @@ class CreatedAtField extends ScalarField
 
     public function getSerializer(): AbstractFieldSerializer
     {
-        return new DefaultSerializer($this);
+        return new DateTimeFieldSerializer($this);
     }
 }
