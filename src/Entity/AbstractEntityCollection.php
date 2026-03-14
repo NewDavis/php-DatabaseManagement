@@ -9,9 +9,19 @@ abstract class AbstractEntityCollection implements EntityCollectionInterface
     ) {
     }
 
+    public function count(): int
+    {
+        return count($this->entities);
+    }
+
     public function add(EntityInterface $entity): void
     {
         $this->entities[] = $entity;
+    }
+
+    public function getIndex(int $index): ?AbstractEntity
+    {
+        return $this->entities[$index] ?? null;
     }
 
     /**

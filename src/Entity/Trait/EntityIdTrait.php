@@ -2,16 +2,16 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Trait;
 
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 trait EntityIdTrait
 {
-    protected Uuid $id;
+    protected UuidInterface $id;
 
     /**
-     * @return Uuid
+     * @return UuidInterface
      */
-    public function getId(): Uuid
+    public function getId(): UuidInterface
     {
         return $this->id;
     }

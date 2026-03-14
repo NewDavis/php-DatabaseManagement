@@ -6,20 +6,25 @@ use NewDavis\DatabaseManagement\Entity\Exception\Write\VariableForInternalNameNo
 
 abstract class AbstractEntity implements EntityInterface
 {
-    private readonly \ReflectionClass $reflectionClass;
-
-    public function __construct()
+    public function get(string $internalName): mixed
     {
-        $this->reflectionClass = new \ReflectionClass($this);
+        if (($property = EntityReflectionCache::getProperty($this, $internalName)) == null) {
+            throw new VariableForInternalNameNotFoundException($internalName, self::class);
+        }
+
+        if (!$property->isInitialized($this)) {
+            return null;
+        }
+
+        return $property->getValue($this);
     }
 
     public function set(string $internalName, mixed $value): EntityInterface
     {
-        if (!$this->reflectionClass->hasProperty($internalName)) {
+        if (($property = EntityReflectionCache::getProperty($this, $internalName)) == null) {
             throw new VariableForInternalNameNotFoundException($internalName, self::class);
         }
 
-        $property = $this->reflectionClass->getProperty($internalName);
         $property->setValue($this, $value);
 
         return $this;

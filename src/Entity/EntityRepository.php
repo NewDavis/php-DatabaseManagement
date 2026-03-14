@@ -2,21 +2,30 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use NewDavis\DatabaseManagement\Connection;
+use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteBuilder;
 use NewDavis\DatabaseManagement\Entity\Search\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteResult;
 use NewDavis\DatabaseManagement\Util\Helper\EntityHelper;
 
 class EntityRepository implements EntityRepositoryInterface
 {
+    private readonly WriteBuilder $writeBuilder;
+
     public function __construct(
         private readonly EntityDefinitionInterface $definition,
         private readonly EntityRegistry $registry,
     ) {
+        $this->writeBuilder = new WriteBuilder($this->registry, $this->definition);
     }
 
     public function create(AbstractEntity|AbstractEntityCollection|array $entities): EntityWriteResult
     {
         $collection = $this->combineToCollection($entities);
+
+        $statements = $this->writeBuilder->build($collection);
+
+        $this->registry->getConnection()->write($statements);
 
         return new EntityWriteResult($collection);
     }

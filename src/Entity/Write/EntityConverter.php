@@ -7,7 +7,6 @@ use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\Exception\Write\CouldNotCreateEntityInstanceException;
-use NewDavis\DatabaseManagement\Entity\Exception\Write\EntityDefinitionMissesEntityClassMethodException;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToManyRelation;
@@ -16,7 +15,6 @@ use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 use NewDavis\DatabaseManagement\Util\Helper\EntityHelper;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use function Adminer\switch_lang;
 
 class EntityConverter
 {

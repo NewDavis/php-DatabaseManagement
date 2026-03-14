@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use NewDavis\DatabaseManagement\Connection;
 use NewDavis\DatabaseManagement\Controller\TestController;
 use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Demo\Role\RoleDefinition;
@@ -13,6 +14,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
 
     $services->defaults()->public()->autowire()->autoconfigure();
+
+    $services->set(Connection::class);
 
     $services->set(TestController::class)
         ->tag('controller.service_arguments');

@@ -8,6 +8,7 @@ use NewDavis\DatabaseManagement\Demo\Token\TokenDefinition;
 use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\EntityRepository;
+use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -59,23 +60,33 @@ class TestController extends AbstractController
     )]
     public function write(Request $request)
     {
+        $accountId = Uuid::uuid4();
+        $tokenId = Uuid::uuid4();
+        $roleId = Uuid::uuid4();
+
         dd($this->accountRepository->create([
             [
+                'id' => $accountId,
                 'username' => 'admin',
                 'email' => 'admin@newdavis.me',
                 'password' => 'password',
+                'primaryRoleId' => $roleId,
                 'primaryRole' => [
+                    'id' => $roleId,
                     'name' => 'Administrator',
                 ],
                 'roles' => [
                     [
+                        'id' => $roleId,
                         'name' => 'Administrator'
                     ]
                 ],
+                'tokenId' => $tokenId,
                 'token' => [
+                    'id' => $tokenId,
                     'token' => 'eyjfidwegfouehrghsefojigseijt'
                 ]
-            ]
+            ],
         ]));
 
         return new JsonResponse([

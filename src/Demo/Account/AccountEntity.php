@@ -10,14 +10,12 @@ use NewDavis\DatabaseManagement\Entity\Trait\EntityAutoIncrementTrait;
 use NewDavis\DatabaseManagement\Entity\Trait\EntityCreatedAtTrait;
 use NewDavis\DatabaseManagement\Entity\Trait\EntityIdTrait;
 use NewDavis\DatabaseManagement\Entity\Trait\EntityUpdatedAtTrait;
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 class AccountEntity extends AbstractEntity
 {
     public function __construct()
     {
-        parent::__construct();
-
         $this->roles = new RoleCollection();
     }
 
@@ -28,12 +26,12 @@ class AccountEntity extends AbstractEntity
     protected string $email;
     protected string $password;
 
-    protected Uuid $primaryRoleId;
+    protected UuidInterface $primaryRoleId;
     protected ?RoleEntity $primaryRole;
 
     protected RoleCollection $roles;
 
-    protected Uuid $tokenId;
+    protected UuidInterface $tokenId;
     protected ?TokenEntity $token;
 
     use EntityCreatedAtTrait;

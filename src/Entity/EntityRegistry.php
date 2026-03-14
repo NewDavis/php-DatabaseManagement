@@ -2,8 +2,10 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use NewDavis\DatabaseManagement\Connection;
 use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
 use NewDavis\DatabaseManagement\Entity\Write\EntityConverter;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class EntityRegistry
 {
@@ -12,8 +14,9 @@ class EntityRegistry
     private array $definitions = [];
     private array $tableBuilders = [];
 
-    public function __construct()
-    {
+    public function __construct(
+        #[Autowire(service: Connection::class)] private readonly Connection $connection
+    ) {
         $this->converter = new EntityConverter($this);
     }
 
@@ -69,6 +72,14 @@ class EntityRegistry
         }
 
         return $this->tableBuilders[$definitionClass];
+    }
+
+    /**
+     * @return Connection
+     */
+    public function getConnection(): Connection
+    {
+        return $this->connection;
     }
 
     /**
