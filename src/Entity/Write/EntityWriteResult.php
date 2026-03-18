@@ -12,6 +12,7 @@ class EntityWriteResult
      */
     public function __construct(
         private readonly EntityCollectionInterface $entities,
+        private readonly EntityWriteStatementCollection $statements,
         private readonly bool $success = false
     ) {
     }
@@ -22,6 +23,14 @@ class EntityWriteResult
     public function getEntities(): EntityCollectionInterface
     {
         return $this->entities;
+    }
+
+    /**
+     * @return EntityWriteStatementCollection
+     */
+    public function getStatements(): EntityWriteStatementCollection
+    {
+        return $this->statements;
     }
 
     /**

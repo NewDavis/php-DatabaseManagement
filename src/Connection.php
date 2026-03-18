@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement;
 
+use NewDavis\DatabaseManagement\Entity\Read\EntityReadStatement;
+use NewDavis\DatabaseManagement\Entity\Read\EntityReadStatementCollection;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -58,5 +60,33 @@ class Connection
             $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    public function query(EntityReadStatementCollection $statements): array
+    {
+        if ($statements->count() == 0) return [];
+
+        $data = [];
+
+        /** @var EntityReadStatement $statement */
+        for ($i = 0; $i < $statements->count(); $i++) {
+            $statement = $statements->getStatements()[$i];
+
+            $stmt = $this->pdo
+                ->prepare($statement->getQuery());
+
+            if (!$stmt->execute($statement->getParameters())) {
+                $data[$i] = $stmt->errorInfo();
+
+                continue;
+            }
+
+            $data[$i] = [
+                'data' => $stmt->fetchAll(),
+                'rows' => $stmt->rowCount()
+            ];
+        }
+
+        return $data;
     }
 }

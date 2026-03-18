@@ -23,7 +23,11 @@ class DateTimeFieldSerializer extends AbstractFieldSerializer
             return $data;
         }
 
-        return \DateTimeImmutable::createFromFormat(DateTimeField::FORMAT, $data);
+        $decoded = \DateTimeImmutable::createFromFormat(DateTimeField::FORMAT, $data);
+
+        if ($decoded === false) return null;
+
+        return $decoded;
     }
 
     public function validate(mixed $value): bool

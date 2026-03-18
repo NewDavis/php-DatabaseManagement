@@ -4,9 +4,12 @@ namespace NewDavis\DatabaseManagement\Entity;
 
 use NewDavis\DatabaseManagement\Entity\Exception\Write\VariableForInternalNameNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Field\Serializable;
+use NewDavis\DatabaseManagement\Entity\Trait\EntityIdTrait;
 
 abstract class AbstractEntity implements EntityInterface
 {
+    use EntityIdTrait;
+
     public function get(Serializable $serializable, string $internalName): mixed
     {
         if (($property = EntityReflectionCache::getProperty($this, $internalName)) == null) {

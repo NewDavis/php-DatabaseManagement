@@ -4,7 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity\Trait;
 
 trait EntityUpdatedAtTrait
 {
-    protected \DateTimeImmutable $updatedAt;
+    protected ?\DateTimeImmutable $updatedAt;
 
     /**
      * @param \DateTimeImmutable $updatedAt
@@ -15,9 +15,9 @@ trait EntityUpdatedAtTrait
     }
 
     /**
-     * @return \DateTimeImmutable
+     * @return ?\DateTimeImmutable
      */
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }

@@ -64,7 +64,7 @@ class WriteBuilder
         $values = [];
 
         for ($i = 0; $i < $collection->count(); $i++) {
-            $entity = $collection->getIndex($i);
+            $entity = $collection->indexAt($i);
 
             foreach (
                 $this->definition->getFields()->filter(

@@ -11,14 +11,37 @@ abstract class AbstractEntityCollection implements EntityCollectionInterface
     ) {
     }
 
-    public function add(EntityInterface $entity): void
+    public function add(AbstractEntity $entity): void
     {
-        $this->entities[] = $entity;
+        $this->entities[$entity->getId()->toString()] = $entity;
     }
 
-    public function getIndex(int $index): ?AbstractEntity
+    public function remove(AbstractEntity $entity): void
     {
-        return $this->entities[$index] ?? null;
+        if (!array_key_exists($entity->getId()->toString(), $this->entities)) return;
+
+        unset($this->entities[$entity->getId()->toString()]);
+    }
+
+    public function indexAt(int $index): ?AbstractEntity
+    {
+        $idIndex = array_keys($this->entities)[$index];
+
+        return $this->entities[$idIndex] ?? null;
+    }
+
+    public function indexOf(AbstractEntity $entity): false|int|string
+    {
+        return array_search(
+            $entity->getId()->toString(),
+            array_keys($this->entities),
+            true
+        );
+    }
+
+    public function first(): ?AbstractEntity
+    {
+        return $this->indexAt(0);
     }
 
     /**

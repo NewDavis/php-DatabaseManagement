@@ -31,7 +31,7 @@ class AccountEntity extends AbstractEntity
 
     protected RoleCollection $roles;
 
-    protected UuidInterface $tokenId;
+    protected ?UuidInterface $tokenId;
     protected ?TokenEntity $token;
 
     use EntityCreatedAtTrait;

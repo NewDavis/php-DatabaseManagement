@@ -27,6 +27,16 @@ class FieldCollection
         );
     }
 
+    public function getByStorageName(string $storageName): Field
+    {
+        return array_values(array_filter(
+            $this->filter(StorableInterface::class),
+            function (StorableInterface $storable) use ($storageName) {
+                return $storable->getStorageName() === $storageName;
+            }
+        ))[0] ?? throw new FieldNotFoundException($this->getEntityName(), $storageName);
+    }
+
     public function getByInternalName(string $internalName): Field
     {
         return array_values(array_filter($this->fields, function (Field $field) use ($internalName) {

@@ -29,9 +29,14 @@ class EntityConverter
     ): AbstractEntityCollection {
         $collection = EntityHelper::createCollection($definition);
 
+        $mapping = null;
         foreach ($entityData as $entityDataSet) {
+            if ($mapping == null) {
+                $mapping = $this->createPropertyMapping($definition, $entityDataSet);
+            }
+
             try {
-                $entity = $this->convertArrayToEntity($definition, $entityDataSet);
+                $entity = $this->convertArrayToEntity($definition, $entityDataSet, $mapping);
             }catch (\Exception $e) {
                 dd($e);
             }
@@ -42,9 +47,39 @@ class EntityConverter
         return $collection;
     }
 
-    public function convertArrayToEntity(
+    private function createPropertyMapping(
         EntityDefinitionInterface $definition,
         array $entityData
+    ): array {
+        $mapping = [];
+
+        foreach (array_keys($entityData) as $key) {
+            try {
+                $fieldByStorageName = $definition->getFields()->getByStorageName($key);
+
+                if ($fieldByStorageName != null) {
+                    $mapping[$fieldByStorageName->getInternalName()] = $key;
+                    continue;
+                }
+
+                $fieldByInternalName = $definition->getFields()->getByInternalName($key);
+
+                if ($fieldByInternalName !== null) {
+                    $mapping[$fieldByInternalName->getInternalName()] = $key;
+                    continue;
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        return $mapping;
+    }
+
+    public function convertArrayToEntity(
+        EntityDefinitionInterface $definition,
+        array $entityData,
+        ?array $mapping = null
     ): AbstractEntity {
         $entity = EntityHelper::createEmptyEntity($definition);
 
@@ -54,10 +89,12 @@ class EntityConverter
 
         /** @var RelationalField $relationalField */
         foreach ($definition->getFields()->filter(RelationalField::class) as $relationalField) {
-            if (!array_key_exists($relationalField->getInternalName(), $entityData)) continue;
+            $key = $mapping[$relationalField->getInternalName()] ?? $relationalField->getInternalName();
+
+            if (!array_key_exists($key, $entityData)) continue;
 
             $relatedDefinition = $this->registry->getDefinitionByDefinitionClass($relationalField->getRelatedToDefinition());
-            $relationalData = $entityData[$relationalField->getInternalName()];
+            $relationalData = $entityData[$key];
 
             $relatedValue = null;
             switch (get_class($relationalField)) {
@@ -80,9 +117,11 @@ class EntityConverter
 
         /** @var ScalarField $scalarField */
         foreach ($definition->getFields()->filter(ScalarField::class) as $scalarField) {
-            if (!array_key_exists($scalarField->getInternalName(), $entityData)) continue;
+            $key = $mapping[$scalarField->getInternalName()] ?? $scalarField->getInternalName();
 
-            $propertyData = $entityData[$scalarField->getInternalName()];
+            if (!array_key_exists($key, $entityData)) continue;
+
+            $propertyData = $entityData[$key];
 
             $entity->set(
                 $scalarField,
