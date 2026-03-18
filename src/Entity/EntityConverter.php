@@ -1,11 +1,7 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Write;
+namespace NewDavis\DatabaseManagement\Entity;
 
-use NewDavis\DatabaseManagement\Entity\AbstractEntity;
-use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
-use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
-use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\Exception\Write\CouldNotCreateEntityInstanceException;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;

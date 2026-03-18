@@ -18,9 +18,9 @@ class IdFieldSerializer extends AbstractFieldSerializer
 
     public function decode(mixed $data): mixed
     {
-        if ($data instanceof UuidInterface) {
-            return $data;
-        }
+        if ($data == null) return null;
+
+        if ($data instanceof UuidInterface) return $data;
 
         return Uuid::fromBytes($data);
     }

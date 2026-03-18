@@ -4,7 +4,6 @@ namespace NewDavis\DatabaseManagement\Entity;
 
 use NewDavis\DatabaseManagement\Connection;
 use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
-use NewDavis\DatabaseManagement\Entity\Write\EntityConverter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class EntityRegistry
