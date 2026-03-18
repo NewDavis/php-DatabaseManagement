@@ -62,7 +62,7 @@ class TestController extends AbstractController
     )]
     public function write(Request $request)
     {
-        $accountId = Uuid::uuid4();
+        $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         //$tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
         $roleId = Uuid::fromString("A9A4795083C94947ADE47D2DFE914391");
 
@@ -103,7 +103,7 @@ class TestController extends AbstractController
     )]
     public function read(Request $request)
     {
-        $accountId = Uuid::fromString("E7D8B424536D4D5E92CBA8F534F85BCC");
+        $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         $criteria = new Criteria([$accountId]);
 
         $entities = $this->accountRepository->searchIds($criteria);
