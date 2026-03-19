@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Read\Criteria;
 
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsAnyFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterCollection;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterInterface;
@@ -34,11 +35,9 @@ class Criteria
         $this->page = min($page, 1);
         $this->offset = $this->page * $this->limit; // calculated by page * limit;
 
-        foreach ($ids as $id) {
-            $this->filters->add(
-                new EqualsFilter('id', $id)
-            );
-        }
+        $this->filters->add(
+            new EqualsAnyFilter('id', $ids)
+        );
     }
 
     /**

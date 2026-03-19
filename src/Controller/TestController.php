@@ -62,15 +62,15 @@ class TestController extends AbstractController
     )]
     public function write(Request $request)
     {
-        $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
+        $accountId = Uuid::uuid4();//fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         //$tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
         $roleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
 
         dd($this->accountRepository->create([
             [
                 'id' => $accountId,
-                'username' => 'admin',
-                'email' => 'admin@newdavis.me',
+                'username' => 'admin' . substr($accountId->toString(), 0, 6),
+                'email' => 'admin' . substr($accountId->toString(), 0, 6) . '@newdavis.me',
                 'password' => 'password',
                 'primaryRole' => [
                     'id' => $roleId,
@@ -103,11 +103,34 @@ class TestController extends AbstractController
     public function read(Request $request)
     {
         $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
-        $criteria = new Criteria([$accountId]);
+        $criteria = new Criteria([$accountId, '1DC0D0B1D9A44DF2973BB05CA4893D11', '570787C36B164D3594BB0D1963E8B1FA']);
 
         $entities = $this->accountRepository->search($criteria);
 
         dd($entities);
+
+        return new JsonResponse([
+            'success' => true
+        ]);
+    }
+
+    #[Route(
+        path: '/orm/test/read-ids',
+        name: 'orm.test.read-ids',
+        methods: ['GET']
+    )]
+    public function readIds(Request $request)
+    {
+        $accountIds = [
+            Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a"),
+            Uuid::fromString("1DC0D0B1D9A44DF2973BB05CA4893D11"),
+            Uuid::fromString('570787C36B164D3594BB0D1963E8B1FA')
+        ];
+        $criteria = new Criteria($accountIds);
+
+        $ids = $this->accountRepository->searchIds($criteria);
+
+        dd($ids);
 
         return new JsonResponse([
             'success' => true

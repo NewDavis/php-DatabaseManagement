@@ -9,8 +9,15 @@ class IdFieldSerializer extends AbstractFieldSerializer
 {
     public function encode(mixed $value): mixed
     {
+        if (is_array($value)) {
+            return array_map(
+                fn(string $uuid) => Uuid::fromString($uuid)->getBytes(),
+                $value
+            );
+        }
+
         if (!($value instanceof UuidInterface)) {
-            return null;
+            return $value;
         }
 
         return $value->getBytes();
@@ -18,7 +25,7 @@ class IdFieldSerializer extends AbstractFieldSerializer
 
     public function decode(mixed $data): mixed
     {
-        if ($data == null) return null;
+        if ($data == null) return $data;
 
         if ($data instanceof UuidInterface) return $data;
 

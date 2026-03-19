@@ -2,11 +2,11 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter;
 
-class EqualsFilter implements SearchableFilterInterface
+class EqualsAnyFilter implements SearchableFilterInterface
 {
     public function __construct(
         private readonly string $internalName,
-        private readonly mixed $searchValue,
+        private readonly array $searchValue,
     ) {
     }
 
@@ -25,7 +25,10 @@ class EqualsFilter implements SearchableFilterInterface
         return sprintf(
             "%s IN (%s)",
             $property,
-            $value
+            implode(', ', array_map(
+                fn(string $v) => "'{$v}'",
+                $value
+            ))
         );
     }
 }

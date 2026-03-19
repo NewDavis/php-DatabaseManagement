@@ -26,6 +26,11 @@ class EntityIdCollection implements EntityIdCollectionInterface
         unset($this->ids[$index]);
     }
 
+    public function has(UuidInterface|AbstractEntity $entity): bool
+    {
+        return in_array($this->getId($entity), $this->ids);
+    }
+
     public function indexAt(int $index): ?UuidInterface
     {
         return $this->ids[$index] ?? null;

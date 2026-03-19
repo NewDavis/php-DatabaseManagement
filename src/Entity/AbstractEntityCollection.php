@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use Ramsey\Uuid\UuidInterface;
 use Traversable;
 
 abstract class AbstractEntityCollection implements EntityCollectionInterface
@@ -21,6 +22,13 @@ abstract class AbstractEntityCollection implements EntityCollectionInterface
         if (!array_key_exists($entity->getId()->toString(), $this->entities)) return;
 
         unset($this->entities[$entity->getId()->toString()]);
+    }
+
+    public function has(UuidInterface|AbstractEntity $entity): bool
+    {
+        $key = $entity instanceof AbstractEntity ? $entity->getId()->toString() : $entity->toString();
+
+        return array_key_exists($key, $this->entities);
     }
 
     public function indexAt(int $index): ?AbstractEntity

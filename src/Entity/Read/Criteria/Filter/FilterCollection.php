@@ -25,6 +25,16 @@ class FilterCollection implements \IteratorAggregate, \Countable
         unset($this->filters[$index]);
     }
 
+    public function filter(string $className): array
+    {
+        return array_values(
+            array_filter(
+                $this->filters,
+                fn(FilterInterface $filter) => $filter instanceof $className,
+            )
+        );
+    }
+
     /**
      * @return array<FilterInterface>
      */

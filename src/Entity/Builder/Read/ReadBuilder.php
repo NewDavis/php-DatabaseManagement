@@ -7,6 +7,8 @@ use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\Field\Serializable;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterInterface;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilterInterface;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\SearchableFilterInterface;
 
 abstract class ReadBuilder
 {
@@ -22,16 +24,20 @@ abstract class ReadBuilder
 
         /** @var FilterInterface $filter */
         foreach ($criteria->getFilters() as $filter) {
-            $serializableField = $this->definition->getFields()->getByInternalName($filter->getInternalName());
+            if ($filter instanceof SearchableFilterInterface) {
+                $serializableField = $this->definition->getFields()->getByInternalName($filter->getInternalName());
 
-            $value = $filter->getSearchValue();
-            if ($serializableField instanceof Serializable) {
-                $value = $serializableField->getSerializer()->encode($value);
+                $value = $filter->getSearchValue();
+                if ($serializableField instanceof Serializable) {
+                    $value = $serializableField->getSerializer()->encode($value);
+                }
+
+                $property = "`{$this->definition->getEntityName()}`.`{$filter->getInternalName()}`";
+
+                $where[] = $filter::build($value, $property);
+            } else if ($filter instanceof MultiFilterInterface) {
+                // TODO MultiFilter
             }
-
-            $where[] = <<<SQL
-`{$this->definition->getEntityName()}`.`{$filter->getInternalName()}` = '{$value}'
-SQL;
         }
 
         return implode(" AND\n", $where);
