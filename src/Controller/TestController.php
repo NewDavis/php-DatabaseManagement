@@ -66,13 +66,12 @@ class TestController extends AbstractController
         //$tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
         $roleId = Uuid::fromString("A9A4795083C94947ADE47D2DFE914391");
 
-        $this->accountRepository->create([
+        dd($this->accountRepository->create([
             [
                 'id' => $accountId,
                 'username' => 'admin',
                 'email' => 'admin@newdavis.me',
                 'password' => 'password',
-                'primaryRoleId' => $roleId,
                 'primaryRole' => [
                     'id' => $roleId,
                     'name' => 'Administrator',
@@ -89,7 +88,7 @@ class TestController extends AbstractController
                     'token' => 'eyjfidwegfouehrghsefojigseijt'
                 ]*/
             ],
-        ]);
+        ]));
 
         return new JsonResponse([
             'success' => true
@@ -106,7 +105,7 @@ class TestController extends AbstractController
         $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         $criteria = new Criteria([$accountId]);
 
-        $entities = $this->accountRepository->searchIds($criteria);
+        $entities = $this->accountRepository->search($criteria);
 
         dd($entities);
 

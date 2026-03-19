@@ -8,8 +8,10 @@ use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\FkFieldSerializer;
 
-class FkField extends ScalarField implements RelationalFieldInterface
+class FkField extends ScalarField implements RelationalFieldInterface, HasRelationInterface
 {
+    private ManyToOneRelation|OneToOneRelation|null $relation = null;
+
     public function __construct(
         string $internalName,
         string $storageName,
@@ -44,5 +46,15 @@ class FkField extends ScalarField implements RelationalFieldInterface
     public function getSerializer(): AbstractFieldSerializer
     {
         return new FkFieldSerializer($this);
+    }
+
+    public function getRelation(): ManyToOneRelation|OneToOneRelation|null
+    {
+        return $this->relation;
+    }
+
+    public function setRelation(OneToOneRelation|ManyToOneRelation $relation): void
+    {
+        $this->relation = $relation;
     }
 }

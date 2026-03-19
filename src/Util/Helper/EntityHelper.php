@@ -6,6 +6,7 @@ use NewDavis\DatabaseManagement\Entity\AbstractEntity;
 use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityInterface;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 
 class EntityHelper
 {

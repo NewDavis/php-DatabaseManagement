@@ -5,6 +5,7 @@ namespace NewDavis\DatabaseManagement\Entity\Builder\Write;
 use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
@@ -91,11 +92,23 @@ class WriteBuilder
         return "r{$row}_{$this->definition->getEntityName()}_{$scalarField->getStorageName()}";
     }
 
+    public function buildMappingStatements(AbstractEntityCollection $collection): EntityWriteStatementCollection
+    {
+        return new EntityWriteStatementCollection(
+            array_map(
+                fn(ManyToManyRelation $relation) => $this->mappingWriteBuilder->build($relation, $collection),
+                $this->definition->getFields()->filter(ManyToManyRelation::class)
+            )
+        );
+    }
+
     public function build(AbstractEntityCollection $collection): EntityWriteStatementCollection
     {
         $properties = $this->buildProperties();
         $values = $this->buildValues($collection);
         $placeholder = $this->buildPlaceholderFromValues($values, $collection);
+
+        $mappingStatements = $this->buildMappingStatements($collection);
 
         $query = <<<SQL
 INSERT INTO `{$this->definition->getEntityName()}`
@@ -105,7 +118,10 @@ VALUES
 SQL;
 
         return new EntityWriteStatementCollection(
-            [new EntityWriteStatement($query, $values)]
+            [
+                new EntityWriteStatement($query, $values),
+                ...$mappingStatements->getStatements()
+            ]
         );
     }
 }

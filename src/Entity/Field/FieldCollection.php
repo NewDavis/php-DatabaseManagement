@@ -7,14 +7,22 @@ use NewDavis\DatabaseManagement\Entity\Exception\Table\FieldNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Exception\Table\ForeignKeyNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Exception\Table\RelatedFieldNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalFieldInterface;
 
 class FieldCollection
 {
     public function __construct(
-        private readonly array $fields,
+        private array $fields,
         private readonly ?string $entityName,
     ) {
+        $this->mapFkFieldWithRelation();
+    }
+
+    public function add(Field $field): void
+    {
+        $this->fields[] = $field;
     }
 
     public function filter(string $className): array
@@ -79,5 +87,26 @@ class FieldCollection
     public function getEntityName(): string
     {
         return $this->entityName;
+    }
+
+    private function mapFkFieldWithRelation()
+    {
+        $relations = [
+            ...$this->filter(ManyToOneRelation::class),
+            ...$this->filter(OneToOneRelation::class)
+        ];
+
+        /** @var ManyToOneRelation|OneToOneRelation $relation */
+        foreach ($relations as $relation) {
+            $fkField = $this->getByStorageName($relation->getStorageName());
+
+            if (!$fkField instanceof FkField) {
+                // TODO relation has no required FkField
+                continue;
+            }
+
+            $fkField->setRelation($relation);
+            $relation->setForeignKey($fkField);
+        }
     }
 }

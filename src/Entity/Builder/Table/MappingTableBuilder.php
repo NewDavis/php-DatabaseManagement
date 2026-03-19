@@ -11,6 +11,8 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\UniqueConvertion;
 use NewDavis\DatabaseManagement\Entity\Field\FlagField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
+use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
+use NewDavis\DatabaseManagement\Util\Helper\EntityTableHelper;
 use NewDavis\DatabaseManagement\Util\Helper\StringHelper;
 
 class MappingTableBuilder
@@ -21,26 +23,6 @@ class MappingTableBuilder
     public function __construct(
         private readonly TableBuilder $table,
     ) {
-    }
-
-    private function buildMappingTableName(ManyToManyRelation $relation): string
-    {
-        if ($relation->getMappingTableName() != null) {
-            return $relation->getMappingTableName();
-        }
-
-        $currentTableName = $this->table->getTableName();
-        $relatedTableName = $this->table->getRegistry()->getDefinitionByDefinitionClass(
-            $relation->getRelatedToDefinition()
-        )->getEntityName();
-
-        $sorted = [
-            $currentTableName,
-            $relatedTableName
-        ];
-        sort($sorted);
-
-        return "{$sorted[0]}_{$sorted[1]}";
     }
 
     private function createMappingTables(): void
@@ -57,51 +39,28 @@ class MappingTableBuilder
             )
             as $manyToManyField
         ) {
-            $relatedDefinition = $this->table->getRegistry()->getDefinitionByDefinitionClass(
-                $manyToManyField->getRelatedToDefinition()
+            $mappingEntityName = EntityTableHelper::buildMappingTableName(
+                $this->table->getDefinition(),
+                $this->table->getRegistry(),
+                $manyToManyField
             );
 
-            $fieldDataSets = [
-                [
-                    'table' => $this->table->getTableName(),
-                    'definition' => $this->table->getDefinition()::class,
-                    'property' => $manyToManyField->getRelatedByInternalName(),
-                ],
-                [
-                    'table' => $relatedDefinition->getEntityName(),
-                    'definition' => $relatedDefinition::class,
-                    'property' => $manyToManyField->getRelatedToInternalName(),
-                ]
-            ];
-            usort($fieldDataSets, function ($a, $b) {
-                return $a['table'] <=> $b['table'];
-            });
+            $mappingFields = EntityTableHelper::buildMappingTableFields(
+                $this->table->getDefinition(),
+                $this->table->getRegistry(),
+                $manyToManyField,
+                $mappingEntityName
+            );
 
-            $keys = [];
-            $fields = [];
-            foreach ($fieldDataSets as $fieldData) {
-                $fields[] = new FkField(
-                    StringHelper::toCamelCase("{$fieldData['table']}_{$fieldData['property']}"),
-                    "{$fieldData['table']}_{$fieldData['property']}",
-                    $fieldData['definition'],
-                    $fieldData['property'],
-                    [
-                        new OnDelete(ConstraintActions::CASCADE),
-                    ]
-                );
-
-                $keys[] = "{$fieldData['table']}_{$fieldData['property']}";
-            }
-
-            $fields[] = new FlagField([
+            $mappingFields->add(new FlagField([
                 new Unique(
                     UniqueConvertion::MULTIPLE,
-                    $keys
+                    array_map(
+                        fn(StorableInterface $storable) => $storable->getStorageName(),
+                        $mappingFields->getFields()
+                    )
                 )
-            ]);
-
-            $mappingEntityName = $this->buildMappingTableName($manyToManyField);
-            $mappingFields = new FieldCollection($fields, $mappingEntityName);
+            ]));
 
             $this->mappingTables[] = new TableBuilder(
                 $mappingEntityName,

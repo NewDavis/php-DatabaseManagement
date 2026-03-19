@@ -3,7 +3,11 @@
 namespace NewDavis\DatabaseManagement\Entity;
 
 use NewDavis\DatabaseManagement\Entity\Exception\Write\VariableForInternalNameNotFoundException;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
 use NewDavis\DatabaseManagement\Entity\Field\Serializable;
+use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 use NewDavis\DatabaseManagement\Entity\Trait\EntityIdTrait;
 
 abstract class AbstractEntity implements EntityInterface
@@ -33,9 +37,22 @@ abstract class AbstractEntity implements EntityInterface
             throw new VariableForInternalNameNotFoundException($internalName, self::class);
         }
 
+        $decoded = $serializable->getSerializer()->decode($value);
+        if (
+            ($serializable instanceof ManyToOneRelation || $serializable instanceof OneToOneRelation) &&
+            $serializable->getForeignKey() != null
+        ) {
+            /** @var AbstractEntity $decoded */
+            $this->set(
+                $serializable->getForeignKey(),
+                $serializable->getForeignKey()->getInternalName(),
+                $decoded->getId()
+            );
+        }
+
         $property->setValue(
             $this,
-            $serializable->getSerializer()->decode($value)
+            $decoded
         );
 
         return $this;
