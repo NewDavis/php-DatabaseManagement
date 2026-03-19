@@ -14,6 +14,7 @@ use NewDavis\DatabaseManagement\ORM;
 class WriteBuilder
 {
     private readonly MappingWriteBuilder $mappingWriteBuilder;
+    private EntityWriteCache $cache;
 
     public function __construct(
         private readonly EntityRegistry $registry,
@@ -104,8 +105,7 @@ class WriteBuilder
 
     public function build(WriteAction $action, AbstractEntityCollection $collection): EntityWriteStatementCollection
     {
-        $entityCache = new EntityWriteCache($action, $this->definition, $this->registry, $collection);
-        dd($entityCache);
+        $this->cache = new EntityWriteCache($action, $this->definition, $this->registry, $collection);
 
         $properties = $this->buildProperties();
         $values = $this->buildValues($collection);

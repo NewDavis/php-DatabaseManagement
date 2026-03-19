@@ -7,19 +7,26 @@ use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
+use Ramsey\Uuid\UuidInterface;
 
 class EntityWriteCache
 {
     private array $cache = [];
-    private array $existent = [];
+    private array $existence = [];
 
     public function __construct(
         private readonly WriteAction $action,
         private readonly EntityDefinitionInterface $definition,
         private readonly EntityRegistry $registry,
-        private readonly AbstractEntityCollection $collection
+        private readonly AbstractEntityCollection $collection,
+        bool $checkExistence = true
     ) {
         $this->collectEntities();
+
+        if ($checkExistence) {
+            $this->checkExistence();
+        }
     }
 
     private function collectEntities()
@@ -50,8 +57,41 @@ class EntityWriteCache
         }
     }
 
+    public function get(EntityDefinitionInterface $definition, UuidInterface $id): ?AbstractEntity
+    {
+        if (
+            !array_key_exists($definition::class, $this->cache) ||
+            !array_key_exists($id->toString(), $this->cache[$definition::class])
+        ) return null;
+
+        return $this->cache[$definition::class][$id->toString()];
+    }
+
+    public function exists(EntityDefinitionInterface $definition, UuidInterface $id): bool
+    {
+        if (
+            !array_key_exists($definition::class, $this->existence) ||
+            !array_key_exists($id->toString(), $this->existence[$definition::class])
+        ) return false;
+
+        return in_array($id->toString(), $this->existence[$definition::class]);
+    }
+
     public function checkExistence()
     {
+        foreach ($this->cache as $definitionClass => $entities) {
+            if ($this->definition::class == $definitionClass && $this->action == WriteAction::CREATE) {
+                // skip root entity on action CREATE.
+                continue;
+            }
 
+            $repository = $this->registry->getRepositoryByDefinitionClass($definitionClass);
+
+            $criteria = new Criteria(array_keys($entities));
+
+            $foundIds = $repository->searchIds($criteria);
+
+            $this->existence[$definitionClass] = $foundIds->getIds();
+        }
     }
 }
