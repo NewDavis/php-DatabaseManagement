@@ -44,12 +44,9 @@ class TableBuilder
                 !$field instanceof StorableInterface
             ) continue;
 
-            $isPrimaryKey = array_filter(
-                $field->getFlags(),
-                fn (Flag $flag) => $flag instanceof PrimaryKey
-            );
+            $isPrimaryKey = $field->getFlags()->filter(PrimaryKey::class);
 
-            if (!$isPrimaryKey) continue;
+            if (count($isPrimaryKey) == 0) continue;
 
             $primaryKeys[] = '`' . $field->getStorageName() . '`';
         }
@@ -72,15 +69,8 @@ class TableBuilder
     {
         $flags = [];
 
-        foreach ($this->definedFields->getFields() as $field) {
-            if (!($field instanceof SupportsFlags)) continue;
-
-            foreach (
-                array_filter(
-                    $field->getFlags(),
-                    fn (Flag $flag) => $flag->getTypes()->hasType(FlagType::NEW_LINE)
-                ) as $flag
-            ) {
+        foreach ($this->definedFields->filter(SupportsFlags::class) as $field) {
+            foreach ($field->getFlags()->filterByType(FlagType::NEW_LINE) as $flag) {
                 switch (get_class($flag)) {
                     case Index::class:
                         $flags[] = $flag->convert($field, FlagType::NEW_LINE, $this->definition, [

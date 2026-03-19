@@ -23,12 +23,7 @@ class PropertyBuilder
     {
         $flags = [];
 
-        foreach (
-            array_filter(
-                $field->getFlags(),
-                fn (Flag $flag) => $flag->getTypes()->hasType(FlagType::INLINE_PROPERTY)
-            ) as $flag
-        ) {
+        foreach ($field->getFlags()->filterByType(FlagType::INLINE_PROPERTY) as $flag) {
             switch (get_class($flag)) {
                 default:
                     $flags[] = $flag->convert(
@@ -47,13 +42,7 @@ class PropertyBuilder
     {
         $properties = [];
 
-        foreach (
-            array_filter(
-                $this->table->getDefinedFields()->getFields(),
-                fn (Field $field) => $field instanceof ScalarField
-            )
-            as $field
-        ) {
+        foreach ($this->table->getDefinedFields()->filter(ScalarField::class) as $field) {
             $properties[] = <<<SQL
 `{$field->getStorageName()}` {$this->buildPropertyType($field)} {$this->buildPropertyFlags($field)}
 SQL;

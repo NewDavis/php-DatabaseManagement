@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field;
 
+use Exception;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Exception\Table\FieldNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Exception\Table\ForeignKeyNotFoundException;
@@ -10,8 +11,9 @@ use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalFieldInterface;
+use Traversable;
 
-class FieldCollection
+class FieldCollection implements \IteratorAggregate, \Countable
 {
     public function __construct(
         private array $fields,
@@ -101,12 +103,21 @@ class FieldCollection
             $fkField = $this->getByStorageName($relation->getStorageName());
 
             if (!$fkField instanceof FkField) {
-                // TODO relation has no required FkField
-                continue;
+                throw new ForeignKeyNotFoundException($this->getEntityName(), $relation);
             }
 
             $fkField->setRelation($relation);
             $relation->setForeignKey($fkField);
         }
+    }
+
+    public function getIterator(): Traversable
+    {
+        return new \ArrayIterator($this->fields);
+    }
+
+    public function count(): int
+    {
+        return count($this->fields);
     }
 }

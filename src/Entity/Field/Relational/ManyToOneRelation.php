@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
+use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\UniqueConvertion;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;

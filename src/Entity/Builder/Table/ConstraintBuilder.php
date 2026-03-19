@@ -40,12 +40,7 @@ class ConstraintBuilder
     {
         $flags = [];
 
-        foreach (
-            array_filter(
-                $field->getFlags(),
-                fn (Flag $flag) => $flag->getTypes()->hasType(FlagType::INLINE_CONSTRAINT)
-            ) as $flag
-        ) {
+        foreach ($field->getFlags()->filterByType(FlagType::INLINE_CONSTRAINT) as $flag) {
             switch (get_class($flag)) {
                 default:
                     $flags[] = $flag->convert(
@@ -64,13 +59,7 @@ class ConstraintBuilder
     {
         $constraints = [];
 
-        foreach (
-            array_filter(
-                $this->table->getDefinedFields()->getFields(),
-                fn (Field $field) => $field instanceof FkField
-            )
-            as $field
-        ) {
+        foreach ($this->table->getDefinedFields()->filter(FkField::class) as $field) {
             $constraintName = $this->buildConstraintName($field);
 
             if ($constraintName == null) continue;

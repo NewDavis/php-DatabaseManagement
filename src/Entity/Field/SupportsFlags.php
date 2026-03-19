@@ -3,11 +3,12 @@
 namespace NewDavis\DatabaseManagement\Entity\Field;
 
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagCollection;
 
 interface SupportsFlags
 {
     /**
-     * @return Flag[]
+     * @return FlagCollection
      */
-    public function getFlags(): array;
+    public function getFlags(): FlagCollection;
 }

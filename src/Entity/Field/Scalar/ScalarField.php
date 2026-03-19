@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity\Field\Scalar;
 
 use NewDavis\DatabaseManagement\Entity\Field\Field;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagCollection;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 use NewDavis\DatabaseManagement\Entity\Field\SupportsFlags;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
@@ -11,6 +12,8 @@ use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
 
 class ScalarField extends Field implements ScalarFieldInterface, StorableInterface, SupportsFlags
 {
+    private FlagCollection $flags;
+
     /**
      * @param string $internalName
      * @param string $storageName
@@ -23,9 +26,11 @@ class ScalarField extends Field implements ScalarFieldInterface, StorableInterfa
         private readonly string $storageName,
         private readonly string $type,
         private readonly int|null $length,
-        private readonly array $flags = []
+        array $flags = []
     ) {
         parent::__construct($this->internalName);
+
+        $this->flags = new FlagCollection($flags);
     }
 
     /**
@@ -52,7 +57,7 @@ class ScalarField extends Field implements ScalarFieldInterface, StorableInterfa
         return $this->length;
     }
 
-    public function getFlags(): array
+    public function getFlags(): FlagCollection
     {
         return $this->flags;
     }

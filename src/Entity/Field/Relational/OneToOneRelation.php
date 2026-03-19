@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Field\Relational;
 
+use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
+use NewDavis\DatabaseManagement\Entity\Field\Flag\UniqueConvertion;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\AbstractFieldSerializer;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\DefaultSerializer;
@@ -43,5 +45,9 @@ class OneToOneRelation extends RelationalField implements StorableInterface, Has
     public function setForeignKey(FkField $foreignKey): void
     {
         $this->fkField = $foreignKey;
+
+        if (count($this->fkField->getFlags()->filter(Unique::class)) !== 0) return;
+
+        $this->fkField->getFlags()->add(new Unique(UniqueConvertion::DEFAULT));
     }
 }
