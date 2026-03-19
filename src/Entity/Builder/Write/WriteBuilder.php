@@ -102,8 +102,11 @@ class WriteBuilder
         );
     }
 
-    public function build(AbstractEntityCollection $collection): EntityWriteStatementCollection
+    public function build(WriteAction $action, AbstractEntityCollection $collection): EntityWriteStatementCollection
     {
+        $entityCache = new EntityWriteCache($action, $this->definition, $this->registry, $collection);
+        dd($entityCache);
+
         $properties = $this->buildProperties();
         $values = $this->buildValues($collection);
         $placeholder = $this->buildPlaceholderFromValues($values, $collection);

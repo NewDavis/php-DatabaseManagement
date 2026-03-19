@@ -17,6 +17,7 @@ class AccountEntity extends AbstractEntity
     public function __construct()
     {
         $this->roles = new RoleCollection();
+        $this->follower = new AccountCollection();
     }
 
     use EntityIdTrait;
@@ -33,6 +34,8 @@ class AccountEntity extends AbstractEntity
 
     protected ?UuidInterface $tokenId;
     protected ?TokenEntity $token;
+
+    protected AccountCollection $follower;
 
     use EntityCreatedAtTrait;
     use EntityUpdatedAtTrait;

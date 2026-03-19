@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity;
 
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Entity\ReadEntityBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Id\ReadIdBuilder;
+use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteAction;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteBuilder;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\IdFieldSerializer;
@@ -69,7 +70,7 @@ class EntityRepository implements EntityRepositoryInterface
     {
         $collection = $this->combineToCollection($entities);
 
-        $statements = $this->writeBuilder->build($collection);
+        $statements = $this->writeBuilder->build(WriteAction::CREATE, $collection);
 
         $this->registry->getConnection()->write($statements);
 
@@ -78,18 +79,24 @@ class EntityRepository implements EntityRepositoryInterface
 
     public function update(AbstractEntity|AbstractEntityCollection|array $entities): EntityWriteResult
     {
-        return new EntityWriteResult(
-            EntityHelper::createCollection($this->definition),
-            new EntityWriteStatementCollection([])
-        );
+        $collection = $this->combineToCollection($entities);
+
+        $statements = $this->writeBuilder->build(WriteAction::UPDATE, $collection);
+
+        $this->registry->getConnection()->write($statements);
+
+        return new EntityWriteResult($collection, $statements);
     }
 
     public function upsert(AbstractEntity|AbstractEntityCollection|array $entities): EntityWriteResult
     {
-        return new EntityWriteResult(
-            EntityHelper::createCollection($this->definition),
-            new EntityWriteStatementCollection([])
-        );
+        $collection = $this->combineToCollection($entities);
+
+        $statements = $this->writeBuilder->build(WriteAction::UPSERT, $collection);
+
+        $this->registry->getConnection()->write($statements);
+
+        return new EntityWriteResult($collection, $statements);
     }
 
     public function delete(AbstractEntity|AbstractEntityCollection|array|Criteria $entities): EntityWriteResult

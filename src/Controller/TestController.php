@@ -102,12 +102,17 @@ class TestController extends AbstractController
     )]
     public function read(Request $request)
     {
+        $start = microtime(true);
+
         $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         $criteria = new Criteria([$accountId, '1DC0D0B1D9A44DF2973BB05CA4893D11', '570787C36B164D3594BB0D1963E8B1FA']);
 
         $entities = $this->accountRepository->search($criteria);
 
-        dd($entities);
+        $end = microtime(true);
+        $took = $end - $start;
+
+        dd($entities, "took {$took}s");
 
         return new JsonResponse([
             'success' => true
@@ -121,6 +126,8 @@ class TestController extends AbstractController
     )]
     public function readIds(Request $request)
     {
+        $start = microtime(true);
+
         $accountIds = [
             Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a"),
             Uuid::fromString("1DC0D0B1D9A44DF2973BB05CA4893D11"),
@@ -130,7 +137,10 @@ class TestController extends AbstractController
 
         $ids = $this->accountRepository->searchIds($criteria);
 
-        dd($ids);
+        $end = microtime(true);
+        $took = $end - $start;
+
+        dd($ids, "took {$took}s");
 
         return new JsonResponse([
             'success' => true
