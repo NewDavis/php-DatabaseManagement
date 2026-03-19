@@ -20,12 +20,14 @@ class EqualsFilter implements SearchableFilterInterface
         return $this->searchValue;
     }
 
-    public static function build(mixed $value, ?string $property): string
+    public static function build(mixed $value, ?string $property): FilterResult
     {
-        return sprintf(
-            "%s IN (%s)",
-            $property,
-            $value
+        return new FilterResult(
+            sprintf(
+                "%s = ?",
+                $property
+            ),
+            [$value]
         );
     }
 }

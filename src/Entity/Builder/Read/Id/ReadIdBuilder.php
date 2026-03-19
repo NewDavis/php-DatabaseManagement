@@ -18,7 +18,7 @@ class ReadIdBuilder extends ReadBuilder
 
         $query = <<<SQL
 SELECT id FROM `{$this->definition->getEntityName()}`
-WHERE {$where} 
+WHERE {$where->getQuery()} 
 {$sorting} 
 {$limit} {$offset}
 SQL;
@@ -26,8 +26,9 @@ SQL;
         return new EntityReadStatementCollection([
             new EntityReadStatement(
                 $query,
-                // TODO seperate query and parameters
-                []
+                [
+                    ...$where->getParameters()
+                ]
             )
         ]);
     }

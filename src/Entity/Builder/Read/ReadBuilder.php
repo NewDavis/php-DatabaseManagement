@@ -7,6 +7,7 @@ use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\Field\Serializable;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterInterface;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterResult;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilterInterface;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\SearchableFilterInterface;
 
@@ -18,9 +19,10 @@ abstract class ReadBuilder
     ) {
     }
 
-    public function buildWhere(Criteria $criteria): string
+    public function buildWhere(Criteria $criteria): FilterResult
     {
-        $where = [];
+        $queries = [];
+        $parameters = [];
 
         /** @var FilterInterface $filter */
         foreach ($criteria->getFilters() as $filter) {
@@ -34,13 +36,21 @@ abstract class ReadBuilder
 
                 $property = "`{$this->definition->getEntityName()}`.`{$filter->getInternalName()}`";
 
-                $where[] = $filter::build($value, $property);
+                $filterResult = $filter::build($value, $property);
+
+                $queries[] = $filterResult->getQuery();
+                foreach ($filterResult->getParameters() as $parameter) {
+                    $parameters[] = $parameter;
+                }
             } else if ($filter instanceof MultiFilterInterface) {
                 // TODO MultiFilter
             }
         }
 
-        return implode(" AND\n", $where);
+        return new FilterResult(
+            implode(" AND\n", $queries),
+            $parameters
+        );
     }
 
     public function buildSorting(Criteria $criteria): string
