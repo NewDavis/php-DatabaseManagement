@@ -19,6 +19,5 @@ interface EntityRepositoryInterface
     public function delete(array|AbstractEntity|AbstractEntityCollection|Criteria $entities): EntityWriteResult;
     public function getDefinition(): EntityDefinitionInterface;
     public function getRegistry(): EntityRegistry;
-    public function getTableBuilder(): TableBuilder;
     public function getWriteBuilder(): WriteBuilder;
 }

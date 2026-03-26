@@ -98,6 +98,7 @@ class TableBuilder
 
     public function build(bool $temp = false): string
     {
+        $tempTableKey = $temp ? 'TEMPORARY' : '';
         $tableName = ($temp ? 'tmp_' : '') . $this->tableName;
 
         $properties = $this->propertyBuilder->build();
@@ -119,7 +120,7 @@ class TableBuilder
         ));
 
         return <<<SQL
-CREATE {($temp ? 'TEMPORARY' : '')} TABLE IF NOT EXISTS `{$tableName}` (
+CREATE {$tempTableKey} TABLE IF NOT EXISTS `{$tableName}` (
 {$contents}
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
