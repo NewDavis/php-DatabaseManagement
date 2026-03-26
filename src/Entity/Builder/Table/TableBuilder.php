@@ -96,13 +96,15 @@ class TableBuilder
         return implode(",\n", $flags);
     }
 
-    public function build(): string
+    public function build(bool $temp = false): string
     {
+        $tableName = ($temp ? 'tmp_' : '') . $this->tableName;
+
         $properties = $this->propertyBuilder->build();
         $newLineFlags = $this->buildNewLineFlags();
         $constraints = $this->constraintBuilder->build();
 
-        $mappingTables = implode("\n", array_map(
+        $mappingTables = $temp ? '' : implode("\n", array_map(
             fn(TableBuilder $mappingTable) => $mappingTable->build(),
             $this->mappingTableBuilder->getMappingTables()
         ));
@@ -117,7 +119,7 @@ class TableBuilder
         ));
 
         return <<<SQL
-CREATE TABLE IF NOT EXISTS `{$this->tableName}` (
+CREATE {($temp ? 'TEMPORARY' : '')} TABLE IF NOT EXISTS `{$tableName}` (
 {$contents}
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

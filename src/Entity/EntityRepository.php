@@ -4,6 +4,7 @@ namespace NewDavis\DatabaseManagement\Entity;
 
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Entity\ReadEntityBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Id\ReadIdBuilder;
+use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteAction;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteBuilder;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
