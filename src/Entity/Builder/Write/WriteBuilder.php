@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Builder\Write;
 
+use NewDavis\DatabaseManagement\Entity\AbstractEntity;
 use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
@@ -10,6 +11,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 use NewDavis\DatabaseManagement\ORM;
+use NewDavis\DatabaseManagement\Util\Helper\EntityHelper;
 
 class WriteBuilder
 {
@@ -113,15 +115,46 @@ class WriteBuilder
 
         $mappingStatements = $this->buildMappingStatements($collection);
 
-        $query = <<<SQL
+        if ($action == WriteAction::CREATE) {
+            $mainQuery = <<<SQL
 INSERT INTO `{$this->definition->getEntityName()}`
 ({$properties})
 VALUES
 {$placeholder}
 SQL;
+        } else if ($action == WriteAction::UPDATE) {
+            $mainQuery = <<<SQL
+UPDATE `{$this->definition->getEntityName()}`
+SET ({$properties})
+VALUES
+{$placeholder}
+SQL;
+        }
+
+        $queries = new EntityWriteStatementCollection([]);
+        foreach ($this->cache->collectEntities(false) as $definitionClass => $entities) {
+            $repository = $this->registry->getRepositoryByDefinitionClass($definitionClass);
+            $definition = $this->registry->getDefinitionByDefinitionClass($definitionClass);
+
+            $notPersisted = array_filter(
+                $entities,
+                fn(AbstractEntity $entity) => !$this->cache->exists($definition, $entity->getId())
+            );
+
+            if (count($notPersisted) == 0) continue;
+
+            $notPersistedCollection = EntityHelper::createCollection($definition, $notPersisted);
+
+            foreach ($repository->getWriteBuilder()->build(
+                WriteAction::CREATE, $notPersistedCollection
+            )->getStatements() as $statement) {
+                $queries->add($statement);
+            }
+        }
 
         return new EntityWriteStatementCollection(
             [
+                ...$queries->getStatements(),
                 new EntityWriteStatement($query, $values),
                 ...$mappingStatements->getStatements()
             ]

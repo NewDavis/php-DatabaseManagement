@@ -134,4 +134,12 @@ class EntityRepository implements EntityRepositoryInterface
     {
         return $this->registry;
     }
+
+    /**
+     * @return WriteBuilder
+     */
+    public function getWriteBuilder(): WriteBuilder
+    {
+        return $this->writeBuilder;
+    }
 }

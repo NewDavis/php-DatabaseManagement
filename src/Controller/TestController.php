@@ -62,7 +62,7 @@ class TestController extends AbstractController
     )]
     public function write(Request $request)
     {
-        $accountId = Uuid::uuid4();//fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
+        $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         //$tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
         $roleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
 

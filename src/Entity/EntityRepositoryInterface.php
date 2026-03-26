@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteBuilder;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Entity\Read\EntityIdSearchResult;
 use NewDavis\DatabaseManagement\Entity\Read\EntitySearchResult;
@@ -17,4 +18,5 @@ interface EntityRepositoryInterface
     public function delete(array|AbstractEntity|AbstractEntityCollection|Criteria $entities): EntityWriteResult;
     public function getDefinition(): EntityDefinitionInterface;
     public function getRegistry(): EntityRegistry;
+    public function getWriteBuilder(): WriteBuilder;
 }
