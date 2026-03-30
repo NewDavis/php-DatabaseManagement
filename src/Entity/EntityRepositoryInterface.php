@@ -14,9 +14,9 @@ interface EntityRepositoryInterface
     public function search(Criteria $criteria): EntitySearchResult;
     public function searchIds(Criteria $criteria): EntityIdSearchResult;
     public function create(array|AbstractEntity|AbstractEntityCollection $entities): EntityWriteResult;
-    public function update(array|AbstractEntity|AbstractEntityCollection $entities): EntityWriteResult;
-    public function upsert(array|AbstractEntity|AbstractEntityCollection $entities): EntityWriteResult;
-    public function delete(array|AbstractEntity|AbstractEntityCollection|Criteria $entities): EntityWriteResult;
+    public function update(array $entities): EntityWriteResult;
+    public function upsert(array $entities): EntityWriteResult;
+    public function delete(Criteria $criteria): EntityWriteResult;
     public function getDefinition(): EntityDefinitionInterface;
     public function getRegistry(): EntityRegistry;
     public function getWriteBuilder(): WriteBuilder;

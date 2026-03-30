@@ -5,6 +5,7 @@ namespace NewDavis\DatabaseManagement\Entity\Builder\Write;
 use NewDavis\DatabaseManagement\Entity\AbstractEntity;
 use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
 use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
+use NewDavis\DatabaseManagement\Entity\Builder\Table\TemporaryTableBuilder;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
@@ -17,6 +18,8 @@ use NewDavis\DatabaseManagement\Util\Helper\EntityHelper;
 class WriteBuilder
 {
     private readonly MappingWriteBuilder $mappingWriteBuilder;
+    private readonly TemporaryTableBuilder $temporaryTableBuilder;
+    private readonly TemporaryWriteBuilder $temporaryWriteBuilder;
     private EntityWriteCache $cache;
 
     public function __construct(
@@ -24,6 +27,10 @@ class WriteBuilder
         private readonly EntityDefinitionInterface $definition
     ) {
         $this->mappingWriteBuilder = new MappingWriteBuilder($this->registry, $this->definition);
+        $this->temporaryTableBuilder = new TemporaryTableBuilder(
+            $this->registry->getTableBuilderByDefinitionClass($this->definition::class)
+        );
+        $this->temporaryWriteBuilder = new TemporaryWriteBuilder($this->registry, $this->definition);
     }
 
     public function buildProperties(): string
@@ -106,8 +113,9 @@ class WriteBuilder
         );
     }
 
-    public function build(WriteAction $action, AbstractEntityCollection $collection, bool $temp = false): EntityWriteStatementCollection
-    {
+    public function build(
+        WriteAction $action, AbstractEntityCollection $collection, array $raw = [], bool $temp = false
+    ): EntityWriteStatementCollection {
         $queries = new EntityWriteStatementCollection([]);
 
         $this->cache = new EntityWriteCache($action, $this->definition, $this->registry, $collection);
@@ -116,55 +124,46 @@ class WriteBuilder
         $values = $this->buildValues($collection);
         $placeholder = $this->buildPlaceholderFromValues($values, $collection);
 
-        if (!$temp) {
-            foreach ($this->cache->collectEntities(false) as $definitionClass => $entities) {
-                $repository = $this->registry->getRepositoryByDefinitionClass($definitionClass);
-                $definition = $this->registry->getDefinitionByDefinitionClass($definitionClass);
+        foreach ($this->cache->collectEntities(false) as $definitionClass => $entities) {
+            $repository = $this->registry->getRepositoryByDefinitionClass($definitionClass);
+            $definition = $this->registry->getDefinitionByDefinitionClass($definitionClass);
 
-                $notPersisted = array_filter(
-                    $entities,
-                    fn(AbstractEntity $entity) => !$this->cache->exists($definition, $entity->getId())
-                );
+            $notPersisted = array_filter(
+                $entities,
+                fn(AbstractEntity $entity) => !$this->cache->exists($definition, $entity->getId())
+            );
 
-                if (count($notPersisted) == 0) continue;
+            if (count($notPersisted) == 0) continue;
 
-                $notPersistedCollection = EntityHelper::createCollection($definition, $notPersisted);
+            $notPersistedCollection = EntityHelper::createCollection($definition, $notPersisted);
 
-                foreach ($repository->getWriteBuilder()->build(
-                    WriteAction::CREATE, $notPersistedCollection
-                )->getStatements() as $statement) {
-                    $queries->add($statement);
-                }
+            foreach ($repository->getWriteBuilder()->build(
+                WriteAction::CREATE, $notPersistedCollection
+            )->getStatements() as $statement) {
+                $queries->add($statement);
             }
         }
 
         if ($action == WriteAction::CREATE) {
-            $tableName = ($temp ? 'tmp_' : '') . $this->definition->getEntityName();
-
             $queries->add(new EntityWriteStatement(<<<SQL
-INSERT INTO `{$tableName}`
+INSERT INTO `{$this->definition->getEntityName()}`
 ({$properties})
 VALUES
 {$placeholder}
 SQL, $values));
         } else if ($action == WriteAction::UPDATE) {
-            $tableBuilder = TableBuilder::fromDefinition($this->registry, $this->definition);
-            $queries->add(new EntityWriteStatement($tableBuilder->build(true), []));
-
-            $queries->add($this->build($action, $collection, true));
-
-            $mainQuery = <<<SQL
-UPDATE `{$this->definition->getEntityName()}` a
-JOIN `{}` b ON a.id = b.id
-SET
-SQL;
-        }
-
-        if (!$temp) {
-            $mappingStatements = $this->buildMappingStatements($collection);
-            foreach ($mappingStatements as $statement) {
+            foreach ($this->temporaryTableBuilder->build($raw) as $statement) {
                 $queries->add($statement);
             }
+
+            foreach ($this->temporaryWriteBuilder->writeInTemporaryTable($raw) as $statement) {
+                $queries->add($statement);
+            }
+        }
+
+        $mappingStatements = $this->buildMappingStatements($collection);
+        foreach ($mappingStatements as $statement) {
+            $queries->add($statement);
         }
 
         return $queries;

@@ -78,29 +78,29 @@ class EntityRepository implements EntityRepositoryInterface
         return new EntityWriteResult($collection, $statements);
     }
 
-    public function update(AbstractEntity|AbstractEntityCollection|array $entities): EntityWriteResult
+    public function update(array $entities): EntityWriteResult
     {
         $collection = $this->combineToCollection($entities);
 
-        $statements = $this->writeBuilder->build(WriteAction::UPDATE, $collection);
+        $statements = $this->writeBuilder->build(WriteAction::UPDATE, $collection, $entities);
 
         $this->registry->getConnection()->write($statements);
 
         return new EntityWriteResult($collection, $statements);
     }
 
-    public function upsert(AbstractEntity|AbstractEntityCollection|array $entities): EntityWriteResult
+    public function upsert(array $entities): EntityWriteResult
     {
         $collection = $this->combineToCollection($entities);
 
-        $statements = $this->writeBuilder->build(WriteAction::UPSERT, $collection);
+        $statements = $this->writeBuilder->build(WriteAction::UPSERT, $collection, $entities);
 
         $this->registry->getConnection()->write($statements);
 
         return new EntityWriteResult($collection, $statements);
     }
 
-    public function delete(AbstractEntity|AbstractEntityCollection|array|Criteria $entities): EntityWriteResult
+    public function delete(Criteria $criteria): EntityWriteResult
     {
         return new EntityWriteResult(
             EntityHelper::createCollection($this->definition),
