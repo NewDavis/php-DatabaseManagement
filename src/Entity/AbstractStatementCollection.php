@@ -2,6 +2,8 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
+
 /**
  * @template T
  */
@@ -11,8 +13,17 @@ class AbstractStatementCollection implements \IteratorAggregate, \Countable
      * @param array<T> $statements
      */
     public function __construct(
-        private readonly array $statements
+        private array $statements
     ) {
+    }
+
+    /**
+     * @param EntityWriteStatement $statement
+     * @return void
+     */
+    public function add(EntityWriteStatement $statement): void
+    {
+        $this->statements[] = $statement;
     }
 
     /**

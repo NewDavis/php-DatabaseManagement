@@ -24,15 +24,17 @@ class EntityWriteCache
         private readonly AbstractEntityCollection $collection,
         bool $checkExistence = true
     ) {
-        $this->collectEntities();
+        $this->cache = $this->collectEntities();
 
         if ($checkExistence) {
             $this->checkExistence();
         }
     }
 
-    private function collectEntities()
+    public function collectEntities(bool $topLevel = true): array
     {
+        $entities = [];
+
         /** @var AbstractEntity $entity */
         foreach ($this->collection as $entity) {
             /** @var RelationalField $relationField */
@@ -47,16 +49,20 @@ class EntityWriteCache
                 }
 
                 if ($value instanceof AbstractEntity) {
-                    $this->cache[$value::getDefinitionClass()][$value->getId()->toString()] = $value;
+                    $entities[$value::getDefinitionClass()][$value->getId()->toString()] = $value;
                 } else if ($value instanceof AbstractEntityCollection) {
                     foreach ($value as $relatedEntity) {
-                        $this->cache[$value::getDefinitionClass()][$relatedEntity->getId()->toString()] = $relatedEntity;
+                        $entities[$value::getDefinitionClass()][$relatedEntity->getId()->toString()] = $relatedEntity;
                     }
                 }
             }
 
-            $this->cache[$entity::getDefinitionClass()][$entity->getId()->toString()] = $entity;
+            if ($topLevel) {
+                $entities[$entity::getDefinitionClass()][$entity->getId()->toString()] = $entity;
+            }
         }
+
+        return $entities;
     }
 
     public function get(EntityDefinitionInterface $definition, UuidInterface $id): ?AbstractEntity
@@ -76,6 +82,14 @@ class EntityWriteCache
         return $this->existence[$definition::class]->has($id);
     }
 
+    private function getTopLevelIds()
+    {
+        return array_map(
+            fn(AbstractEntity $entity) => $entity->getId()->toString(),
+            $this->collection->getEntities()
+        );
+    }
+
     /**
      * @param EntityDefinitionInterface $definition
      * @return EntityIdCollection|null
@@ -87,15 +101,22 @@ class EntityWriteCache
 
     public function checkExistence()
     {
+        $topLevelIds = $this->getTopLevelIds();
+
         foreach ($this->cache as $definitionClass => $entities) {
-            if ($this->definition::class == $definitionClass && $this->action == WriteAction::CREATE) {
-                // skip root entity on action CREATE.
+            $scopedEntities = array_filter(
+                $entities,
+                fn(AbstractEntity $entity) => !($this->definition::class == $definitionClass && $this->action == WriteAction::CREATE) ||
+                    !in_array($entity->getId()->toString(), $topLevelIds)
+            );
+
+            if (count($scopedEntities) == 0) {
                 continue;
             }
 
             $repository = $this->registry->getRepositoryByDefinitionClass($definitionClass);
 
-            $criteria = new Criteria(array_keys($entities));
+            $criteria = new Criteria(array_keys($scopedEntities));
 
             $foundIds = $repository->searchIds($criteria);
 
