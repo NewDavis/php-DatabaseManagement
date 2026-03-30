@@ -11,7 +11,6 @@ class EntityRegistry
     private EntityConverter $converter;
     private array $repositories = [];
     private array $definitions = [];
-    private array $tableBuilders = [];
 
     public function __construct(
         #[Autowire(service: Connection::class)] private readonly Connection $connection
@@ -21,20 +20,8 @@ class EntityRegistry
 
     public function register(EntityDefinitionInterface $definition, EntityRepository $repository): void
     {
-        $this->definitions[$definition->getEntityName()] = $definition;
         $this->definitions[$definition::class] = $definition;
-        $this->repositories[$definition->getEntityName()] = $repository;
         $this->repositories[$definition::class] = $repository;
-        $this->tableBuilders[$definition::class] = TableBuilder::fromDefinition($this, $definition);
-    }
-
-    public function getDefinitionByEntityName(string $entityName): ?EntityDefinitionInterface
-    {
-        if (!array_key_exists($entityName, $this->definitions)) {
-            return null;
-        }
-
-        return $this->definitions[$entityName];
     }
 
     public function getDefinitionByDefinitionClass(string $definitionClass): ?EntityDefinitionInterface
@@ -46,15 +33,6 @@ class EntityRegistry
         return $this->definitions[$definitionClass];
     }
 
-    public function getRepositoryByEntityName(string $entityName): ?EntityRepositoryInterface
-    {
-        if (!array_key_exists($entityName, $this->repositories)) {
-            return null;
-        }
-
-        return $this->repositories[$entityName];
-    }
-
     public function getRepositoryByDefinitionClass(string $definitionClass): ?EntityRepositoryInterface
     {
         if (!array_key_exists($definitionClass, $this->repositories)) {
@@ -62,15 +40,6 @@ class EntityRegistry
         }
 
         return $this->repositories[$definitionClass];
-    }
-
-    public function getTableBuilderByDefinitionClass(string $definitionClass): ?TableBuilder
-    {
-        if (!array_key_exists($definitionClass, $this->tableBuilders)) {
-            return null;
-        }
-
-        return $this->tableBuilders[$definitionClass];
     }
 
     /**

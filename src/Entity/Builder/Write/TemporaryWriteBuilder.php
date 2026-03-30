@@ -14,7 +14,7 @@ class TemporaryWriteBuilder
     ) {
     }
 
-    public function writeInTemporaryTable(array $raw): EntityWriteStatementCollection
+    public function writeInTemporaryTable(array $rows): EntityWriteStatementCollection
     {
         return new EntityWriteStatementCollection([]);
     }

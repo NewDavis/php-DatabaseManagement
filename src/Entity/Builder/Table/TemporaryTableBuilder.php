@@ -11,7 +11,7 @@ class TemporaryTableBuilder
     ) {
     }
 
-    public function build(): EntityWriteStatementCollection
+    public function build(array $rows): EntityWriteStatementCollection
     {
         return new EntityWriteStatementCollection([]);
     }

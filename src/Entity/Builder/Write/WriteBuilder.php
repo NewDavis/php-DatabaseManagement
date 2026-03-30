@@ -28,7 +28,7 @@ class WriteBuilder
     ) {
         $this->mappingWriteBuilder = new MappingWriteBuilder($this->registry, $this->definition);
         $this->temporaryTableBuilder = new TemporaryTableBuilder(
-            $this->registry->getTableBuilderByDefinitionClass($this->definition::class)
+            TableBuilder::fromDefinition($this->registry, $this->definition)
         );
         $this->temporaryWriteBuilder = new TemporaryWriteBuilder($this->registry, $this->definition);
     }
@@ -114,7 +114,7 @@ class WriteBuilder
     }
 
     public function build(
-        WriteAction $action, AbstractEntityCollection $collection, array $raw = [], bool $temp = false
+        WriteAction $action, AbstractEntityCollection $collection, array $rows = [], bool $temp = false
     ): EntityWriteStatementCollection {
         $queries = new EntityWriteStatementCollection([]);
 
@@ -152,11 +152,11 @@ VALUES
 {$placeholder}
 SQL, $values));
         } else if ($action == WriteAction::UPDATE) {
-            foreach ($this->temporaryTableBuilder->build($raw) as $statement) {
+            foreach ($this->temporaryTableBuilder->build($rows) as $statement) {
                 $queries->add($statement);
             }
 
-            foreach ($this->temporaryWriteBuilder->writeInTemporaryTable($raw) as $statement) {
+            foreach ($this->temporaryWriteBuilder->writeInTemporaryTable($rows) as $statement) {
                 $queries->add($statement);
             }
         }
