@@ -5,6 +5,7 @@ namespace NewDavis\DatabaseManagement\Entity\Builder\Write;
 use NewDavis\DatabaseManagement\Entity\AbstractEntity;
 use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
+use NewDavis\DatabaseManagement\Entity\EntityIdCollection;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
@@ -13,6 +14,7 @@ use Ramsey\Uuid\UuidInterface;
 class EntityWriteCache
 {
     private array $cache = [];
+    /** @var array<string, EntityIdCollection> */
     private array $existence = [];
 
     public function __construct(
@@ -69,12 +71,18 @@ class EntityWriteCache
 
     public function exists(EntityDefinitionInterface $definition, UuidInterface $id): bool
     {
-        if (
-            !array_key_exists($definition::class, $this->existence) ||
-            !array_key_exists($id->toString(), $this->existence[$definition::class])
-        ) return false;
+        if (!array_key_exists($definition::class, $this->existence)) return false;
 
-        return in_array($id->toString(), $this->existence[$definition::class]);
+        return $this->existence[$definition::class]->has($id);
+    }
+
+    /**
+     * @param EntityDefinitionInterface $definition
+     * @return EntityIdCollection|null
+     */
+    public function getExistentIds(EntityDefinitionInterface $definition): ?EntityIdCollection
+    {
+        return $this->existence[$definition::class] ?? null;
     }
 
     public function checkExistence()
