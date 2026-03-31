@@ -17,7 +17,7 @@ class FieldCollection implements \IteratorAggregate, \Countable
 {
     public function __construct(
         private array $fields,
-        private readonly ?string $entityName,
+        private readonly string $entityName,
     ) {
         $this->mapFkFieldWithRelation();
     }

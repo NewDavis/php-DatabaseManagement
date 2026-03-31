@@ -9,6 +9,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Flag\Flag;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\FlagType;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Index;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\PrimaryKey;
+use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
 use NewDavis\DatabaseManagement\Entity\Field\SupportsFlags;
 
@@ -25,7 +26,7 @@ class TableBuilder
      */
     public function __construct(
         private readonly string $tableName,
-        private readonly FieldCollection $definedFields,
+        private FieldCollection $definedFields,
         private readonly EntityRegistry $registry,
         private readonly ?EntityDefinitionInterface $definition = null
     ) {
@@ -65,11 +66,13 @@ class TableBuilder
         return 'idx_' . $shortHex;
     }
 
-    private function buildNewLineFlags(): string
+    private function buildNewLineFlags(bool $temp = false): string
     {
         $flags = [];
 
         foreach ($this->definedFields->filter(SupportsFlags::class) as $field) {
+            if ($temp && !($field instanceof IdField)) continue;
+
             foreach ($field->getFlags()->filterByType(FlagType::NEW_LINE) as $flag) {
                 switch (get_class($flag)) {
                     case Index::class:
@@ -98,17 +101,24 @@ class TableBuilder
 
     public function build(bool $temp = false): string
     {
+        /*if ($temp) {
+            $this->replaceWithTempFields();
+        }*/
+
         $tempTableKey = $temp ? 'TEMPORARY' : '';
         $tableName = ($temp ? 'tmp_' : '') . $this->tableName;
 
-        $properties = $this->propertyBuilder->build();
-        $newLineFlags = $this->buildNewLineFlags();
-        $constraints = $this->constraintBuilder->build();
+        $properties = $this->propertyBuilder->build($temp);
+        $newLineFlags = $this->buildNewLineFlags($temp);
+        $constraints = $temp ? '' : $this->constraintBuilder->build();
 
-        $mappingTables = $temp ? '' : implode("\n", array_map(
-            fn(TableBuilder $mappingTable) => $mappingTable->build(),
-            $this->mappingTableBuilder->getMappingTables()
-        ));
+        $mappingTables = '';
+        if (!$temp) {
+            $mappingTables = implode("\n", array_map(
+                fn(TableBuilder $mappingTable) => $mappingTable->build(),
+                $this->mappingTableBuilder->getMappingTables()
+            ));
+        }
 
         $contents = implode(",\n", array_filter(
             [
@@ -127,6 +137,16 @@ CREATE {$tempTableKey} TABLE IF NOT EXISTS `{$tableName}` (
 {$mappingTables}
 SQL;
     }
+
+    /*public function replaceWithTempFields()
+    {
+        $tmpFields = $this->definedFields->getFields();
+
+        $this->definedFields = new FieldCollection([
+            new IdField('stageId', 'stage_id'),
+            ...$tmpFields
+        ], $this->definedFields->getEntityName());
+    }*/
 
     /**
      * @return string

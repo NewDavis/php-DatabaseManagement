@@ -10,11 +10,11 @@ use NewDavis\DatabaseManagement\Entity\FieldSerializer\IdFieldSerializer;
 
 class IdField extends ScalarField
 {
-    public function __construct()
+    public function __construct(string $internalName = 'id', string $storageName = 'id')
     {
         parent::__construct(
-            'id',
-            'id',
+            $internalName,
+            $storageName,
             'BINARY',
             16,
             [new PrimaryKey(), new Required()]

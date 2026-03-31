@@ -152,7 +152,9 @@ VALUES
 {$placeholder}
 SQL, $values));
         } else if ($action == WriteAction::UPDATE) {
-            foreach ($this->temporaryTableBuilder->build($rows) as $statement) {
+            dd($this->temporaryTableBuilder->build());
+
+            foreach ($this->temporaryTableBuilder->build() as $statement) {
                 $queries->add($statement);
             }
 

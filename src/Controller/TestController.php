@@ -66,7 +66,7 @@ class TestController extends AbstractController
         //$tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
         $roleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
 
-        dd($this->accountRepository->create([
+        dd($this->accountRepository->update([
             [
                 'id' => $accountId,
                 'username' => 'admin' . substr($accountId->toString(), 0, 6),

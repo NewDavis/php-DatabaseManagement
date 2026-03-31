@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Builder\Table;
 
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 
 class TemporaryTableBuilder
@@ -11,8 +12,13 @@ class TemporaryTableBuilder
     ) {
     }
 
-    public function build(array $rows): EntityWriteStatementCollection
+    public function build(): EntityWriteStatementCollection
     {
-        return new EntityWriteStatementCollection([]);
+        return new EntityWriteStatementCollection([
+            new EntityWriteStatement(
+                $this->table->build(true),
+                []
+            )
+        ]);
     }
 }
