@@ -56,17 +56,19 @@ class TestController extends AbstractController
     }
 
     #[Route(
-        path: '/orm/test/write',
-        name: 'orm.test.write',
+        path: '/orm/test/create',
+        name: 'orm.test.create',
         methods: ['GET']
     )]
-    public function write(Request $request)
+    public function create(Request $request)
     {
-        $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
+        $start = microtime(true);
+
+        $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");//Uuid::uuid4();
         //$tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
         $roleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
 
-        dd($this->accountRepository->update([
+        $result = $this->accountRepository->create([
             [
                 'id' => $accountId,
                 'username' => 'admin' . substr($accountId->toString(), 0, 6),
@@ -88,7 +90,53 @@ class TestController extends AbstractController
                     'token' => 'eyjfidwegfouehrghsefojigseijt'
                 ]*/
             ],
-        ]));
+        ]);
+
+        $end = microtime(true);
+        $took = $end - $start;
+
+        dd($result, "took {$took}s");
+
+        return new JsonResponse([
+            'success' => true
+        ]);
+    }
+
+    #[Route(
+        path: '/orm/test/update',
+        name: 'orm.test.update',
+        methods: ['GET']
+    )]
+    public function update(Request $request)
+    {
+        $start = microtime(true);
+
+        $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
+        //$tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
+        $roleId = Uuid::fromString("A9A4795083C94947ADE47D2DFE914391");
+        $secondRoleId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
+
+        $result = $this->accountRepository->update([
+            [
+                'id' => $accountId,
+                'username' => 'NewDavis',
+                'email' => 'info@newdavis.me',
+                'roles' => [
+                    [
+                        'id' => $roleId->getBytes(),
+                    ],
+                    [
+                        'id' => $secondRoleId->getBytes(),
+                        'name' => 'Entwickler'
+                    ]
+                ]
+            ],
+        ]);
+
+        $end = microtime(true);
+        $took = $end - $start;
+
+        dd($result, "took {$took}s");
 
         return new JsonResponse([
             'success' => true

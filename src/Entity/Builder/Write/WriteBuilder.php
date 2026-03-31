@@ -8,6 +8,8 @@ use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Table\TemporaryTableBuilder;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
+use NewDavis\DatabaseManagement\Entity\Exception\Table\FieldNotFoundException;
+use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
@@ -30,14 +32,14 @@ class WriteBuilder
         $this->temporaryTableBuilder = new TemporaryTableBuilder(
             TableBuilder::fromDefinition($this->registry, $this->definition)
         );
-        $this->temporaryWriteBuilder = new TemporaryWriteBuilder($this->registry, $this->definition);
+        $this->temporaryWriteBuilder = new TemporaryWriteBuilder($this->definition, $this);
     }
 
-    public function buildProperties(): string
+    public function buildProperties(FieldCollection $fields): string
     {
         $properties = array_map(
             fn(ScalarField $scalarField) => "`{$scalarField->getStorageName()}`",
-            $this->definition->getFields()->filter(
+            $fields->filter(
                 ScalarField::class
             )
         );
@@ -45,11 +47,14 @@ class WriteBuilder
         return implode(', ', $properties);
     }
 
-    public function buildPlaceholderFromValues(array $values, AbstractEntityCollection $collection): string
-    {
+    public function buildPlaceholderFromValues(
+        FieldCollection $fields,
+        array $values,
+        AbstractEntityCollection|array $collection
+    ): string {
         $rows = [];
 
-        for ($i = 0; $i < $collection->count(); $i++) {
+        for ($i = 0; $i < count($collection); $i++) {
             $placeholder = array_map(
                 function (ScalarField $scalarField) use ($values, $i) {
                     $key = $this->buildValueKey($i, $scalarField);
@@ -60,7 +65,7 @@ class WriteBuilder
 
                     return ":" . $key;
                 },
-                $this->definition->getFields()->filter(
+                $fields->filter(
                     ScalarField::class
                 )
             );
@@ -98,32 +103,50 @@ class WriteBuilder
         return $values;
     }
 
-    private function buildValueKey(int $row, ScalarField $scalarField): string
+    public function buildValueKey(int $row, ScalarField $scalarField): string
     {
         return "r{$row}_{$this->definition->getEntityName()}_{$scalarField->getStorageName()}";
     }
 
-    public function buildMappingStatements(AbstractEntityCollection $collection): EntityWriteStatementCollection
+    public function buildMappingStatements(AbstractEntityCollection $collection, WriteAction $action): EntityWriteStatementCollection
     {
-        return new EntityWriteStatementCollection(
-            array_map(
-                fn(ManyToManyRelation $relation) => $this->mappingWriteBuilder->build($relation, $collection),
-                $this->definition->getFields()->filter(ManyToManyRelation::class)
-            )
-        );
+        $statements = new EntityWriteStatementCollection([]);
+
+        /** @var ManyToManyRelation $relation */
+        foreach ($this->definition->getFields()->filter(ManyToManyRelation::class) as $relation) {
+            foreach ($this->mappingWriteBuilder->build($relation, $collection, $action) as $statement) {
+                $statements->add($statement);
+            }
+        }
+
+        return $statements;
     }
 
     public function build(
-        WriteAction $action, AbstractEntityCollection $collection, array $rows = [], bool $temp = false
+        WriteAction $action,
+        AbstractEntityCollection $collection,
+        array $rows = []
     ): EntityWriteStatementCollection {
         $queries = new EntityWriteStatementCollection([]);
 
+        if (
+            $action == WriteAction::UPDATE &&
+            count($groups = EntityHelper::groupByColumns($rows)) == 0
+        ) {
+            return $queries;
+        }
+
         $this->cache = new EntityWriteCache($action, $this->definition, $this->registry, $collection);
 
-        $properties = $this->buildProperties();
+        $properties = $this->buildProperties($this->definition->getFields());
         $values = $this->buildValues($collection);
-        $placeholder = $this->buildPlaceholderFromValues($values, $collection);
+        $placeholder = $this->buildPlaceholderFromValues(
+            $this->definition->getFields(),
+            $values,
+            $collection
+        );
 
+        // persist related entities first
         foreach ($this->cache->collectEntities(false) as $definitionClass => $entities) {
             $repository = $this->registry->getRepositoryByDefinitionClass($definitionClass);
             $definition = $this->registry->getDefinitionByDefinitionClass($definitionClass);
@@ -144,6 +167,7 @@ class WriteBuilder
             }
         }
 
+        // main query building
         if ($action == WriteAction::CREATE) {
             $queries->add(new EntityWriteStatement(<<<SQL
 INSERT INTO `{$this->definition->getEntityName()}`
@@ -152,18 +176,24 @@ VALUES
 {$placeholder}
 SQL, $values));
         } else if ($action == WriteAction::UPDATE) {
-            dd($this->temporaryTableBuilder->build());
+            $queries->add($this->temporaryTableBuilder->create());
 
-            foreach ($this->temporaryTableBuilder->build() as $statement) {
-                $queries->add($statement);
-            }
+            foreach ($groups as $columns => $group) {
+                $columnsArray = new FieldCollection(
+                    array_filter(array_map(
+                        fn($column) => $this->definition->getFields()->getByInternalName($column),
+                        explode('|', $columns)
+                    )),
+                    'tmp_' . $this->definition->getEntityName()
+                );
 
-            foreach ($this->temporaryWriteBuilder->writeInTemporaryTable($rows) as $statement) {
-                $queries->add($statement);
+                $queries->add($this->temporaryTableBuilder->truncate());
+                $queries->add($this->temporaryWriteBuilder->insertInTemporary($columnsArray, $group));
+                $queries->add($this->temporaryWriteBuilder->updateOriginal($columnsArray));
             }
         }
 
-        $mappingStatements = $this->buildMappingStatements($collection);
+        $mappingStatements = $this->buildMappingStatements($collection, $action);
         foreach ($mappingStatements as $statement) {
             $queries->add($statement);
         }

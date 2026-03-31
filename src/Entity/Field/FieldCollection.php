@@ -19,6 +19,8 @@ class FieldCollection implements \IteratorAggregate, \Countable
         private array $fields,
         private readonly string $entityName,
     ) {
+        if (str_starts_with($this->entityName, 'tmp_')) return;
+
         $this->mapFkFieldWithRelation();
     }
 

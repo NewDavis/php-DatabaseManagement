@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Builder\Write;
 
+use Doctrine\ORM\Mapping\Embeddable;
 use NewDavis\DatabaseManagement\Entity\AbstractEntity;
 use NewDavis\DatabaseManagement\Entity\AbstractEntityCollection;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
@@ -11,6 +12,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Relational\FkField;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Serializable;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 use NewDavis\DatabaseManagement\Util\Helper\EntityTableHelper;
 
 class MappingWriteBuilder
@@ -38,13 +40,13 @@ class MappingWriteBuilder
     ): array {
         $values = [];
 
-        for ($i = 0; $i < $collection->count(); $i++) {
-            $entity = $collection->indexAt($i);
+        foreach ($collection as $topLevelEntity) {
+            $mappedData = $this->fetchManyToManyCollectionFromEntity($manyToManyRelation, $topLevelEntity);
 
-            $mappedData = $this->fetchManyToManyCollectionFromEntity($manyToManyRelation, $entity);
+            for ($j = 0; $j < $mappedData->count(); $j++) {
+                /** @var AbstractEntity $mappedEntityData */
+                $mappedEntityData = $mappedData->indexAt($j);
 
-            /** @var AbstractEntity $mappedEntityData */
-            foreach ($mappedData as $mappedEntityData) {
                 /** @var FkField $fkField */
                 foreach (
                     $mappingFields->filter(FkField::class)
@@ -56,7 +58,7 @@ class MappingWriteBuilder
                         );
                         if (!$propertyField instanceof Serializable) continue;
 
-                        $value = $entity->get(
+                        $value = $topLevelEntity->get(
                             $propertyField,
                             $manyToManyRelation->getRelatedByInternalName()
                         );
@@ -77,7 +79,7 @@ class MappingWriteBuilder
                         dd("MappingWriteBuilder#buildValues: No value found for mapping");
                     }
 
-                    $values[$this->buildValueKey($i, $mappingFields->getEntityName(), $fkField)] = $value;
+                    $values[$this->buildValueKey($j, $mappingFields->getEntityName(), $fkField)] = $value;
                 }
             }
         }
@@ -86,23 +88,13 @@ class MappingWriteBuilder
     }
 
     public function buildPlaceholderFromValues(
-        array $values,
-        FieldCollection $mappingFields,
-        AbstractEntityCollection $collection
+        array $values
     ): string {
         $rows = [];
 
-        for ($i = 0; $i < $collection->count(); $i++) {
-            $placeholder = array_map(
-                function (FkField $fkField) use ($values, $mappingFields, $i) {
-                    $key = $this->buildValueKey($i, $mappingFields->getEntityName(), $fkField);
-
-                    return ":" . $key;
-                },
-                $mappingFields->filter(FkField::class)
-            );
-
-            $rows[$i] = '(' . implode(', ', $placeholder) . ')';
+        $keys = array_keys($values);
+        for ($i = 0; $i < count($values); $i += 2) {
+            $rows[$i / 2] = '(:' . $keys[$i] . ', :' . $keys[$i+1] . ')';
         }
 
         return implode(",\n", $rows);
@@ -123,10 +115,57 @@ class MappingWriteBuilder
         );
     }
 
+    private function buildDelete(
+        AbstractEntityCollection $collection,
+        string $mappingTableName,
+        FieldCollection $mappingFields
+    ): EntityWriteStatement|null {
+        $field = null;
+        /** @var FkField $fkField */
+        foreach ($mappingFields as $fkField) {
+            if ($fkField->getRelatedToDefinition() != $this->definition::class) {
+                continue;
+            }
+
+            $field = $fkField;
+        }
+
+        if ($field == null) return null;
+
+        $placeholders = implode(', ', array_map(
+            fn(AbstractEntity $entity) => '?',
+            $collection->getEntities()
+        ));
+
+        try {
+            /** @var Serializable $relatedField */
+            $relatedField = $this->definition->getFields()->getByInternalName($field->getRelatedToInternalName());
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        $affectedIds = array_values(array_map(
+            fn(AbstractEntity $entity) => $entity->get(
+                $relatedField,
+                $relatedField->getInternalName()
+            ),
+            $collection->getEntities()
+        ));
+
+        return new EntityWriteStatement(
+            <<<SQL
+DELETE FROM `{$mappingTableName}`
+WHERE `{$field->getStorageName()}` IN ({$placeholders})
+SQL,
+            $affectedIds
+        );
+    }
+
     public function build(
         ManyToManyRelation $manyToManyRelation,
-        AbstractEntityCollection $collection
-    ): EntityWriteStatement {
+        AbstractEntityCollection $collection,
+        WriteAction $action
+    ): EntityWriteStatementCollection {
         $mappingTableName = EntityTableHelper::buildMappingTableName(
             $this->definition,
             $this->registry,
@@ -142,7 +181,11 @@ class MappingWriteBuilder
 
         $properties = $this->buildProperties($mappingFields);
         $values = $this->buildValues($manyToManyRelation, $mappingFields, $collection);
-        $placeholder = $this->buildPlaceholderFromValues($values, $mappingFields, $collection);
+        if (empty($values)) {
+            return new EntityWriteStatementCollection([]);
+        }
+
+        $placeholder = $this->buildPlaceholderFromValues($values);
 
         $query = <<<SQL
 INSERT INTO `{$mappingTableName}`
@@ -151,6 +194,14 @@ VALUES
 {$placeholder}
 SQL;
 
-        return new EntityWriteStatement($query, $values);
+        $queries = new EntityWriteStatementCollection([]);
+
+        if ($action == WriteAction::UPDATE) {
+            $queries->add($this->buildDelete($collection, $mappingTableName, $mappingFields));
+        }
+
+        $queries->add(new EntityWriteStatement($query, $values));
+
+        return $queries;
     }
 }

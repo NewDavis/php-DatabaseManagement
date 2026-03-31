@@ -3,7 +3,6 @@
 namespace NewDavis\DatabaseManagement\Entity\Builder\Table;
 
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
-use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 
 class TemporaryTableBuilder
 {
@@ -12,13 +11,21 @@ class TemporaryTableBuilder
     ) {
     }
 
-    public function build(): EntityWriteStatementCollection
+    public function create(): EntityWriteStatement
     {
-        return new EntityWriteStatementCollection([
-            new EntityWriteStatement(
-                $this->table->build(true),
-                []
-            )
-        ]);
+        return new EntityWriteStatement(
+            $this->table->build(true),
+            []
+        );
+    }
+
+    public function truncate(): EntityWriteStatement
+    {
+        return new EntityWriteStatement(
+            <<<SQL
+DELETE FROM `tmp_{$this->table->getTableName()}`
+SQL,
+            []
+        );
     }
 }

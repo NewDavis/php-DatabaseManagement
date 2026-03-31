@@ -10,7 +10,15 @@ class PasswordFieldSerializer extends AbstractFieldSerializer
      */
     public function encode(mixed $value): mixed
     {
-        return $value;
+        if (null == $value || !is_string($value)) {
+            return null;
+        }
+
+        if (str_starts_with($value, '$argon2id$')) {
+            return $value;
+        }
+
+        return password_hash($value, PASSWORD_ARGON2ID);
     }
 
     public function decode(mixed $data): mixed
