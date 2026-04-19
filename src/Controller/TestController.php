@@ -10,6 +10,8 @@ use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\EntityRepository;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsAnyFilter;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsFilter;
 use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -154,6 +156,7 @@ class TestController extends AbstractController
 
         $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         $criteria = new Criteria([$accountId, '1DC0D0B1D9A44DF2973BB05CA4893D11', '570787C36B164D3594BB0D1963E8B1FA']);
+        $criteria->addFilter(new EqualsFilter('token.account.roles.name', 'Administrator'));
 
         $entities = $this->accountRepository->search($criteria);
 

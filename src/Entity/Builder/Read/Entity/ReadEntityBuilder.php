@@ -11,7 +11,9 @@ class ReadEntityBuilder extends ReadBuilder
 {
     public function build(Criteria $criteria): EntityReadStatementCollection
     {
-        $where = $this->buildWhere($criteria);
+        $joins = $this->mapInternalNameWithJoinAlias($criteria);
+        dd($joins);
+        $where = $this->buildWhere($criteria, $joins);
         $sorting = $this->buildSorting($criteria);
         $limit = $this->buildLimit($criteria);
         $offset = $this->buildOffset($criteria);
