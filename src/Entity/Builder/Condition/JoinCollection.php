@@ -1,6 +1,6 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Builder\Read;
+namespace NewDavis\DatabaseManagement\Entity\Builder\Condition;
 
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
 

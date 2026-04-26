@@ -4,8 +4,11 @@ namespace NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter;
 
 class MultiNotFilter extends MultiFilter
 {
-    public static function build(mixed $value, ?string $property): string
+    public static function build(string $query, array $parameters): FilterResult
     {
-        return "NOT (%s)";
+        return new FilterResult(
+            sprintf("NOT (%s)", $query),
+            $parameters
+        );
     }
 }

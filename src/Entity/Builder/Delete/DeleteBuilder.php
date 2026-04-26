@@ -1,15 +1,15 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Builder\Read\Entity;
+namespace NewDavis\DatabaseManagement\Entity\Builder\Delete;
 
 use NewDavis\DatabaseManagement\Entity\Builder\Condition\ConditionBuilder;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
-use NewDavis\DatabaseManagement\Entity\Read\EntityReadStatement;
-use NewDavis\DatabaseManagement\Entity\Read\EntityReadStatementCollection;
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 
-class ReadEntityBuilder extends ConditionBuilder
+class DeleteBuilder extends ConditionBuilder
 {
-    public function build(Criteria $criteria): EntityReadStatementCollection
+    public function build(Criteria $criteria): EntityWriteStatementCollection
     {
         $joinMapping = $this->mapInternalNameWithJoinAlias($criteria);
         $joins = $this->buildJoins($joinMapping);
@@ -19,15 +19,15 @@ class ReadEntityBuilder extends ConditionBuilder
         $offset = $this->buildOffset($criteria);
 
         $query = <<<SQL
-SELECT `{$this->definition->getEntityName()}`.* FROM `{$this->definition->getEntityName()}`
+DELETE FROM `{$this->definition->getEntityName()}`
 {$joins}
 WHERE {$where->getQuery()} 
 {$sorting} 
 {$limit} {$offset}
 SQL;
 
-        return new EntityReadStatementCollection([
-            new EntityReadStatement(
+        return new EntityWriteStatementCollection([
+            new EntityWriteStatement(
                 $query,
                 [
                     ...$where->getParameters()

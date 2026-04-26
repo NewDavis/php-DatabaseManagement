@@ -13,7 +13,7 @@ class EntityWriteResult
     public function __construct(
         private readonly EntityCollectionInterface $entities,
         private readonly EntityWriteStatementCollection $statements,
-        private readonly bool $success = false
+        private readonly bool $success = true
     ) {
     }
 

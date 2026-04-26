@@ -8,7 +8,6 @@ use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Table\TemporaryTableBuilder;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
-use NewDavis\DatabaseManagement\Entity\Exception\Table\FieldNotFoundException;
 use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\ScalarField;
@@ -126,14 +125,14 @@ class WriteBuilder
         WriteAction $action,
         AbstractEntityCollection $collection,
         array $rows = []
-    ): EntityWriteStatementCollection {
-        $queries = new EntityWriteStatementCollection([]);
+    ): WriteBuilderResult {
+        $result = new WriteBuilderResult();
 
         if (
             $action == WriteAction::UPDATE &&
             count($groups = EntityHelper::groupByColumns($rows)) == 0
         ) {
-            return $queries;
+            return $result;
         }
 
         $this->cache = new EntityWriteCache($action, $this->definition, $this->registry, $collection);
@@ -160,23 +159,34 @@ class WriteBuilder
 
             $notPersistedCollection = EntityHelper::createCollection($definition, $notPersisted);
 
-            foreach ($repository->getWriteBuilder()->build(
-                WriteAction::CREATE, $notPersistedCollection
-            )->getStatements() as $statement) {
-                $queries->add($statement);
-            }
+            $relatedResult = $repository->getWriteBuilder()->build(
+                WriteAction::UPSERT, $notPersistedCollection
+            );
+
+            $result->addAll(
+                WriteBuilderStatementType::RELATED,
+                $relatedResult->getRelatedQueries()->getStatements()
+            );
+            $result->addAll(
+                WriteBuilderStatementType::RELATED,
+                $relatedResult->getMainQueries()->getStatements()
+            );
+            $result->addAll(
+                WriteBuilderStatementType::MAPPING,
+                $relatedResult->getMappingQueries()->getStatements()
+            );
         }
 
         // main query building
         if ($action == WriteAction::CREATE) {
-            $queries->add(new EntityWriteStatement(<<<SQL
+            $result->add(WriteBuilderStatementType::MAIN, new EntityWriteStatement(<<<SQL
 INSERT INTO `{$this->definition->getEntityName()}`
 ({$properties})
 VALUES
 {$placeholder}
 SQL, $values));
         } else if ($action == WriteAction::UPDATE) {
-            $queries->add($this->temporaryTableBuilder->create());
+            $result->add(WriteBuilderStatementType::MAIN, $this->temporaryTableBuilder->create());
 
             foreach ($groups as $columns => $group) {
                 $columnsArray = new FieldCollection(
@@ -187,17 +197,66 @@ SQL, $values));
                     'tmp_' . $this->definition->getEntityName()
                 );
 
-                $queries->add($this->temporaryTableBuilder->truncate());
-                $queries->add($this->temporaryWriteBuilder->insertInTemporary($columnsArray, $group));
-                $queries->add($this->temporaryWriteBuilder->updateOriginal($columnsArray));
+                $result->add(
+                    WriteBuilderStatementType::MAIN,
+                    $this->temporaryTableBuilder->truncate()
+                );
+                $result->add(
+                    WriteBuilderStatementType::MAIN,
+                    $this->temporaryWriteBuilder->insertInTemporary($columnsArray, $group)
+                );
+                $result->add(
+                    WriteBuilderStatementType::MAIN,
+                    $this->temporaryWriteBuilder->updateOriginal($columnsArray)
+                );
             }
+        } else {
+            $toBeCreated = EntityHelper::createCollection($this->definition, array_filter(
+                $collection->getEntities(),
+                fn(AbstractEntity $entity) => !$this->cache->exists($this->definition, $entity->getId())
+            ));
+
+            $createResult = $this->build(WriteAction::CREATE, $toBeCreated);
+            $result->addAll(
+                WriteBuilderStatementType::RELATED,
+                $createResult->getRelatedQueries()->getStatements()
+            );
+            $result->addAll(
+                WriteBuilderStatementType::MAIN,
+                $createResult->getMainQueries()->getStatements()
+            );
+            $result->addAll(
+                WriteBuilderStatementType::MAPPING,
+                $createResult->getMappingQueries()->getStatements()
+            );
+
+            $toBeUpdated = EntityHelper::createCollection($this->definition, array_filter(
+                $collection->getEntities(),
+                fn(AbstractEntity $entity) => $this->cache->exists($this->definition, $entity->getId())
+            ));
+
+            $updateResult = $this->build(WriteAction::UPDATE, $toBeUpdated);
+            $result->addAll(
+                WriteBuilderStatementType::RELATED,
+                $updateResult->getRelatedQueries()->getStatements()
+            );
+            $result->addAll(
+                WriteBuilderStatementType::MAIN,
+                $updateResult->getMainQueries()->getStatements()
+            );
+            $result->addAll(
+                WriteBuilderStatementType::MAPPING,
+                $updateResult->getMappingQueries()->getStatements()
+            );
+
+            return $result;
         }
 
-        $mappingStatements = $this->buildMappingStatements($collection, $action);
-        foreach ($mappingStatements as $statement) {
-            $queries->add($statement);
-        }
+        $result->addAll(
+            WriteBuilderStatementType::MAPPING,
+            $this->buildMappingStatements($collection, $action)->getStatements()
+        );
 
-        return $queries;
+        return $result;
     }
 }

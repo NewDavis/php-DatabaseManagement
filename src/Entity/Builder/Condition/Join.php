@@ -1,15 +1,18 @@
 <?php
 
-namespace NewDavis\DatabaseManagement\Entity\Builder\Read;
+namespace NewDavis\DatabaseManagement\Entity\Builder\Condition;
 
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
-use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToOneRelation;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToManyRelation;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
 
 class Join
 {
     public function __construct(
         private readonly EntityDefinitionInterface $definition,
-        private readonly RelationalField $relationalField,
+        private readonly ManyToManyRelation|OneToManyRelation|ManyToOneRelation|OneToOneRelation $relationalField,
         private readonly EntityDefinitionInterface $relatedDefinition,
         private readonly string $alias
     ) {
@@ -24,9 +27,9 @@ class Join
     }
 
     /**
-     * @return RelationalField
+     * @return ManyToManyRelation|OneToManyRelation|ManyToOneRelation|OneToOneRelation
      */
-    public function getRelationalField(): RelationalField
+    public function getRelationalField(): ManyToManyRelation|OneToManyRelation|ManyToOneRelation|OneToOneRelation
     {
         return $this->relationalField;
     }

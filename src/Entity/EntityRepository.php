@@ -2,9 +2,9 @@
 
 namespace NewDavis\DatabaseManagement\Entity;
 
+use NewDavis\DatabaseManagement\Entity\Builder\Delete\DeleteBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Entity\ReadEntityBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Id\ReadIdBuilder;
-use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteAction;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteBuilder;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
@@ -21,6 +21,7 @@ class EntityRepository implements EntityRepositoryInterface
     private readonly WriteBuilder $writeBuilder;
     private readonly ReadEntityBuilder $readEntityBuilder;
     private readonly ReadIdBuilder $readIdBuilder;
+    private readonly DeleteBuilder $deleteBuilder;
 
     public function __construct(
         private readonly EntityDefinitionInterface $definition,
@@ -29,6 +30,7 @@ class EntityRepository implements EntityRepositoryInterface
         $this->writeBuilder = new WriteBuilder($this->registry, $this->definition);
         $this->readEntityBuilder = new ReadEntityBuilder($this->registry, $this->definition);
         $this->readIdBuilder = new ReadIdBuilder($this->registry, $this->definition);
+        $this->deleteBuilder = new DeleteBuilder($this->registry, $this->definition);
     }
 
     public function search(Criteria $criteria): EntitySearchResult
@@ -71,40 +73,47 @@ class EntityRepository implements EntityRepositoryInterface
     {
         $collection = $this->combineToCollection($entities);
 
-        $statements = $this->writeBuilder->build(WriteAction::CREATE, $collection);
+        $writeBuilderResult = $this->writeBuilder->build(WriteAction::CREATE, $collection);
+        $combinedQueries = $writeBuilderResult->combineQueries();
 
-        $this->registry->getConnection()->write($statements);
+        $this->registry->getConnection()->write($combinedQueries);
 
-        return new EntityWriteResult($collection, $statements);
+        return new EntityWriteResult($collection, $combinedQueries);
     }
 
     public function update(array $entities): EntityWriteResult
     {
         $collection = $this->combineToCollection($entities);
 
-        $statements = $this->writeBuilder->build(WriteAction::UPDATE, $collection, $entities);
+        $writeBuilderResult = $this->writeBuilder->build(WriteAction::UPDATE, $collection, $entities);
+        $combinedQueries = $writeBuilderResult->combineQueries();
 
-        $this->registry->getConnection()->write($statements);
+        $this->registry->getConnection()->write($combinedQueries);
 
-        return new EntityWriteResult($collection, $statements);
+        return new EntityWriteResult($collection, $combinedQueries);
     }
 
     public function upsert(array $entities): EntityWriteResult
     {
         $collection = $this->combineToCollection($entities);
 
-        $statements = $this->writeBuilder->build(WriteAction::UPSERT, $collection, $entities);
+        $writeBuilderResult = $this->writeBuilder->build(WriteAction::UPSERT, $collection, $entities);
+        $combinedQueries = $writeBuilderResult->combineQueries();
 
-        $this->registry->getConnection()->write($statements);
+        $this->registry->getConnection()->write($combinedQueries);
 
-        return new EntityWriteResult($collection, $statements);
+        return new EntityWriteResult($collection, $combinedQueries);
     }
 
     public function delete(Criteria $criteria): EntityWriteResult
     {
+        $statements = $this->deleteBuilder->build($criteria);
+
+        $this->registry->getConnection()->write($statements);
+
         return new EntityWriteResult(
             EntityHelper::createCollection($this->definition),
-            new EntityWriteStatementCollection([])
+            $statements
         );
     }
 

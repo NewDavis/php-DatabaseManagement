@@ -26,8 +26,11 @@ class MultiFilter implements MultiFilterInterface
         return $this->type;
     }
 
-    public static function build(mixed $value, ?string $property): string
+    public static function build(string $query, array $parameters): FilterResult
     {
-        return "(%s)";
+        return new FilterResult(
+            sprintf("(%s)", $query),
+            $parameters
+        );
     }
 }

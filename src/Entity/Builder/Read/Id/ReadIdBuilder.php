@@ -2,22 +2,25 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Builder\Read\Id;
 
-use NewDavis\DatabaseManagement\Entity\Builder\Read\ReadBuilder;
+use NewDavis\DatabaseManagement\Entity\Builder\Condition\ConditionBuilder;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Entity\Read\EntityReadStatement;
 use NewDavis\DatabaseManagement\Entity\Read\EntityReadStatementCollection;
 
-class ReadIdBuilder extends ReadBuilder
+class ReadIdBuilder extends ConditionBuilder
 {
     public function build(Criteria $criteria): EntityReadStatementCollection
     {
-        $where = $this->buildWhere($criteria);
+        $joinMapping = $this->mapInternalNameWithJoinAlias($criteria);
+        $joins = $this->buildJoins($joinMapping);
+        $where = $this->buildWhere($criteria, $joinMapping);
         $sorting = $this->buildSorting($criteria);
         $limit = $this->buildLimit($criteria);
         $offset = $this->buildOffset($criteria);
 
         $query = <<<SQL
-SELECT id FROM `{$this->definition->getEntityName()}`
+SELECT `{$this->definition->getEntityName()}`.`id` FROM `{$this->definition->getEntityName()}`
+{$joins}
 WHERE {$where->getQuery()} 
 {$sorting} 
 {$limit} {$offset}
