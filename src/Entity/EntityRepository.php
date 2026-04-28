@@ -41,6 +41,8 @@ class EntityRepository implements EntityRepositoryInterface
 
         $entities = $this->combineToCollection($data[0]['data']);
 
+        $this->loadRelations($criteria, $entities);
+
         return new EntitySearchResult(
             $entities,
             $criteria,
@@ -115,6 +117,11 @@ class EntityRepository implements EntityRepositoryInterface
             EntityHelper::createCollection($this->definition),
             $statements
         );
+    }
+
+    private function loadRelations(Criteria $criteria, EntityCollectionInterface $collection): void
+    {
+
     }
 
     protected function combineToCollection(
