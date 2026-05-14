@@ -136,7 +136,7 @@ class EntityRepository implements EntityRepositoryInterface
             if (
                 !$relationField->shouldAutoLoad() &&
                 // check if criteria has association to load.
-                false
+                !$this->isAssociationLoaded($criteria, $relationField)
             ) {
                 continue;
             }
@@ -164,18 +164,55 @@ class EntityRepository implements EntityRepositoryInterface
 
                 if ($foundIds->count() == 0) continue;
 
-                if (!array_key_exists($relationField->getRelatedToDefinition(), $relatedIds)) {
-                    $relatedIds[$relationField->getRelatedToDefinition()] = new EntityIdCollection();
-                }
+                $relatedDefinition = $relationField->getRelatedToDefinition();
+
+                $relatedIds[$relatedDefinition] ??= new EntityIdCollection();
 
                 foreach ($foundIds as $foundId) {
-                    $relatedIds[$relationField->getRelatedToDefinition()]->add($foundId);
+                    $relatedIds[$relatedDefinition]->add($foundId);
                 }
-                $mappedIds[$entity->getId()->toString()][$relationField->getInternalName()] = $foundIds;
+
+                $mappedIds[$relatedDefinition][$entity->getId()->toString()][$relationField->getInternalName()] = $foundIds;
             }
         }
 
-        dump($relatedIds, $mappedIds);
+        foreach ($relatedIds as $definition => $idCollection) {
+            $relatedCriteria = new Criteria($idCollection->getIds());
+
+            foreach ($criteria->getAssociations() as $association) {
+                $explodedAssociation = array_filter(
+                    array_slice(explode('.', $association), 1),
+                    fn($s) => $s !== ''
+                );
+
+                $relatedCriteria->addAssociation(join('.', $explodedAssociation));
+            }
+
+            $relatedEntities = $this->registry->getRepositoryByDefinitionClass($definition)
+                ->search($relatedCriteria);
+
+            foreach ($mappedIds[$definition] as $entityId => $internalNames) {
+                $entity = $collection->getById($entityId);
+
+                foreach ($internalNames as $internalName => $foundIds) {
+                    foreach (array_filter(
+                        $relatedEntities->getEntities()->getEntities(),
+                        fn(AbstractEntity $entity) => $foundIds->has($entity->getId())
+                    ) as $relatedEntity) {
+                        $entity->set($relationField, $internalName, $relatedEntity);
+                    }
+                }
+            }
+        }
+    }
+
+    private function isAssociationLoaded(Criteria $criteria, RelationalField $field): bool
+    {
+        foreach ($criteria->getAssociations() as $association) {
+            if (str_starts_with($association, $field->getInternalName())) return true;
+        }
+
+        return false;
     }
 
     protected function combineToCollection(

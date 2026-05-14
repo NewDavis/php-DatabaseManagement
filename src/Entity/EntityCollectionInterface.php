@@ -12,6 +12,7 @@ interface EntityCollectionInterface extends \IteratorAggregate, \Countable
     public function indexAt(int $index): ?AbstractEntity;
     public function indexOf(AbstractEntity $entity): false|int|string;
     public function first(): ?AbstractEntity;
+    public function getById(UuidInterface|string $id): ?AbstractEntity;
     public function getEntities(): array;
 
     public static function getDefinitionClass(): string;

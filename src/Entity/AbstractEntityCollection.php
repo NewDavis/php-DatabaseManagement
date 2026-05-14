@@ -47,6 +47,17 @@ abstract class AbstractEntityCollection implements EntityCollectionInterface
         );
     }
 
+    public function getById(UuidInterface|string $id): ?AbstractEntity
+    {
+        $stringId = $id instanceof UuidInterface ? $id->toString() : $id;
+
+        if (array_key_exists($stringId, $this->entities)) {
+            return $this->entities[$stringId];
+        }
+
+        return null;
+    }
+
     public function first(): ?AbstractEntity
     {
         return $this->indexAt(0);
