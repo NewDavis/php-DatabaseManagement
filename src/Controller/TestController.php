@@ -160,7 +160,7 @@ class TestController extends AbstractController
 
         $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         $criteria = new Criteria([$accountId, '1DC0D0B1D9A44DF2973BB05CA4893D11', '570787C36B164D3594BB0D1963E8B1FA']);
-        $criteria->addAssociation('penis.account');
+        $criteria->addAssociation('token.account');
         $criteria->addFilter(new EqualsFilter('token.account.username', 'NewDavis'));
         $criteria->addFilter(new EqualsFilter('token.account.roles.name', 'Administrator'));
         $criteria->addFilter(new MultiFilter([

@@ -176,22 +176,38 @@ class EntityRepository implements EntityRepositoryInterface
             }
         }
 
-        foreach ($relatedIds as $definition => $idCollection) {
+        foreach ($relatedIds as $relatedDefinition => $idCollection) {
             $relatedCriteria = new Criteria($idCollection->getIds());
 
             foreach ($criteria->getAssociations() as $association) {
-                $explodedAssociation = array_filter(
-                    array_slice(explode('.', $association), 1),
+                $explodedAssociation = explode('.', $association);
+
+                try {
+                    $localRelationalField = $this->definition->getFields()->getByInternalName($explodedAssociation[0]);
+
+                    if (
+                        !($localRelationalField instanceof RelationalField) ||
+                        $localRelationalField->getRelatedToDefinition() !== $relatedDefinition
+                    ) {
+                        continue;
+                    }
+                } catch (\Throwable $e) {
+                    // association not included
+                    continue;
+                }
+
+                $slicedAssociation = array_filter(
+                    array_slice($explodedAssociation, 1),
                     fn($s) => $s !== ''
                 );
 
-                $relatedCriteria->addAssociation(join('.', $explodedAssociation));
+                $relatedCriteria->addAssociation(join('.', $slicedAssociation));
             }
 
-            $relatedEntities = $this->registry->getRepositoryByDefinitionClass($definition)
+            $relatedEntities = $this->registry->getRepositoryByDefinitionClass($relatedDefinition)
                 ->search($relatedCriteria);
 
-            foreach ($mappedIds[$definition] as $entityId => $internalNames) {
+            foreach ($mappedIds[$relatedDefinition] as $entityId => $internalNames) {
                 $entity = $collection->getById($entityId);
 
                 foreach ($internalNames as $internalName => $foundIds) {
