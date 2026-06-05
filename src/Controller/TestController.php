@@ -76,8 +76,8 @@ class TestController extends AbstractController
         $result = $this->accountRepository->create([
             [
                 'id' => $accountId,
-                'username' => 'admin' . substr($accountId->toString(), 0, 6),
-                'email' => 'admin' . substr($accountId->toString(), 0, 6) . '@newdavis.me',
+                'username' => 'admin'/* . substr($accountId->toString(), 0, 6)*/,
+                'email' => 'admin' . /*substr($accountId->toString(), 0, 6) .*/ '@newdavis.me',
                 'password' => 'password',
                 'primaryRole' => [
                     'id' => $roleId,
@@ -89,12 +89,12 @@ class TestController extends AbstractController
                         'name' => 'Administrator'
                     ]
                 ],
-                /*'tokenId' => $tokenId,
+                'tokenId' => $tokenId,
                 'token' => [
                     'id' => $tokenId,
                     'accountId' => $accountId,
                     'token' => 'eyjfidwegfouehrghsefojigseijt'
-                ]*/
+                ]
             ],
         ]);
 
