@@ -208,4 +208,32 @@ class TestController extends AbstractController
             'success' => true
         ]);
     }
+
+    #[Route(
+        path: '/orm/test/count',
+        name: 'orm.test.count',
+        methods: ['GET']
+    )]
+    public function count(Request $request)
+    {
+        $start = microtime(true);
+
+        $accountIds = [
+            Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a"),
+            Uuid::fromString("1DC0D0B1D9A44DF2973BB05CA4893D11"),
+            Uuid::fromString('570787C36B164D3594BB0D1963E8B1FA')
+        ];
+        $criteria = new Criteria(/*$accountIds*/);
+
+        $ids = $this->accountRepository->count($criteria);
+
+        $end = microtime(true);
+        $took = $end - $start;
+
+        dd($ids, "took {$took}s");
+
+        return new JsonResponse([
+            'success' => true
+        ]);
+    }
 }

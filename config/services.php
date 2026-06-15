@@ -17,7 +17,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(Connection::class);
 
-    /*$services->set(TestController::class)
+    $services->set(TestController::class)
         ->tag('controller.service_arguments');
 
     $services->set(AccountDefinition::class)
@@ -27,7 +27,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->tag('newdavis.entity.definition');
 
     $services->set(TokenDefinition::class)
-        ->tag('newdavis.entity.definition');*/
+        ->tag('newdavis.entity.definition');/**/
 
     $services->set(EntityRegistry::class);
 };

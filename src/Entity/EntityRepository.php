@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity;
 
 use NewDavis\DatabaseManagement\Entity\Builder\Delete\DeleteBuilder;
+use NewDavis\DatabaseManagement\Entity\Builder\Read\Count\CountBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Entity\ReadEntityBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Id\ReadIdBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteAction;
@@ -15,6 +16,7 @@ use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
 use NewDavis\DatabaseManagement\Entity\FieldSerializer\IdFieldSerializer;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
+use NewDavis\DatabaseManagement\Entity\Read\EntityCountResult;
 use NewDavis\DatabaseManagement\Entity\Read\EntityIdSearchResult;
 use NewDavis\DatabaseManagement\Entity\Read\EntitySearchResult;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteResult;
@@ -28,6 +30,7 @@ class EntityRepository implements EntityRepositoryInterface
     private readonly WriteBuilder $writeBuilder;
     private readonly ReadEntityBuilder $readEntityBuilder;
     private readonly ReadIdBuilder $readIdBuilder;
+    private readonly CountBuilder $countBuilder;
     private readonly DeleteBuilder $deleteBuilder;
 
     public function __construct(
@@ -37,6 +40,7 @@ class EntityRepository implements EntityRepositoryInterface
         $this->writeBuilder = new WriteBuilder($this->registry, $this->definition);
         $this->readEntityBuilder = new ReadEntityBuilder($this->registry, $this->definition);
         $this->readIdBuilder = new ReadIdBuilder($this->registry, $this->definition);
+        $this->countBuilder = new CountBuilder($this->registry, $this->definition);
         $this->deleteBuilder = new DeleteBuilder($this->registry, $this->definition);
     }
 
@@ -73,6 +77,19 @@ class EntityRepository implements EntityRepositoryInterface
 
         return new EntityIdSearchResult(
             $idCollection,
+            $criteria,
+            $statements
+        );
+    }
+
+    public function count(Criteria $criteria): EntityCountResult
+    {
+        $statements = $this->countBuilder->build($criteria);
+
+        $data = $this->registry->getConnection()->query($statements);
+
+        return new EntityCountResult(
+            $data[0]['data'][0]['count'],
             $criteria,
             $statements
         );
@@ -149,16 +166,20 @@ class EntityRepository implements EntityRepositoryInterface
                     $relationField instanceof OneToManyRelation ||
                     $relationField instanceof ManyToManyRelation
                 ) {
-                    // load relatedids
+                    // TODO load relatedids
                 } else if (
                     $relationField instanceof OneToOneRelation ||
                     $relationField instanceof ManyToOneRelation
                 ) {
+                    $foundId = $entity->get(
+                        $relationField->getForeignKey(),
+                        $relationField->getForeignKey()->getInternalName()
+                    );
+
+                    if ($foundId == null) continue;
+
                     $foundIds->add(
-                        Uuid::fromBytes($entity->get(
-                            $relationField->getForeignKey(),
-                            $relationField->getForeignKey()->getInternalName()
-                        ))
+                        Uuid::fromBytes($foundId)
                     );
                 }
 

@@ -17,11 +17,23 @@ abstract class AbstractEntityCollection implements EntityCollectionInterface
         $this->entities[$entity->getId()->toString()] = $entity;
     }
 
+    public function addAll(AbstractEntityCollection|array $entities): void
+    {
+        foreach ($entities as $entity) {
+            $this->add($entity);
+        }
+    }
+
     public function remove(AbstractEntity $entity): void
     {
         if (!array_key_exists($entity->getId()->toString(), $this->entities)) return;
 
         unset($this->entities[$entity->getId()->toString()]);
+    }
+
+    public function clear(): void
+    {
+        $this->entities = [];
     }
 
     public function has(UuidInterface|AbstractEntity $entity): bool

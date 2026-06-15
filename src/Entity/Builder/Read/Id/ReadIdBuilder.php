@@ -21,7 +21,7 @@ class ReadIdBuilder extends ConditionBuilder
         $query = <<<SQL
 SELECT `{$this->definition->getEntityName()}`.`id` FROM `{$this->definition->getEntityName()}`
 {$joins}
-WHERE {$where->getQuery()} 
+{$where->getQuery()} 
 {$sorting} 
 {$limit} {$offset}
 SQL;

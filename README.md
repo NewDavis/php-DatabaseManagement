@@ -4,9 +4,10 @@
 
 <h3>To-Do</h3>
 <ul>
-    <li><b>Table-Creation</b>: Funktion zur Erstellung der Tabellen</li>
-    <li><b>EntityCollection</b>: Add more functions like <b>addAll</b></li>
-    <li><b>EntityRepository</b>: Add more functions like <b>count</b></li>
+    <li><b>Table-Creation</b>: Command / Migration-System to create and update all tables</li>
+    <li><b>WriteBuilder</b>: Fix write order, to write multiple entities with relations at once</li>
+    <li><b>EntityRepository</b>: Add functionality to load ManyToMany/OneToMany relations</li>
+    <li><b>ConditionBuilder</b>: Add missing functionality for sorting</li>
 </ul>
  
 <h3>Connection:</h3>
@@ -38,7 +39,7 @@
 <pre><code>public const ENTITY_NAME = 'user';</code></pre>
             </li>
             <li>
-                For the <b>getEntityName</b> function return your const.<br>
+                For the <b>getEntityName</b> function, return your const.<br>
                 for example: <br>
                 <pre><code>public function getEntityName(): string|null
 {

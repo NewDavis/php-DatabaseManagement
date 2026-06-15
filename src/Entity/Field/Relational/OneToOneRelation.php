@@ -16,7 +16,7 @@ class OneToOneRelation extends RelationalField implements StorableInterface, Has
         string $internalName,
         private readonly string $storageName,
         string $relatedToDefinition,
-        string $relatedToInternalName,
+        string $relatedToInternalName = 'id',
         bool $autoLoad = false
     ) {
         parent::__construct(

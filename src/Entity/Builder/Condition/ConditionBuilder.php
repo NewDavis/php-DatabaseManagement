@@ -194,6 +194,7 @@ SQL;
         $field = $serializableField->getStorageName();
 
         $value = $filter->getSearchValue();
+
         if ($serializableField instanceof Serializable) {
             $value = $serializableField->getSerializer()->encode($value);
         }
@@ -210,11 +211,23 @@ SQL;
 
         /** @var FilterInterface $filter */
         foreach ($criteria->getFilters() as $filter) {
+            if (
+                $filter instanceof SearchableFilterInterface &&
+                is_array($filter->getSearchValue()) &&
+                count($filter->getSearchValue()) == 0
+            ) continue;
+
             if ($filter instanceof MultiFilterInterface) {
                 $subQueries = [];
                 $subParameters = [];
 
                 foreach ($filter->getFilters() as $subFilter) {
+                    if (
+                        $subFilter instanceof SearchableFilterInterface &&
+                        is_array($subFilter->getSearchValue()) &&
+                        count($subFilter->getSearchValue()) == 0
+                    ) continue;
+
                     $subFilterResult = $this->convertSearchableFilter($subFilter, $joinMapping);
 
                     $subQueries[] = $subFilterResult->getQuery();
@@ -239,13 +252,14 @@ SQL;
         }
 
         return new FilterResult(
-            implode(" AND\n", $queries),
+            (count($queries) > 0 ? " WHERE\n" : '') . implode(" AND\n", $queries),
             $parameters
         );
     }
 
     public function buildSorting(Criteria $criteria): string
     {
+        // TODO build sorting
         return '';
     }
 
