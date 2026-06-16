@@ -10,6 +10,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class Connection
 {
+    public static int $totalQueries = 0;
     private readonly \PDO $pdo;
 
     public function __construct(
@@ -75,6 +76,7 @@ class Connection
 
             $stmt = $this->pdo
                 ->prepare($statement->getQuery());
+            self::$totalQueries++;
 
             if (!$stmt->execute($statement->getParameters())) {
                 $data[$i] = $stmt->errorInfo();

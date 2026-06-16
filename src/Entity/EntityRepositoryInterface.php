@@ -14,11 +14,11 @@ interface EntityRepositoryInterface
 {
     public function search(Criteria $criteria): EntitySearchResult;
     public function searchIds(Criteria $criteria): EntityIdSearchResult;
+    public function count(Criteria $criteria): EntityCountResult;
     public function create(array|AbstractEntity|AbstractEntityCollection $entities): EntityWriteResult;
     public function update(array $entities): EntityWriteResult;
     public function upsert(array $entities): EntityWriteResult;
     public function delete(Criteria $criteria): EntityWriteResult;
-    public function count(Criteria $criteria): EntityCountResult;
     public function getDefinition(): EntityDefinitionInterface;
     public function getRegistry(): EntityRegistry;
     public function getWriteBuilder(): WriteBuilder;

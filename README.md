@@ -5,8 +5,14 @@
 <h3>To-Do</h3>
 <ul>
     <li><b>Table-Creation</b>: Command / Migration-System to create and update all tables</li>
-    <li><b>WriteBuilder</b>: Fix write order, to write multiple entities with relations at once</li>
-    <li><b>EntityRepository</b>: Add functionality to load ManyToMany/OneToMany relations</li>
+    <li>
+        <b>WriteBuilder</b>: Fix write order, to write multiple entities with relations at once. <br>
+        The write process is quite slow (because of password hashing).
+    </li>
+    <li>
+        <b>ReadBuilder:</b> With 1000 accounts queried, all relations are loaded separately for each account and not in one pass as when writing.
+    </li>
+    <li><b>Write</b>: ManyToMany is only set for first or last created entity when creating as batch?</li>
     <li><b>ConditionBuilder</b>: Add missing functionality for sorting</li>
 </ul>
  
@@ -15,7 +21,7 @@
     <li>You have to go into your project <b>.env</b> File</li>
     <li>
         Check if there is a <b>DATABASE_URL</b> configured:<br>
-        For example: DATABASE_URL="mysql://root:@localhost:3307/development"
+        For example: DATABASE_URL="mysql://root:@localhost:3307/development?"
     </li>
     <li>The connection should now work.</li>
 </ul>

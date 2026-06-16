@@ -57,6 +57,12 @@ class EntityTableHelper
                 'property' => $manyToManyField->getRelatedToInternalName(),
             ]
         ];
+
+        if ($definition->getEntityName() === $relatedDefinition->getEntityName()) {
+            $fieldDataSets[0]['table'] .= '_' . $manyToManyField->getInternalName();
+            $fieldDataSets[0]['property'] .= '_' . $manyToManyField->getInternalName();
+        }
+
         usort($fieldDataSets, function ($a, $b) {
             return $a['table'] <=> $b['table'];
         });

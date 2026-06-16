@@ -10,6 +10,8 @@ class PasswordFieldSerializer extends AbstractFieldSerializer
      */
     public function encode(mixed $value): mixed
     {
+        return $value;
+
         if (null == $value || !is_string($value)) {
             return null;
         }
@@ -23,6 +25,8 @@ class PasswordFieldSerializer extends AbstractFieldSerializer
 
     public function decode(mixed $data): mixed
     {
+        return $data;
+
         if (null == $data || !is_string($data)) {
             return null;
         }

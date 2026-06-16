@@ -6,6 +6,7 @@ use NewDavis\DatabaseManagement\Entity\Builder\Delete\DeleteBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Count\CountBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Entity\ReadEntityBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Read\Id\ReadIdBuilder;
+use NewDavis\DatabaseManagement\Entity\Builder\Read\Mapping\ReadMappingIdBuilder;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteAction;
 use NewDavis\DatabaseManagement\Entity\Builder\Write\WriteBuilder;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\ManyToManyRelation;
@@ -23,6 +24,7 @@ use NewDavis\DatabaseManagement\Entity\Write\EntityWriteResult;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 use NewDavis\DatabaseManagement\Util\Helper\EntityHelper;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use function Adminer\dump_csv;
 
 class EntityRepository implements EntityRepositoryInterface
@@ -31,6 +33,7 @@ class EntityRepository implements EntityRepositoryInterface
     private readonly ReadEntityBuilder $readEntityBuilder;
     private readonly ReadIdBuilder $readIdBuilder;
     private readonly CountBuilder $countBuilder;
+    private readonly ReadMappingIdBuilder $readMappingIdBuilder;
     private readonly DeleteBuilder $deleteBuilder;
 
     public function __construct(
@@ -41,6 +44,7 @@ class EntityRepository implements EntityRepositoryInterface
         $this->readEntityBuilder = new ReadEntityBuilder($this->registry, $this->definition);
         $this->readIdBuilder = new ReadIdBuilder($this->registry, $this->definition);
         $this->countBuilder = new CountBuilder($this->registry, $this->definition);
+        $this->readMappingIdBuilder = new ReadMappingIdBuilder($this->registry, $this->definition);
         $this->deleteBuilder = new DeleteBuilder($this->registry, $this->definition);
     }
 
@@ -91,6 +95,31 @@ class EntityRepository implements EntityRepositoryInterface
         return new EntityCountResult(
             $data[0]['data'][0]['count'],
             $criteria,
+            $statements
+        );
+    }
+
+    private function searchMappingIds(
+        ManyToManyRelation|OneToManyRelation $relation,
+        EntityIdCollection $idCollection
+    ): EntityIdSearchResult {
+        $statements = $this->readMappingIdBuilder->build($relation, $idCollection);
+
+        $data = $this->registry->getConnection()->query($statements);
+
+        dd($data);
+
+        $foundIds = new EntityIdCollection();
+        $idSerializer = new IdFieldSerializer(new IdField());
+
+        foreach ($data[0]['data'] as $row) {
+            $decodedId = $idSerializer->decode($row['value']);
+            $foundIds->add($decodedId);
+        }
+
+        return new EntityIdSearchResult(
+            $foundIds,
+            new Criteria($idCollection->getIds()),
             $statements
         );
     }
@@ -158,6 +187,21 @@ class EntityRepository implements EntityRepositoryInterface
                 continue;
             }
 
+            if (
+                $relationField instanceof OneToManyRelation ||
+                $relationField instanceof ManyToManyRelation
+            ) {
+                $mappingIds = new EntityIdCollection();
+                /** @var AbstractEntity $entity */
+                foreach ($collection as $entity) {
+                    $mappingIds->add($entity->getId());
+                }
+
+                $mappings = $this->searchMappingIds($relationField, $mappingIds);
+
+                dd($mappings->getStatements()->getStatements());
+            }
+
             /** @var AbstractEntity $entity */
             foreach ($collection as $entity) {
                 $foundIds = new EntityIdCollection();
@@ -166,7 +210,8 @@ class EntityRepository implements EntityRepositoryInterface
                     $relationField instanceof OneToManyRelation ||
                     $relationField instanceof ManyToManyRelation
                 ) {
-                    // TODO load relatedids
+                    // TODO
+                    //$foundIds->addAll($this->searchMappingIds($relationField, $entity->getId())->getIds());
                 } else if (
                     $relationField instanceof OneToOneRelation ||
                     $relationField instanceof ManyToOneRelation
@@ -188,10 +233,7 @@ class EntityRepository implements EntityRepositoryInterface
                 $relatedDefinition = $relationField->getRelatedToDefinition();
 
                 $relatedIds[$relatedDefinition] ??= new EntityIdCollection();
-
-                foreach ($foundIds as $foundId) {
-                    $relatedIds[$relatedDefinition]->add($foundId);
-                }
+                $relatedIds[$relatedDefinition]->addAll($foundIds);
 
                 $mappedIds[$relatedDefinition][$entity->getId()->toString()][$relationField->getInternalName()] = $foundIds;
             }
@@ -232,11 +274,29 @@ class EntityRepository implements EntityRepositoryInterface
                 $entity = $collection->getById($entityId);
 
                 foreach ($internalNames as $internalName => $foundIds) {
-                    foreach (array_filter(
+                    $toBeAddedEntities = array_filter(
                         $relatedEntities->getEntities()->getEntities(),
                         fn(AbstractEntity $entity) => $foundIds->has($entity->getId())
-                    ) as $relatedEntity) {
-                        $entity->set($relationField, $internalName, $relatedEntity);
+                    );
+
+                    $relationField = $this->definition->getFields()->getByInternalName($internalName);
+
+                    if (
+                        $relationField instanceof ManyToManyRelation ||
+                        $relationField instanceof OneToManyRelation
+                    ) {
+                        // add to collection
+                        $toBeAddedCollection = EntityHelper::createCollection(
+                            $this->registry->getDefinitionByDefinitionClass($relatedDefinition),
+                            $toBeAddedEntities
+                        );
+
+                        $entity->set($relationField, $internalName, $toBeAddedCollection);
+                    } else {
+                        // directly set just entity
+                        foreach ($toBeAddedEntities as $relatedEntity) {
+                            $entity->set($relationField, $internalName, $relatedEntity);
+                        }
                     }
                 }
             }

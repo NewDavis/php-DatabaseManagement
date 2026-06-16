@@ -17,6 +17,13 @@ class EntityIdCollection implements EntityIdCollectionInterface
         $this->ids[] = $this->getId($entity);
     }
 
+    public function addAll(EntityIdCollection|array $entities): void
+    {
+        foreach ($entities as $entity) {
+            $this->add($entity);
+        }
+    }
+
     public function remove(AbstractEntity|UuidInterface $entity): void
     {
         $index = $this->indexOf($entity);
@@ -24,6 +31,11 @@ class EntityIdCollection implements EntityIdCollectionInterface
         if ($index === false) return;
 
         unset($this->ids[$index]);
+    }
+
+    public function clear(): void
+    {
+        $this->ids = [];
     }
 
     public function has(UuidInterface|AbstractEntity $entity): bool
