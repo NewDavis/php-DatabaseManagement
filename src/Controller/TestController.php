@@ -8,6 +8,7 @@ use NewDavis\DatabaseManagement\Demo\Account\AccountEntity;
 use NewDavis\DatabaseManagement\Demo\Role\RoleDefinition;
 use NewDavis\DatabaseManagement\Demo\Token\TokenDefinition;
 use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
+use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\EntityRepository;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
@@ -15,6 +16,8 @@ use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsAnyFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilterType;
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 use PhpParser\Node\Expr\AssignOp\Mul;
 use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -74,15 +77,17 @@ class TestController extends AbstractController
         $tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
         $roleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
 
+        $password = password_hash("password", PASSWORD_ARGON2ID);
+
         $dataSets = [];
-        for ($i = 0; $i < 10000; $i++) {
+        for ($i = 0; $i < 100; $i++) {
             $accountId = /*Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");*/Uuid::uuid4();
 
             $dataSets[] = [
                 'id' => $accountId,
                 'username' => 'admin' . substr($accountId->toString(), 0, 12),
                 'email' => 'admin' . substr($accountId->toString(), 0, 12) . '@newdavis.me',
-                'password' => 'password',
+                'password' => $password,
                 'primaryRole' => [
                     'id' => $roleId,
                     'name' => 'Administrator',
@@ -144,6 +149,30 @@ class TestController extends AbstractController
                 ]
             ],
         ]);
+
+        $end = microtime(true);
+        $took = $end - $start;
+
+        dd($result, "took {$took}s");
+
+        return new JsonResponse([
+            'success' => true
+        ]);
+    }
+
+    #[Route(
+        path: '/orm/test/delete',
+        name: 'orm.test.delete',
+        methods: ['GET']
+    )]
+    public function delete(Request $request)
+    {
+        $start = microtime(true);
+
+        $criteria = new Criteria();
+        //$criteria->addFilter(new EqualsFilter('id', 'test'));
+
+        $result = $this->accountRepository->delete($criteria);
 
         $end = microtime(true);
         $took = $end - $start;

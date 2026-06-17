@@ -42,6 +42,19 @@ class Connection
         );
     }
 
+    public function execute(array $statements): void
+    {
+        if (count($statements) == 0) return;
+
+        try {
+            foreach ($statements as $statement) {
+                $this->pdo->exec($statement);
+            }
+        } catch (\PDOException $e) {
+            throw $e;
+        }
+    }
+
     public function write(EntityWriteStatementCollection $statements): void
     {
         if ($statements->count() == 0) return;

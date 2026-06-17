@@ -57,4 +57,20 @@ class EntityRegistry
     {
         return $this->converter;
     }
+
+    /**
+     * @return array
+     */
+    public function getDefinitions(): array
+    {
+        return $this->definitions;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRepositories(): array
+    {
+        return $this->repositories;
+    }
 }

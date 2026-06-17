@@ -21,7 +21,7 @@ class DeleteBuilder extends ConditionBuilder
         $query = <<<SQL
 DELETE FROM `{$this->definition->getEntityName()}`
 {$joins}
-WHERE {$where->getQuery()} 
+{$where->getQuery()} 
 {$sorting} 
 {$limit} {$offset}
 SQL;

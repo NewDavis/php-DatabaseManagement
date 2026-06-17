@@ -4,10 +4,9 @@
 
 <h3>To-Do</h3>
 <ul>
-    <li><b>Table-Creation</b>: Command / Migration-System to create and update all tables</li>
     <li>
         <b>WriteBuilder</b>: Fix write order, to write multiple entities with relations at once. <br>
-        The write process is quite slow (because of password hashing).
+        The write process is quite slow (because of automatic password hashing).
     </li>
     <li><b>ConditionBuilder</b>: Add missing functionality for sorting</li>
 </ul>
