@@ -3,6 +3,7 @@
 namespace NewDavis\DatabaseManagement\Entity\Read;
 
 use NewDavis\DatabaseManagement\Entity\EntityIdCollection;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
 
 class EntityIdSearchResult
@@ -12,6 +13,14 @@ class EntityIdSearchResult
         private readonly Criteria $criteria,
         private readonly EntityReadStatementCollection $statements
     ) {
+    }
+
+    /**
+     * @return EntityIdCollection
+     */
+    public function getMappingPairs(): EntityIdCollection
+    {
+        return $this->ids;
     }
 
     /**

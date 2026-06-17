@@ -19,6 +19,7 @@ use NewDavis\DatabaseManagement\Entity\FieldSerializer\IdFieldSerializer;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Entity\Read\EntityCountResult;
 use NewDavis\DatabaseManagement\Entity\Read\EntityIdSearchResult;
+use NewDavis\DatabaseManagement\Entity\Read\EntityMappingIdResult;
 use NewDavis\DatabaseManagement\Entity\Read\EntitySearchResult;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteResult;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
@@ -102,24 +103,14 @@ class EntityRepository implements EntityRepositoryInterface
     private function searchMappingIds(
         ManyToManyRelation|OneToManyRelation $relation,
         EntityIdCollection $idCollection
-    ): EntityIdSearchResult {
+    ): EntityMappingIdResult {
         $statements = $this->readMappingIdBuilder->build($relation, $idCollection);
 
         $data = $this->registry->getConnection()->query($statements);
 
-        dd($data);
-
-        $foundIds = new EntityIdCollection();
-        $idSerializer = new IdFieldSerializer(new IdField());
-
-        foreach ($data[0]['data'] as $row) {
-            $decodedId = $idSerializer->decode($row['value']);
-            $foundIds->add($decodedId);
-        }
-
-        return new EntityIdSearchResult(
-            $foundIds,
-            new Criteria($idCollection->getIds()),
+        return new EntityMappingIdResult(
+            $data[0]['data'],
+            $relation,
             $statements
         );
     }
@@ -187,6 +178,10 @@ class EntityRepository implements EntityRepositoryInterface
                 continue;
             }
 
+            $foundIds = new EntityIdCollection();
+            $relatedDefinition = $relationField->getRelatedToDefinition();
+            $relatedIds[$relatedDefinition] ??= new EntityIdCollection();
+
             if (
                 $relationField instanceof OneToManyRelation ||
                 $relationField instanceof ManyToManyRelation
@@ -199,23 +194,23 @@ class EntityRepository implements EntityRepositoryInterface
 
                 $mappings = $this->searchMappingIds($relationField, $mappingIds);
 
-                dd($mappings->getStatements()->getStatements());
-            }
+                $foundIds->addAll($mappings->getMappingIds());
 
-            /** @var AbstractEntity $entity */
-            foreach ($collection as $entity) {
-                $foundIds = new EntityIdCollection();
+                foreach (
+                    array_filter(
+                        $collection->getEntities(),
+                        fn(AbstractEntity $entity) => array_key_exists(
+                            $entity->getId()->toString(),
+                            $mappings->getPairs()
+                        )
+                    ) as $entity) {
+                    $id = $entity->getId()->toString();
 
-                if (
-                    $relationField instanceof OneToManyRelation ||
-                    $relationField instanceof ManyToManyRelation
-                ) {
-                    // TODO
-                    //$foundIds->addAll($this->searchMappingIds($relationField, $entity->getId())->getIds());
-                } else if (
-                    $relationField instanceof OneToOneRelation ||
-                    $relationField instanceof ManyToOneRelation
-                ) {
+                    $mappedIds[$relatedDefinition][$id][$relationField->getInternalName()] = $mappings->getPairs()[$id];
+                }
+            } else {
+                /** @var AbstractEntity $entity */
+                foreach ($collection as $entity) {
                     $foundId = $entity->get(
                         $relationField->getForeignKey(),
                         $relationField->getForeignKey()->getInternalName()
@@ -226,17 +221,15 @@ class EntityRepository implements EntityRepositoryInterface
                     $foundIds->add(
                         Uuid::fromBytes($foundId)
                     );
+
+                    $id = $entity->getId()->toString();
+                    $mappedIds[$relatedDefinition][$id][$relationField->getInternalName()] = $foundIds;
                 }
-
-                if ($foundIds->count() == 0) continue;
-
-                $relatedDefinition = $relationField->getRelatedToDefinition();
-
-                $relatedIds[$relatedDefinition] ??= new EntityIdCollection();
-                $relatedIds[$relatedDefinition]->addAll($foundIds);
-
-                $mappedIds[$relatedDefinition][$entity->getId()->toString()][$relationField->getInternalName()] = $foundIds;
             }
+
+            if ($foundIds->count() == 0) continue;
+
+            $relatedIds[$relatedDefinition]->addAll($foundIds);
         }
 
         foreach ($relatedIds as $relatedDefinition => $idCollection) {
@@ -269,6 +262,10 @@ class EntityRepository implements EntityRepositoryInterface
 
             $relatedEntities = $this->registry->getRepositoryByDefinitionClass($relatedDefinition)
                 ->search($relatedCriteria);
+
+            if (!array_key_exists($relatedDefinition, $mappedIds)) {
+                continue;
+            }
 
             foreach ($mappedIds[$relatedDefinition] as $entityId => $internalNames) {
                 $entity = $collection->getById($entityId);
