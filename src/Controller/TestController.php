@@ -75,13 +75,13 @@ class TestController extends AbstractController
         $roleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
 
         $dataSets = [];
-        for ($i = 0; $i < 100; $i++) {
+        for ($i = 0; $i < 10000; $i++) {
             $accountId = /*Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");*/Uuid::uuid4();
 
             $dataSets[] = [
                 'id' => $accountId,
-                'username' => 'admin' . substr($accountId->toString(), 0, 6),
-                'email' => 'admin' . substr($accountId->toString(), 0, 6) . '@newdavis.me',
+                'username' => 'admin' . substr($accountId->toString(), 0, 12),
+                'email' => 'admin' . substr($accountId->toString(), 0, 12) . '@newdavis.me',
                 'password' => 'password',
                 'primaryRole' => [
                     'id' => $roleId,

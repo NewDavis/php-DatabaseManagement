@@ -9,7 +9,6 @@
         <b>WriteBuilder</b>: Fix write order, to write multiple entities with relations at once. <br>
         The write process is quite slow (because of password hashing).
     </li>
-    <li><b>Write</b>: ManyToMany is only set for first or last created entity when creating as batch?</li>
     <li><b>ConditionBuilder</b>: Add missing functionality for sorting</li>
 </ul>
  
