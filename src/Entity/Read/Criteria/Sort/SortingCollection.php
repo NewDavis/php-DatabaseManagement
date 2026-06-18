@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort;
 
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterInterface;
 use Traversable;
 
 class SortingCollection implements \IteratorAggregate, \Countable
@@ -23,6 +24,20 @@ class SortingCollection implements \IteratorAggregate, \Countable
         if ($index === false) return;
 
         unset($this->sortings[$index]);
+    }
+
+    /**
+     * @param string $className
+     * @return array
+     */
+    public function filter(string $className): array
+    {
+        return array_values(
+            array_filter(
+                $this->sortings,
+                fn(SortingInterface $sorting) => $sorting instanceof $className,
+            )
+        );
     }
 
     /**

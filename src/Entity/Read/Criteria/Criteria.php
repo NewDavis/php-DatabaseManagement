@@ -19,7 +19,7 @@ class Criteria
     private int $offset;
     private int $page;
     private readonly FilterCollection $filters;
-    private readonly SortingCollection $sortings;
+    private readonly SortingCollection $sortingCollection;
     private array $associations;
 
     public function __construct(
@@ -28,7 +28,7 @@ class Criteria
         int $page = 1,
     ) {
         $this->filters = new FilterCollection();
-        $this->sortings = new SortingCollection();
+        $this->sortingCollection = new SortingCollection();
         $this->associations = [];
 
         $this->limit = $limit;
@@ -120,14 +120,14 @@ class Criteria
 
     public function addSorting(SortingInterface $sorting): Criteria
     {
-        $this->sortings->add($sorting);
+        $this->sortingCollection->add($sorting);
 
         return $this;
     }
 
-    public function removeSortings(SortingInterface $sorting): Criteria
+    public function removeSorting(SortingInterface $sorting): Criteria
     {
-        $this->sortings->remove($sorting);
+        $this->sortingCollection->remove($sorting);
 
         return $this;
     }
@@ -172,9 +172,9 @@ class Criteria
     /**
      * @return SortingCollection
      */
-    public function getSortings(): SortingCollection
+    public function getSortingCollection(): SortingCollection
     {
-        return $this->sortings;
+        return $this->sortingCollection;
     }
 
     /**

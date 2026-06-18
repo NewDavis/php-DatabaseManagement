@@ -18,6 +18,8 @@ use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterInterface;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterResult;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilterInterface;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\SearchableFilterInterface;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort\FieldSorting;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort\SortingInterface;
 use NewDavis\DatabaseManagement\Util\Helper\EntityHelper;
 use NewDavis\DatabaseManagement\Util\Helper\EntityTableHelper;
 use function Adminer\dump_csv;
@@ -259,7 +261,32 @@ SQL;
 
     public function buildSorting(Criteria $criteria): string
     {
-        // TODO build sorting
+        $fieldSorting = [];
+
+        /** @var SortingInterface $sorting */
+        foreach ($criteria->getSortingCollection() as $sorting) {
+            if ($sorting instanceof FieldSorting) {
+                $field = null;
+                try {
+                    $field = $this->definition->getFields()->getByInternalName($sorting->getProperty());
+                } catch (\Throwable $e) {
+                    $field = $this->definition->getFields()->getByStorageName($sorting->getProperty());
+                }
+
+                if (!($field instanceof StorableInterface)) continue;
+
+                $fieldSorting[] = sprintf(
+                    '`%s` %s',
+                    $field->getStorageName(),
+                    $sorting->getDirection()->name
+                );
+            }
+        }
+
+        if (count($fieldSorting) > 0) {
+            return 'ORDER BY ' . implode(", ", $fieldSorting);
+        }
+
         return '';
     }
 

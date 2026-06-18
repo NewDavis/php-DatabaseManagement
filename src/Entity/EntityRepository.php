@@ -20,6 +20,7 @@ use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
 use NewDavis\DatabaseManagement\Entity\Read\EntityCountResult;
 use NewDavis\DatabaseManagement\Entity\Read\EntityIdSearchResult;
 use NewDavis\DatabaseManagement\Entity\Read\EntityMappingIdResult;
+use NewDavis\DatabaseManagement\Entity\Read\EntityReadStatementCollection;
 use NewDavis\DatabaseManagement\Entity\Read\EntitySearchResult;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteResult;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
@@ -104,6 +105,14 @@ class EntityRepository implements EntityRepositoryInterface
         ManyToManyRelation|OneToManyRelation $relation,
         EntityIdCollection $idCollection
     ): EntityMappingIdResult {
+        if ($idCollection->count() == 0) {
+            return new EntityMappingIdResult(
+                [],
+                $relation,
+                new EntityReadStatementCollection([])
+            );
+        }
+
         $statements = $this->readMappingIdBuilder->build($relation, $idCollection);
 
         $data = $this->registry->getConnection()->query($statements);

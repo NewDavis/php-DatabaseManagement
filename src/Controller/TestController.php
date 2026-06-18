@@ -16,6 +16,8 @@ use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsAnyFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilterType;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort\FieldSorting;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort\FieldSortingDirection;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
 use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 use PhpParser\Node\Expr\AssignOp\Mul;
@@ -75,7 +77,9 @@ class TestController extends AbstractController
 
         $accountId = /*Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");*/Uuid::uuid4();
         $tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
-        $roleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
+        $adminRoleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
+        $devRoleId = Uuid::fromString("0B044C1BF22241DEA9FD51C13C1691DB");
+        $userRoleId = Uuid::fromString("183459B51E4842FEA4682080F65080C4");
 
         $password = password_hash("password", PASSWORD_ARGON2ID);
 
@@ -83,21 +87,37 @@ class TestController extends AbstractController
         for ($i = 0; $i < 100; $i++) {
             $accountId = /*Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");*/Uuid::uuid4();
 
+            $roles = [];
+
+            if ($i % 100 === 0) {
+                $roles[] = [
+                    'id' => $adminRoleId,
+                    'name' => 'Administrator'
+                ];
+            }
+
+            if ($i % 50 === 0) {
+                $roles[] = [
+                    'id' => $devRoleId,
+                    'name' => 'Developer'
+                ];
+            }
+
+            $roles[] = [
+                'id' => $userRoleId,
+                'name' => 'User'
+            ];
+
             $dataSets[] = [
                 'id' => $accountId,
                 'username' => 'admin' . substr($accountId->toString(), 0, 12),
                 'email' => 'admin' . substr($accountId->toString(), 0, 12) . '@newdavis.me',
                 'password' => $password,
                 'primaryRole' => [
-                    'id' => $roleId,
-                    'name' => 'Administrator',
+                    'id' => $userRoleId,
+                    'name' => 'Nutzer',
                 ],
-                'roles' => [
-                    [
-                        'id' => $roleId->getBytes(),
-                        'name' => 'Administrator'
-                    ]
-                ],
+                'roles' => $roles,
                 /*'tokenId' => $tokenId,
                 'token' => [
                     'id' => $tokenId,
@@ -196,6 +216,7 @@ class TestController extends AbstractController
         $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
         $criteria = new Criteria(/*[$accountId, '1DC0D0B1D9A44DF2973BB05CA4893D11', '570787C36B164D3594BB0D1963E8B1FA']*/);
         $criteria->addAssociation('roles.primaryUsage');
+        $criteria->addSorting(new FieldSorting('autoIncrement', FieldSortingDirection::DESC));
         /*$criteria->addFilter(new EqualsFilter('token.account.username', 'NewDavis'));
         $criteria->addFilter(new EqualsFilter('token.account.roles.name', 'Administrator'));
         $criteria->addFilter(new MultiFilter([
