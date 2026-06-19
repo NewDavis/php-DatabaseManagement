@@ -75,7 +75,8 @@ class MappingWriteBuilder
                             $manyToManyRelation->getRelatedToInternalName()
                         );
                     } else {
-                        dd("MappingWriteBuilder#buildValues: No value found for mapping");
+                        // No Mapping Data found
+                        continue;
                     }
 
                     $values[$this->buildValueKey($index, $mappingFields->getEntityName(), $fkField)] = $value;

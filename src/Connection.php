@@ -72,7 +72,6 @@ class Connection
             $this->pdo->commit();
         } catch (\PDOException $e) {
             $this->pdo->rollBack();
-            dd($e, $statements);
             throw $e;
         }
     }

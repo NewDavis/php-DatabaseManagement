@@ -19,7 +19,6 @@ class ForeignKeyNotFoundException extends \Exception
                 );
                 break;
             case ManyToManyRelation::class:
-                // TODO
                 parent::__construct(
                     "There is no foreign key in {$tableName} for storageName {$field->getInternalName()}"
                 );
