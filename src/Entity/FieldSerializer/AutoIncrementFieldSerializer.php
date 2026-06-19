@@ -6,7 +6,7 @@ use NewDavis\DatabaseManagement\ORM;
 
 class AutoIncrementFieldSerializer extends AbstractFieldSerializer
 {
-    public function encode(mixed $value): mixed
+    public function encode(mixed $value): ORM|int
     {
         if (!is_numeric($value)) {
             return ORM::DEFAULT;
@@ -15,7 +15,7 @@ class AutoIncrementFieldSerializer extends AbstractFieldSerializer
         return $value;
     }
 
-    public function decode(mixed $data): mixed
+    public function decode(mixed $data): int
     {
         if (is_numeric($data)) {
             return $data;

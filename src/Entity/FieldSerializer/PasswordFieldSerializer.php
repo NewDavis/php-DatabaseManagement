@@ -6,9 +6,9 @@ class PasswordFieldSerializer extends AbstractFieldSerializer
 {
     /**
      * @param string $value
-     * @return mixed
+     * @return string|null
      */
-    public function encode(mixed $value): mixed
+    public function encode(mixed $value): null|string
     {
         if (null == $value || !is_string($value)) {
             return null;
@@ -21,7 +21,7 @@ class PasswordFieldSerializer extends AbstractFieldSerializer
         return password_hash($value, PASSWORD_ARGON2ID);
     }
 
-    public function decode(mixed $data): mixed
+    public function decode(mixed $data): null|string
     {
         return $this->encode($data);
     }

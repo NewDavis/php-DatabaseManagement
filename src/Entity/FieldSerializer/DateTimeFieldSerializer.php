@@ -8,7 +8,7 @@ use NewDavis\DatabaseManagement\ORM;
 
 class DateTimeFieldSerializer extends AbstractFieldSerializer
 {
-    public function encode(mixed $value): mixed
+    public function encode(mixed $value): ORM|string
     {
         if (!($value instanceof \DateTimeImmutable)) {
             return ORM::DEFAULT;
@@ -17,7 +17,7 @@ class DateTimeFieldSerializer extends AbstractFieldSerializer
         return $value->format(DateTimeField::FORMAT);
     }
 
-    public function decode(mixed $data): mixed
+    public function decode(mixed $data): DateTimeImmutable|null
     {
         if ($data instanceof \DateTimeImmutable) {
             return $data;

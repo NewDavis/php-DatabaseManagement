@@ -2,18 +2,18 @@
 
 namespace NewDavis\DatabaseManagement\Entity\FieldSerializer;
 
-use NewDavis\DatabaseManagement\Entity\Field\Field;
-
 /** @template T */
 interface FieldSerializerInterface
 {
     /**
+     * Return value will be used in database
      * @param T $value
      * @return mixed
      */
     public function encode(mixed $value): mixed;
 
     /**
+     * Return value will be set in the entity
      * @param mixed $data
      * @return T
      */
