@@ -35,9 +35,11 @@ class Criteria
         $this->page = min($page, 1);
         $this->offset = $this->page * $this->limit; // calculated by page * limit;
 
-        $this->filters->add(
-            new EqualsAnyFilter('id', $ids)
-        );
+        if (count($this->ids) > 0) {
+            $this->filters->add(
+                new EqualsAnyFilter('id', $ids)
+            );
+        }
     }
 
     /**
