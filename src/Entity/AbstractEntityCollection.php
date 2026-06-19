@@ -45,7 +45,7 @@ abstract class AbstractEntityCollection implements EntityCollectionInterface
 
     public function indexAt(int $index): ?AbstractEntity
     {
-        $idIndex = array_keys($this->entities)[$index];
+        $idIndex = array_keys($this->entities)[$index] ?? null;
 
         return $this->entities[$idIndex] ?? null;
     }

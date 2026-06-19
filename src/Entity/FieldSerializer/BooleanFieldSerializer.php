@@ -7,7 +7,9 @@ class BooleanFieldSerializer extends AbstractFieldSerializer
     public function encode(mixed $value): int
     {
         if (is_bool($value)) {
-            return $value ? (int)1 : (int)0;
+            return $value ? 1 : 0;
+        } else if (is_numeric($value)) {
+            return $value;
         }
 
         return 0;
@@ -15,7 +17,9 @@ class BooleanFieldSerializer extends AbstractFieldSerializer
 
     public function decode(mixed $data): bool
     {
-        if ($data === 0 || $data === 1) {
+        if (is_bool($data)) {
+            return $data;
+        } else if (is_numeric($data)) {
             return (bool)$data;
         }
 
