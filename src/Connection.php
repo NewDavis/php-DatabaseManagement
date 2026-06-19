@@ -10,6 +10,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class Connection
 {
+    public static int $totalQueries = 0;
     private readonly \PDO $pdo;
 
     public function __construct(
@@ -41,6 +42,19 @@ class Connection
         );
     }
 
+    public function execute(array $statements): void
+    {
+        if (count($statements) == 0) return;
+
+        try {
+            foreach ($statements as $statement) {
+                $this->pdo->exec($statement);
+            }
+        } catch (\PDOException $e) {
+            throw $e;
+        }
+    }
+
     public function write(EntityWriteStatementCollection $statements): void
     {
         if ($statements->count() == 0) return;
@@ -58,7 +72,6 @@ class Connection
             $this->pdo->commit();
         } catch (\PDOException $e) {
             $this->pdo->rollBack();
-            dd($e, $statements);
             throw $e;
         }
     }
@@ -75,6 +88,7 @@ class Connection
 
             $stmt = $this->pdo
                 ->prepare($statement->getQuery());
+            self::$totalQueries++;
 
             if (!$stmt->execute($statement->getParameters())) {
                 $data[$i] = $stmt->errorInfo();

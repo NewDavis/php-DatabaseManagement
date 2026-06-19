@@ -11,7 +11,7 @@ class ManyToManyRelation extends RelationalField implements RelatedByInterface
         string $internalName,
         string $relatedToDefinition,
         private readonly string $relatedByInternalName,
-        string $relatedToInternalName,
+        string $relatedToInternalName = 'id',
         private readonly ?string $mappingTableName = null,
         bool $autoLoad = false
     ) {

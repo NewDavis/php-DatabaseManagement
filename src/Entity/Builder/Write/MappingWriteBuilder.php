@@ -40,13 +40,12 @@ class MappingWriteBuilder
     ): array {
         $values = [];
 
+        $index = 0;
         foreach ($collection as $topLevelEntity) {
             $mappedData = $this->fetchManyToManyCollectionFromEntity($manyToManyRelation, $topLevelEntity);
 
-            for ($j = 0; $j < $mappedData->count(); $j++) {
-                /** @var AbstractEntity $mappedEntityData */
-                $mappedEntityData = $mappedData->indexAt($j);
-
+            /** @var AbstractEntity $mappedEntityData */
+            foreach ($mappedData as $mappedEntityData) {
                 /** @var FkField $fkField */
                 foreach (
                     $mappingFields->filter(FkField::class)
@@ -76,11 +75,14 @@ class MappingWriteBuilder
                             $manyToManyRelation->getRelatedToInternalName()
                         );
                     } else {
-                        dd("MappingWriteBuilder#buildValues: No value found for mapping");
+                        // No Mapping Data found
+                        continue;
                     }
 
-                    $values[$this->buildValueKey($j, $mappingFields->getEntityName(), $fkField)] = $value;
+                    $values[$this->buildValueKey($index, $mappingFields->getEntityName(), $fkField)] = $value;
                 }
+
+                $index++;
             }
         }
 

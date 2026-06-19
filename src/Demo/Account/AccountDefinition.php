@@ -46,8 +46,6 @@ class AccountDefinition implements EntityDefinitionInterface
             new FkField('tokenId', 'token_id', TokenDefinition::class),
             new OneToOneRelation('token', 'token_id', TokenDefinition::class, 'id', true),
 
-            new OneToManyRelation('follower', AccountDefinition::class, 'id', false),
-
             new CreatedAtField(),
             new UpdatedAtField(),
         ], self::getEntityName());

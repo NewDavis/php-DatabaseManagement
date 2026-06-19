@@ -10,7 +10,7 @@ class OneToManyRelation extends RelationalField
     public function __construct(
         string $internalName,
         string $relatedToDefinition,
-        string $relatedToInternalName,
+        string $relatedToInternalName = 'id',
         bool $autoLoad = false
     ) {
         parent::__construct(

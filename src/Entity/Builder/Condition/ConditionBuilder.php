@@ -18,6 +18,8 @@ use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterInterface;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\FilterResult;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilterInterface;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\SearchableFilterInterface;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort\FieldSorting;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort\SortingInterface;
 use NewDavis\DatabaseManagement\Util\Helper\EntityHelper;
 use NewDavis\DatabaseManagement\Util\Helper\EntityTableHelper;
 use function Adminer\dump_csv;
@@ -194,6 +196,7 @@ SQL;
         $field = $serializableField->getStorageName();
 
         $value = $filter->getSearchValue();
+
         if ($serializableField instanceof Serializable) {
             $value = $serializableField->getSerializer()->encode($value);
         }
@@ -210,11 +213,23 @@ SQL;
 
         /** @var FilterInterface $filter */
         foreach ($criteria->getFilters() as $filter) {
+            if (
+                $filter instanceof SearchableFilterInterface &&
+                is_array($filter->getSearchValue()) &&
+                count($filter->getSearchValue()) == 0
+            ) continue;
+
             if ($filter instanceof MultiFilterInterface) {
                 $subQueries = [];
                 $subParameters = [];
 
                 foreach ($filter->getFilters() as $subFilter) {
+                    if (
+                        $subFilter instanceof SearchableFilterInterface &&
+                        is_array($subFilter->getSearchValue()) &&
+                        count($subFilter->getSearchValue()) == 0
+                    ) continue;
+
                     $subFilterResult = $this->convertSearchableFilter($subFilter, $joinMapping);
 
                     $subQueries[] = $subFilterResult->getQuery();
@@ -239,13 +254,39 @@ SQL;
         }
 
         return new FilterResult(
-            implode(" AND\n", $queries),
+            (count($queries) > 0 ? " WHERE\n" : '') . implode(" AND\n", $queries),
             $parameters
         );
     }
 
     public function buildSorting(Criteria $criteria): string
     {
+        $fieldSorting = [];
+
+        /** @var SortingInterface $sorting */
+        foreach ($criteria->getSortingCollection() as $sorting) {
+            if ($sorting instanceof FieldSorting) {
+                $field = null;
+                try {
+                    $field = $this->definition->getFields()->getByInternalName($sorting->getProperty());
+                } catch (\Throwable $e) {
+                    $field = $this->definition->getFields()->getByStorageName($sorting->getProperty());
+                }
+
+                if (!($field instanceof StorableInterface)) continue;
+
+                $fieldSorting[] = sprintf(
+                    '`%s` %s',
+                    $field->getStorageName(),
+                    $sorting->getDirection()->name
+                );
+            }
+        }
+
+        if (count($fieldSorting) > 0) {
+            return 'ORDER BY ' . implode(", ", $fieldSorting);
+        }
+
         return '';
     }
 

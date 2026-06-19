@@ -7,7 +7,9 @@ use Ramsey\Uuid\UuidInterface;
 interface EntityCollectionInterface extends \IteratorAggregate, \Countable
 {
     public function add(AbstractEntity $entity): void;
+    public function addAll(AbstractEntityCollection|array $entities): void;
     public function remove(AbstractEntity $entity): void;
+    public function clear(): void;
     public function has(AbstractEntity|UuidInterface $entity): bool;
     public function indexAt(int $index): ?AbstractEntity;
     public function indexOf(AbstractEntity $entity): false|int|string;

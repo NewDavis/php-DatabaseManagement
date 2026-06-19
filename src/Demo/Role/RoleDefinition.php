@@ -2,10 +2,12 @@
 
 namespace NewDavis\DatabaseManagement\Demo\Role;
 
+use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\Field\FieldCollection;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Required;
 use NewDavis\DatabaseManagement\Entity\Field\Flag\Unique;
+use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToManyRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\AutoIncrementField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\IdField;
 use NewDavis\DatabaseManagement\Entity\Field\Scalar\StringField;
@@ -23,7 +25,9 @@ class RoleDefinition implements EntityDefinitionInterface
             new IdField(),
             new AutoIncrementField(),
 
-            new StringField('name', 'name', 255, [new Required(), new Unique()])
+            new StringField('name', 'name', 255, [new Required(), new Unique()]),
+
+            new OneToManyRelation('primaryUsage', AccountDefinition::class, 'primaryRoleId', false)
         ], self::getEntityName());
     }
 

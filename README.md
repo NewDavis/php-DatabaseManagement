@@ -1,18 +1,26 @@
 <h1>php-DatabaseManagement</h1>
 
-<h2>Documentation:</h3>
+<h2>Documentation:</h2>
+
+<h3>To-Do</h3>
+<ul>
+    <li>
+        <b>WriteBuilder</b>: Fix write order, to write multiple entities with relations at once. <br>
+        The write process is quite slow (because of automatic password hashing).
+    </li>
+</ul>
  
-<h3>Connection:</h4>
+<h3>Connection:</h3>
 <ul>
     <li>You have to go into your project <b>.env</b> File</li>
     <li>
         Check if there is a <b>DATABASE_URL</b> configured:<br>
-        For example: DATABASE_URL="mysql://root:@localhost:3307/development"
+        For example: DATABASE_URL="mysql://root:@localhost:3307/development?"
     </li>
     <li>The connection should now work.</li>
 </ul>
 
-<h3>Create your own Entity (example: User):</h4>
+<h3>Create your own Entity (example: User):</h3>
 <ul>
     <li>Create a new folder with the name of your entity in the <b>src/Entity</b> directory.</li>
     <li>Now in that folder you will have to create three classes: <b>UserEntity</b>, <b>UserCollection</b>, <b>UserDefinition</b></li>
@@ -31,7 +39,7 @@
 <pre><code>public const ENTITY_NAME = 'user';</code></pre>
             </li>
             <li>
-                For the <b>getEntityName</b> function return your const.<br>
+                For the <b>getEntityName</b> function, return your const.<br>
                 for example: <br>
                 <pre><code>public function getEntityName(): string|null
 {

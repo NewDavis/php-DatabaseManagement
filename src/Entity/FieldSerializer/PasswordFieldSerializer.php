@@ -14,7 +14,7 @@ class PasswordFieldSerializer extends AbstractFieldSerializer
             return null;
         }
 
-        if (str_starts_with($value, '$argon2id$')) {
+        if (password_get_info($value)['algo'] !== null) {
             return $value;
         }
 
@@ -23,15 +23,7 @@ class PasswordFieldSerializer extends AbstractFieldSerializer
 
     public function decode(mixed $data): mixed
     {
-        if (null == $data || !is_string($data)) {
-            return null;
-        }
-
-        if (str_starts_with($data, '$argon2id$')) {
-            return $data;
-        }
-
-        return password_hash($data, PASSWORD_ARGON2ID);
+        return $this->encode($data);
     }
 
     public function validate(mixed $value): bool

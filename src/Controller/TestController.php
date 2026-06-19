@@ -2,11 +2,13 @@
 
 namespace NewDavis\DatabaseManagement\Controller;
 
+use NewDavis\DatabaseManagement\Connection;
 use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
 use NewDavis\DatabaseManagement\Demo\Account\AccountEntity;
 use NewDavis\DatabaseManagement\Demo\Role\RoleDefinition;
 use NewDavis\DatabaseManagement\Demo\Token\TokenDefinition;
 use NewDavis\DatabaseManagement\Entity\Builder\Table\TableBuilder;
+use NewDavis\DatabaseManagement\Entity\EntityDefinitionInterface;
 use NewDavis\DatabaseManagement\Entity\EntityRegistry;
 use NewDavis\DatabaseManagement\Entity\EntityRepository;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Criteria;
@@ -14,6 +16,10 @@ use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsAnyFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\EqualsFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilter;
 use NewDavis\DatabaseManagement\Entity\Read\Criteria\Filter\MultiFilterType;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort\FieldSorting;
+use NewDavis\DatabaseManagement\Entity\Read\Criteria\Sort\FieldSortingDirection;
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatement;
+use NewDavis\DatabaseManagement\Entity\Write\EntityWriteStatementCollection;
 use PhpParser\Node\Expr\AssignOp\Mul;
 use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -69,34 +75,59 @@ class TestController extends AbstractController
     {
         $start = microtime(true);
 
-        $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");//Uuid::uuid4();
+        $accountId = /*Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");*/Uuid::uuid4();
         $tokenId = Uuid::fromString("685aa2afb3ac4d8da059667b0ed438ea");
-        $roleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
+        $adminRoleId = Uuid::fromString("a9a47950-83c9-4947-ade4-7d2dfe914391");
+        $devRoleId = Uuid::fromString("0B044C1BF22241DEA9FD51C13C1691DB");
+        $userRoleId = Uuid::fromString("183459B51E4842FEA4682080F65080C4");
 
-        $result = $this->accountRepository->create([
-            [
+        $password = password_hash("password", PASSWORD_ARGON2ID);
+
+        $dataSets = [];
+        for ($i = 0; $i < 100; $i++) {
+            $accountId = /*Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");*/Uuid::uuid4();
+
+            $roles = [];
+
+            if ($i % 100 === 0) {
+                $roles[] = [
+                    'id' => $adminRoleId,
+                    'name' => 'Administrator'
+                ];
+            }
+
+            if ($i % 50 === 0) {
+                $roles[] = [
+                    'id' => $devRoleId,
+                    'name' => 'Developer'
+                ];
+            }
+
+            $roles[] = [
+                'id' => $userRoleId,
+                'name' => 'User'
+            ];
+
+            $dataSets[] = [
                 'id' => $accountId,
-                'username' => 'admin'/* . substr($accountId->toString(), 0, 6)*/,
-                'email' => 'admin' . /*substr($accountId->toString(), 0, 6) .*/ '@newdavis.me',
-                'password' => 'password',
+                'username' => 'admin' . substr($accountId->toString(), 0, 12),
+                'email' => 'admin' . substr($accountId->toString(), 0, 12) . '@newdavis.me',
+                'password' => $password,
                 'primaryRole' => [
-                    'id' => $roleId,
-                    'name' => 'Administrator',
+                    'id' => $userRoleId,
+                    'name' => 'Nutzer',
                 ],
-                'roles' => [
-                    [
-                        'id' => $roleId,
-                        'name' => 'Administrator'
-                    ]
-                ],
-                'tokenId' => $tokenId,
+                'roles' => $roles,
+                /*'tokenId' => $tokenId,
                 'token' => [
                     'id' => $tokenId,
                     'accountId' => $accountId,
                     'token' => 'eyjfidwegfouehrghsefojigseijt'
-                ]
-            ],
-        ]);
+                ]*/
+            ];
+        }
+
+        $result = $this->accountRepository->create($dataSets);
 
         $end = microtime(true);
         $took = $end - $start;
@@ -150,6 +181,30 @@ class TestController extends AbstractController
     }
 
     #[Route(
+        path: '/orm/test/delete',
+        name: 'orm.test.delete',
+        methods: ['GET']
+    )]
+    public function delete(Request $request)
+    {
+        $start = microtime(true);
+
+        $criteria = new Criteria();
+        //$criteria->addFilter(new EqualsFilter('id', 'test'));
+
+        $result = $this->accountRepository->delete($criteria);
+
+        $end = microtime(true);
+        $took = $end - $start;
+
+        dd($result, "took {$took}s");
+
+        return new JsonResponse([
+            'success' => true
+        ]);
+    }
+
+    #[Route(
         path: '/orm/test/read',
         name: 'orm.test.read',
         methods: ['GET']
@@ -159,22 +214,26 @@ class TestController extends AbstractController
         $start = microtime(true);
 
         $accountId = Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a");
-        $criteria = new Criteria([$accountId, '1DC0D0B1D9A44DF2973BB05CA4893D11', '570787C36B164D3594BB0D1963E8B1FA']);
-        $criteria->addAssociation('token.account');
-        $criteria->addFilter(new EqualsFilter('token.account.username', 'NewDavis'));
+        $criteria = new Criteria(/*[$accountId, '1DC0D0B1D9A44DF2973BB05CA4893D11', '570787C36B164D3594BB0D1963E8B1FA']*/);
+        $criteria->addAssociation('roles.primaryUsage');
+        $criteria->addSorting(new FieldSorting('autoIncrement', FieldSortingDirection::DESC));
+        /*$criteria->addFilter(new EqualsFilter('token.account.username', 'NewDavis'));
         $criteria->addFilter(new EqualsFilter('token.account.roles.name', 'Administrator'));
         $criteria->addFilter(new MultiFilter([
             new EqualsFilter('token.account.username', 'NewDavis'),
             new EqualsFilter('token.account.autoIncrement', 1),
             new EqualsFilter('token.account.email', 'info@newdavis.me'),
-        ], MultiFilterType::OR));
+        ], MultiFilterType::OR));*/
 
         $entities = $this->accountRepository->search($criteria);
 
         $end = microtime(true);
         $took = $end - $start;
 
-        dd($entities, "took {$took}s");
+        $queries = Connection::$totalQueries;
+
+        dump(memory_get_peak_usage(true) / 1024 / 1024 . " MB");
+        dd($entities, "took {$took}s. Queries executed: {$queries}");
 
         return new JsonResponse([
             'success' => true
@@ -198,6 +257,34 @@ class TestController extends AbstractController
         $criteria = new Criteria($accountIds);
 
         $ids = $this->accountRepository->searchIds($criteria);
+
+        $end = microtime(true);
+        $took = $end - $start;
+
+        dd($ids, "took {$took}s");
+
+        return new JsonResponse([
+            'success' => true
+        ]);
+    }
+
+    #[Route(
+        path: '/orm/test/count',
+        name: 'orm.test.count',
+        methods: ['GET']
+    )]
+    public function count(Request $request)
+    {
+        $start = microtime(true);
+
+        $accountIds = [
+            Uuid::fromString("57e02de6-42db-47e5-83ea-03952dea1d4a"),
+            Uuid::fromString("1DC0D0B1D9A44DF2973BB05CA4893D11"),
+            Uuid::fromString('570787C36B164D3594BB0D1963E8B1FA')
+        ];
+        $criteria = new Criteria(/*$accountIds*/);
+
+        $ids = $this->accountRepository->count($criteria);
 
         $end = microtime(true);
         $took = $end - $start;

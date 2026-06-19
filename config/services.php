@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use NewDavis\DatabaseManagement\Command\DatabaseCreateTablesCommand;
 use NewDavis\DatabaseManagement\Connection;
 use NewDavis\DatabaseManagement\Controller\TestController;
 use NewDavis\DatabaseManagement\Demo\Account\AccountDefinition;
@@ -16,6 +17,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->defaults()->public()->autowire()->autoconfigure();
 
     $services->set(Connection::class);
+
+    $services->set(DatabaseCreateTablesCommand::class)
+        ->tag('console.command');
 
     /*$services->set(TestController::class)
         ->tag('controller.service_arguments');
