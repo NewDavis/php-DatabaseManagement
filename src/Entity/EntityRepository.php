@@ -128,6 +128,11 @@ class EntityRepository implements EntityRepositoryInterface
     {
         $collection = $this->combineToCollection($entities);
 
+        if ($collection->count() == 0) return new EntityWriteResult(
+            $collection,
+            new EntityWriteStatementCollection([])
+        );
+
         $writeBuilderResult = $this->writeBuilder->build(WriteAction::CREATE, $collection);
         $combinedQueries = $writeBuilderResult->combineQueries();
 
@@ -140,6 +145,11 @@ class EntityRepository implements EntityRepositoryInterface
     {
         $collection = $this->combineToCollection($entities);
 
+        if ($collection->count() == 0) return new EntityWriteResult(
+            $collection,
+            new EntityWriteStatementCollection([])
+        );
+
         $writeBuilderResult = $this->writeBuilder->build(WriteAction::UPDATE, $collection, $entities);
         $combinedQueries = $writeBuilderResult->combineQueries();
 
@@ -151,6 +161,11 @@ class EntityRepository implements EntityRepositoryInterface
     public function upsert(array $entities): EntityWriteResult
     {
         $collection = $this->combineToCollection($entities);
+
+        if ($collection->count() == 0) return new EntityWriteResult(
+            $collection,
+            new EntityWriteStatementCollection([])
+        );
 
         $writeBuilderResult = $this->writeBuilder->build(WriteAction::UPSERT, $collection, $entities);
         $combinedQueries = $writeBuilderResult->combineQueries();
