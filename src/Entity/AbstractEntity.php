@@ -8,11 +8,22 @@ use NewDavis\DatabaseManagement\Entity\Field\Relational\OneToOneRelation;
 use NewDavis\DatabaseManagement\Entity\Field\Relational\RelationalField;
 use NewDavis\DatabaseManagement\Entity\Field\Serializable;
 use NewDavis\DatabaseManagement\Entity\Field\StorableInterface;
+use NewDavis\DatabaseManagement\Entity\Trait\EntityCreatedAtTrait;
 use NewDavis\DatabaseManagement\Entity\Trait\EntityIdTrait;
+use NewDavis\DatabaseManagement\Entity\Trait\EntityUpdatedAtTrait;
+use Ramsey\Uuid\Uuid;
 
 abstract class AbstractEntity implements EntityInterface
 {
     use EntityIdTrait;
+    use EntityCreatedAtTrait;
+    use EntityUpdatedAtTrait;
+
+    public function __construct()
+    {
+        $this->id = Uuid::uuid4();
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function get(Serializable $serializable, string $internalName): mixed
     {

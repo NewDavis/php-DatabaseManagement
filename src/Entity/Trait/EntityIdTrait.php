@@ -2,6 +2,7 @@
 
 namespace NewDavis\DatabaseManagement\Entity\Trait;
 
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 trait EntityIdTrait
