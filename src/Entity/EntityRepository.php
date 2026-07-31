@@ -247,7 +247,7 @@ class EntityRepository implements EntityRepositoryInterface
                     );
 
                     $id = $entity->getId()->toString();
-                    $mappedIds[$relatedDefinition][$id][$relationField->getInternalName()] = $id;
+                    $mappedIds[$relatedDefinition][$id][$relationField->getInternalName()] = $foundId;
                 }
             }
 
