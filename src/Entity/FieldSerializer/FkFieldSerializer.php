@@ -9,8 +9,17 @@ class FkFieldSerializer extends AbstractFieldSerializer
 {
     public function encode(mixed $value): mixed
     {
-        if (!($value instanceof UuidInterface)) {
-            return null;
+        if (is_array($value)) {
+            return array_map(
+                fn(string $uuid) => Uuid::fromString($uuid)->getBytes(),
+                $value
+            );
+        }
+
+        if (is_string($value)) {
+            return Uuid::fromString($value)->getBytes();
+        } else if (!($value instanceof UuidInterface)) {
+            return $value;
         }
 
         return $value->getBytes();
@@ -18,9 +27,10 @@ class FkFieldSerializer extends AbstractFieldSerializer
 
     public function decode(mixed $data): mixed
     {
-        if ($data == null) return null;
+        if ($data == null) return $data;
 
         if ($data instanceof UuidInterface) return $data;
+        if (is_string($data) && Uuid::isValid($data)) return Uuid::fromString($data);
 
         return Uuid::fromBytes($data);
     }

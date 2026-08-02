@@ -16,7 +16,9 @@ class IdFieldSerializer extends AbstractFieldSerializer
             );
         }
 
-        if (!($value instanceof UuidInterface)) {
+        if (is_string($value)) {
+            return Uuid::fromString($value)->getBytes();
+        } else if (!($value instanceof UuidInterface)) {
             return $value;
         }
 
@@ -28,6 +30,7 @@ class IdFieldSerializer extends AbstractFieldSerializer
         if ($data == null) return $data;
 
         if ($data instanceof UuidInterface) return $data;
+        if (is_string($data) && Uuid::isValid($data)) return Uuid::fromString($data);
 
         return Uuid::fromBytes($data);
     }
