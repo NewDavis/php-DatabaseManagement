@@ -21,7 +21,9 @@ class EntityRegistry
     public function register(EntityDefinitionInterface $definition, EntityRepository $repository): void
     {
         $this->definitions[$definition::class] = $definition;
+        $this->definitions[$definition->getEntityName()] = $definition;
         $this->repositories[$definition::class] = $repository;
+        $this->repositories[$definition->getEntityName()] = $repository;
     }
 
     public function getDefinitionByDefinitionClass(string $definitionClass): ?EntityDefinitionInterface
@@ -33,6 +35,15 @@ class EntityRegistry
         return $this->definitions[$definitionClass];
     }
 
+    public function getDefinitionByEntityName(string $entityName): ?EntityDefinitionInterface
+    {
+        if (!array_key_exists($entityName, $this->definitions)) {
+            return null;
+        }
+
+        return $this->definitions[$entityName];
+    }
+
     public function getRepositoryByDefinitionClass(string $definitionClass): ?EntityRepositoryInterface
     {
         if (!array_key_exists($definitionClass, $this->repositories)) {
@@ -40,6 +51,15 @@ class EntityRegistry
         }
 
         return $this->repositories[$definitionClass];
+    }
+
+    public function getRepositoryByEntityName(string $entityName): ?EntityRepositoryInterface
+    {
+        if (!array_key_exists($entityName, $this->repositories)) {
+            return null;
+        }
+
+        return $this->repositories[$entityName];
     }
 
     /**
