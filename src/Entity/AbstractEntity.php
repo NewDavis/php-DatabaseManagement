@@ -50,10 +50,10 @@ abstract class AbstractEntity implements EntityInterface
 
         $decoded = $serializable->getSerializer()->decode($value);
         if (
+            $decoded instanceof AbstractEntity &&
             ($serializable instanceof ManyToOneRelation || $serializable instanceof OneToOneRelation) &&
             $serializable->getForeignKey() != null
         ) {
-            /** @var AbstractEntity $decoded */
             $this->set(
                 $serializable->getForeignKey(),
                 $serializable->getForeignKey()->getInternalName(),
