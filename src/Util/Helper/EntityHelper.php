@@ -72,7 +72,11 @@ class EntityHelper
         $groups = [];
 
         foreach ($rows as $row) {
-            $columns = array_keys($rows[0]);
+            if (array_key_exists('entity', $row)) {
+                unset($row['entity']);
+            }
+
+            $columns = array_keys($row);
             if (count(array_diff($columns, ['id'])) == 0) continue;
 
             sort($columns);

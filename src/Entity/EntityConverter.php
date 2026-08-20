@@ -25,19 +25,17 @@ class EntityConverter
     ): AbstractEntityCollection {
         $collection = EntityHelper::createCollection($definition);
 
-        $mapping = null;
-        foreach ($entityData as $entityDataSet) {
-            if ($mapping == null) {
-                $mapping = $this->createPropertyMapping($definition, $entityDataSet);
-            }
+        if ($entityData != null) {
+            $mapping = null;
+            foreach ($entityData as $entityDataSet) {
+                if ($mapping == null) {
+                    $mapping = $this->createPropertyMapping($definition, $entityDataSet);
+                }
 
-            try {
                 $entity = $this->convertArrayToEntity($definition, $entityDataSet, $mapping);
-            }catch (\Exception $e) {
-                dd($e);
-            }
 
-            $collection->add($entity);
+                $collection->add($entity);
+            }
         }
 
         return $collection;
@@ -76,7 +74,7 @@ class EntityConverter
         EntityDefinitionInterface $definition,
         ?array $entityData,
         ?array $mapping = null
-    ): AbstractEntity {
+    ): ?AbstractEntity {
         $entity = EntityHelper::createEmptyEntity($definition);
 
         if ($entity == null) {
@@ -84,7 +82,7 @@ class EntityConverter
         }
 
         if ($entityData == null) {
-            return $entity;
+            return null;
         }
 
         /** @var RelationalField $relationalField */
