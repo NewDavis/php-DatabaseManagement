@@ -21,7 +21,7 @@ class EntityConverter
 
     public function convertArrayToEntityCollection(
         EntityDefinitionInterface $definition,
-        array $entityData
+        ?array $entityData
     ): AbstractEntityCollection {
         $collection = EntityHelper::createCollection($definition);
 
@@ -74,13 +74,17 @@ class EntityConverter
 
     public function convertArrayToEntity(
         EntityDefinitionInterface $definition,
-        array $entityData,
+        ?array $entityData,
         ?array $mapping = null
     ): AbstractEntity {
         $entity = EntityHelper::createEmptyEntity($definition);
 
         if ($entity == null) {
             throw new CouldNotCreateEntityInstanceException($definition);
+        }
+
+        if ($entityData == null) {
+            return $entity;
         }
 
         /** @var RelationalField $relationalField */
