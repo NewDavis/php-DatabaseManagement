@@ -10,6 +10,8 @@ class DateTimeFieldSerializer extends AbstractFieldSerializer
 {
     public function encode(mixed $value): ORM|string
     {
+        if (is_string($value)) return $value;
+
         if (!($value instanceof \DateTimeImmutable)) {
             return ORM::DEFAULT;
         }
@@ -21,6 +23,10 @@ class DateTimeFieldSerializer extends AbstractFieldSerializer
     {
         if ($data instanceof \DateTimeImmutable) {
             return $data;
+        }
+
+        if (!is_string($data)) {
+            return null;
         }
 
         $decoded = \DateTimeImmutable::createFromFormat(DateTimeField::FORMAT, $data);
