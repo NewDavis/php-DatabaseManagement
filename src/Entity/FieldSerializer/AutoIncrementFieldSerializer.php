@@ -8,7 +8,7 @@ class AutoIncrementFieldSerializer extends AbstractFieldSerializer
 {
     public function encode(mixed $value): ORM|int
     {
-        if (!is_numeric($value)) {
+        if (!is_numeric($value) || $value == -1) {
             return ORM::DEFAULT;
         }
 
